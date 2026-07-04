@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ApolloDriverConfig } from '@nestjs/apollo';
 import { graphqlConfig } from './configs/graphql.config';
 import { MongooseConfig } from './configs/database.config';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -15,8 +16,9 @@ import { MongooseConfig } from './configs/database.config';
     MongooseModule.forRootAsync({
       useClass: MongooseConfig,
     }),
+    UserModule,
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule { }
+export class AppModule {}
