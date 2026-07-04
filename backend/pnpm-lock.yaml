@@ -43,7 +43,7 @@ importers:
         version: 17.0.2
       migrate-mongo:
         specifier: ^14.0.7
-        version: 14.0.7(mongodb@7.2.0)
+        version: 14.0.7(mongodb@7.4.0)
       mongoose:
         specifier: ^9.7.3
         version: 9.7.3
@@ -99,6 +99,9 @@ importers:
       jest:
         specifier: ^30.0.0
         version: 30.4.2(@types/node@24.13.2)(ts-node@10.9.2(@types/node@24.13.2)(typescript@5.9.3))
+      mongodb:
+        specifier: ^7.4.0
+        version: 7.4.0
       prettier:
         specifier: ^3.4.2
         version: 3.9.4
@@ -2927,6 +2930,33 @@ packages:
       socks:
         optional: true
 
+  mongodb@7.4.0:
+    resolution: {integrity: sha512-giySkkdYiwoBFo/oCc8nzov3xOYZ/sB8OpAYk5GINRLEjVw0LDsm8xgQL0XMTyU4extQlDZjhdUr1ZEwKFaazw==}
+    engines: {node: '>=20.19.0'}
+    peerDependencies:
+      '@aws-sdk/credential-providers': ^3.806.0
+      '@mongodb-js/zstd': ^7.0.0
+      gcp-metadata: ^7.0.1
+      kerberos: ^7.0.0
+      mongodb-client-encryption: '>=7.0.0 <7.1.0'
+      snappy: ^7.3.2
+      socks: ^2.8.6
+    peerDependenciesMeta:
+      '@aws-sdk/credential-providers':
+        optional: true
+      '@mongodb-js/zstd':
+        optional: true
+      gcp-metadata:
+        optional: true
+      kerberos:
+        optional: true
+      mongodb-client-encryption:
+        optional: true
+      snappy:
+        optional: true
+      socks:
+        optional: true
+
   mongoose@9.7.3:
     resolution: {integrity: sha512-9DsD4sq0tL9IKyfttZ6qn74KXBcD4lxDTzGXoAeOLMnDFFp1gqc5oc4s2BiMPbetJrLwvVylfyR4cqLst2pasQ==}
     engines: {node: '>=20.19.0'}
@@ -5131,7 +5161,7 @@ snapshots:
   '@types/migrate-mongo@10.0.6':
     dependencies:
       '@types/node': 24.13.2
-      mongodb: 7.2.0
+      mongodb: 7.4.0
     transitivePeerDependencies:
       - '@aws-sdk/credential-providers'
       - '@mongodb-js/zstd'
@@ -6991,11 +7021,11 @@ snapshots:
       braces: 3.0.3
       picomatch: 2.3.2
 
-  migrate-mongo@14.0.7(mongodb@7.2.0):
+  migrate-mongo@14.0.7(mongodb@7.4.0):
     dependencies:
       cli-table3: 0.6.5
       commander: 14.0.3
-      mongodb: 7.2.0
+      mongodb: 7.4.0
 
   mime-db@1.52.0: {}
 
@@ -7035,6 +7065,12 @@ snapshots:
       whatwg-url: 14.2.0
 
   mongodb@7.2.0:
+    dependencies:
+      '@mongodb-js/saslprep': 1.4.12
+      bson: 7.3.1
+      mongodb-connection-string-url: 7.0.1
+
+  mongodb@7.4.0:
     dependencies:
       '@mongodb-js/saslprep': 1.4.12
       bson: 7.3.1
