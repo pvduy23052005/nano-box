@@ -9,9 +9,9 @@ import { graphqlConfig } from './configs/graphql.config';
     GraphQLModule.forRoot<ApolloDriverConfig>(graphqlConfig),
     ConfigModule.forRoot({
       isGlobal: true,
-    })
+    }),
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule { }
+export class AppModule {}
