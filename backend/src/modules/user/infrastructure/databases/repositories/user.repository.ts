@@ -1,8 +1,8 @@
 import { Model } from 'mongoose';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { UserEntity } from 'src/modules/user/domain /user.entity';
-import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.repository';
+import { UserEntity } from 'src/modules/user/domain/user.entity';
+import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
 import { User, UserDocument } from '../schemas/user.schema';
 
 @Injectable()
@@ -51,5 +51,13 @@ export class UserRepository implements UserRepositoryAdapter {
     const created = new this.userModel(persistenceData);
     const saved = await created.save();
     return this.toEntity(saved);
+  }
+
+  async findByEmail(email: string): Promise<UserEntity | null> {
+    const user = await this.userModel.findOne({ email }).lean().exec();
+    if (!user) {
+      return null;
+    }
+    return this.toEntity(user);
   }
 }
