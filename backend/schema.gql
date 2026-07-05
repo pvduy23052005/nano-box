@@ -2,6 +2,21 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Mutation {
+  register(input: RegisterInputDto!): RegisterPayload!
+}
+
 type Query {
-  me: String!
+  sayHello: String!
+}
+
+input RegisterInputDto {
+  email: String!
+  name: String!
+  password: String!
+}
+
+type RegisterPayload {
+  email: String!
+  name: String!
 }

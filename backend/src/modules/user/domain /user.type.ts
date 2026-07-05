@@ -9,6 +9,4 @@ export interface UserProps {
   email: string;
   password: string;
   status?: UserStatus;
-  createdAt?: Date;
-  updatedAt?: Date;
 }

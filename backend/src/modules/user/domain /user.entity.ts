@@ -1,4 +1,4 @@
-import { UserProps, UserStatus } from "./user.type";
+import { UserProps, UserStatus } from './user.type';
 
 export class UserEntity {
   private id?: string;
@@ -18,7 +18,7 @@ export class UserEntity {
   public static create(props: Omit<UserProps, 'id' | 'status'>): UserEntity {
     return new UserEntity({
       ...props,
-      status: UserStatus.ACTIVE
+      status: UserStatus.ACTIVE,
     });
   }
 
@@ -27,7 +27,7 @@ export class UserEntity {
   }
 
   public changePassword(newPassword: string): void {
-    if (newPassword.length < 6) throw new Error("Invalid password length.");
+    if (newPassword.length < 6) throw new Error('Invalid password length.');
     this.password = newPassword;
   }
 
@@ -40,13 +40,23 @@ export class UserEntity {
   }
 
   public updateProfile(name: string): void {
-    if (!name.trim()) throw new Error("Name cannot be empty.");
+    if (!name.trim()) throw new Error('Name cannot be empty.');
     this.name = name;
   }
 
-  public getId(): string | undefined { return this.id; }
-  public getName(): string { return this.name; }
-  public getEmail(): string { return this.email; }
-  public getPassword(): string { return this.password; }
-  public getStatus(): UserStatus { return this.status; }
+  public getId(): string | undefined {
+    return this.id;
+  }
+  public getName(): string {
+    return this.name;
+  }
+  public getEmail(): string {
+    return this.email;
+  }
+  public getPassword(): string {
+    return this.password;
+  }
+  public getStatus(): UserStatus {
+    return this.status;
+  }
 }
