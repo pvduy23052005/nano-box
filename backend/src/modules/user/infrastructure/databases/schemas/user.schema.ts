@@ -1,12 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
+import { UserStatus } from 'src/modules/user/domain /user.type';
 
 export type UserDocument = HydratedDocument<User>;
-
-export enum UserStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-}
 
 @Schema({
   timestamps: {
