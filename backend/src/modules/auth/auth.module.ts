@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { UserModule } from '../user/user.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -9,6 +9,7 @@ import { LoginUseCase } from './applications/use-case/login.use-case';
 import { JwtTokenGenerator } from './infrastructure/externals/jwt-token-generator.external';
 import { AuthResolver } from './presentation/graphql/auth.resolver';
 
+@Global()
 @Module({
   imports: [
     UserModule,
@@ -42,5 +43,6 @@ import { AuthResolver } from './presentation/graphql/auth.resolver';
       inject: [UserRepositoryAdapter, IpasswordHasher, ITokenGenerator],
     },
   ],
+  exports: [JwtModule],
 })
 export class AuthModule {}

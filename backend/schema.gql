@@ -18,7 +18,7 @@ type Mutation {
 }
 
 type Query {
-  sayHello: String!
+  getMe: UserProfilePayload!
 }
 
 input RegisterInputDto {
@@ -35,4 +35,10 @@ type RegisterPayload {
 type User {
   email: String!
   id: ID!
+}
+
+type UserProfilePayload {
+  email: String!
+  id: String!
+  name: String!
 }

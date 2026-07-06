@@ -55,9 +55,11 @@ export class UserRepository implements UserRepositoryAdapter {
 
   async findByEmail(email: string): Promise<UserEntity | null> {
     const user = await this.userModel.findOne({ email }).lean().exec();
-    if (!user) {
-      return null;
-    }
-    return this.toEntity(user);
+    return user ? this.toEntity(user) : null;
+  }
+
+  async findById(id: string): Promise<UserEntity | null> {
+    const user = await this.userModel.findById(id).lean().exec();
+    return user ? this.toEntity(user) : null;
   }
 }

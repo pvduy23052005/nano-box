@@ -5,7 +5,7 @@ import { ITokenGenerator } from '../../applications/ports/token-generator.port';
 
 @Injectable()
 export class JwtTokenGenerator implements ITokenGenerator {
-  constructor(private readonly jwtService: JwtService) { }
+  constructor(private readonly jwtService: JwtService) {}
 
   generateToken(payload: TokenPayload): string {
     return this.jwtService.sign(payload);
