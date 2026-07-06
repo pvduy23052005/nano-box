@@ -1,7 +1,9 @@
 import { UserEntity } from '../user.entity';
 import { UserStatus } from '../user.type';
 
-const makeRestoredUser = (overrides: Partial<Parameters<typeof UserEntity.restore>[0]> = {}) =>
+const makeRestoredUser = (
+  overrides: Partial<Parameters<typeof UserEntity.restore>[0]> = {},
+) =>
   UserEntity.restore({
     id: 'user-id-1',
     name: 'Nguyen Van A',
@@ -76,7 +78,9 @@ describe('UserEntity', () => {
     it('nên ném lỗi khi mật khẩu mới ngắn hơn 6 ký tự', () => {
       const user = makeRestoredUser();
 
-      expect(() => user.changePassword('12345')).toThrow('Invalid password length.');
+      expect(() => user.changePassword('12345')).toThrow(
+        'Invalid password length.',
+      );
     });
 
     it('nên ném lỗi khi mật khẩu mới là chuỗi rỗng', () => {

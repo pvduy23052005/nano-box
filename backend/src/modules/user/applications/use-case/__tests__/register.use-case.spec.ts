@@ -55,7 +55,9 @@ describe('RegisterUseCase', () => {
         expect(result.getEmail()).toBe(validInput.email);
         expect(result.getName()).toBe(validInput.name);
 
-        expect(userRepository.findByEmail).toHaveBeenCalledWith(validInput.email);
+        expect(userRepository.findByEmail).toHaveBeenCalledWith(
+          validInput.email,
+        );
         expect(passwordHasher.hash).toHaveBeenCalledWith(validInput.password);
         expect(userRepository.save).toHaveBeenCalledTimes(1);
 
@@ -71,7 +73,9 @@ describe('RegisterUseCase', () => {
       });
 
       it('nên ném lỗi và không thực hiện hash hay lưu dữ liệu', async () => {
-        await expect(registerUseCase.execute(validInput)).rejects.toThrow('Email đã tồn tại');
+        await expect(registerUseCase.execute(validInput)).rejects.toThrow(
+          'Email đã tồn tại',
+        );
 
         expect(passwordHasher.hash).not.toHaveBeenCalled();
         expect(userRepository.save).not.toHaveBeenCalled();
@@ -80,9 +84,13 @@ describe('RegisterUseCase', () => {
 
     describe('khi repository gặp lỗi', () => {
       it('nên truyền lỗi lên khi findByEmail thất bại', async () => {
-        userRepository.findByEmail.mockRejectedValue(new Error('DB connection failed'));
+        userRepository.findByEmail.mockRejectedValue(
+          new Error('DB connection failed'),
+        );
 
-        await expect(registerUseCase.execute(validInput)).rejects.toThrow('DB connection failed');
+        await expect(registerUseCase.execute(validInput)).rejects.toThrow(
+          'DB connection failed',
+        );
       });
 
       it('nên truyền lỗi lên khi save thất bại', async () => {
@@ -90,7 +98,9 @@ describe('RegisterUseCase', () => {
         passwordHasher.hash.mockResolvedValue('hashed_password');
         userRepository.save.mockRejectedValue(new Error('DB write failed'));
 
-        await expect(registerUseCase.execute(validInput)).rejects.toThrow('DB write failed');
+        await expect(registerUseCase.execute(validInput)).rejects.toThrow(
+          'DB write failed',
+        );
       });
     });
   });

@@ -44,7 +44,11 @@ describe('LoginUseCase', () => {
     userRepository = makeMockUserRepository();
     passwordHasher = makeMockPasswordHasher();
     tokenGenerator = makeMockTokenGenerator();
-    loginUseCase = new LoginUseCase(userRepository, passwordHasher, tokenGenerator);
+    loginUseCase = new LoginUseCase(
+      userRepository,
+      passwordHasher,
+      tokenGenerator,
+    );
   });
 
   describe('execute', () => {
@@ -67,14 +71,19 @@ describe('LoginUseCase', () => {
         await loginUseCase.execute(validInput);
 
         expect(userRepository.findByEmail).toHaveBeenCalledTimes(1);
-        expect(userRepository.findByEmail).toHaveBeenCalledWith(validInput.email);
+        expect(userRepository.findByEmail).toHaveBeenCalledWith(
+          validInput.email,
+        );
       });
 
       it('nên so sánh mật khẩu thô với mật khẩu đã hash trong DB', async () => {
         await loginUseCase.execute(validInput);
 
         expect(passwordHasher.compare).toHaveBeenCalledTimes(1);
-        expect(passwordHasher.compare).toHaveBeenCalledWith(validInput.password, 'hashed_password');
+        expect(passwordHasher.compare).toHaveBeenCalledWith(
+          validInput.password,
+          'hashed_password',
+        );
       });
 
       it('nên tạo token với đúng payload của người dùng', async () => {
@@ -128,16 +137,22 @@ describe('LoginUseCase', () => {
 
     describe('khi repository gặp lỗi', () => {
       it('nên truyền lỗi lên khi findByEmail thất bại', async () => {
-        userRepository.findByEmail.mockRejectedValue(new Error('DB connection failed'));
+        userRepository.findByEmail.mockRejectedValue(
+          new Error('DB connection failed'),
+        );
 
-        await expect(loginUseCase.execute(validInput)).rejects.toThrow('DB connection failed');
+        await expect(loginUseCase.execute(validInput)).rejects.toThrow(
+          'DB connection failed',
+        );
       });
 
       it('nên truyền lỗi lên khi passwordHasher thất bại', async () => {
         userRepository.findByEmail.mockResolvedValue(makePersistedUser());
         passwordHasher.compare.mockRejectedValue(new Error('Hasher error'));
 
-        await expect(loginUseCase.execute(validInput)).rejects.toThrow('Hasher error');
+        await expect(loginUseCase.execute(validInput)).rejects.toThrow(
+          'Hasher error',
+        );
       });
     });
   });
