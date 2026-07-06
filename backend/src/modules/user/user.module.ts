@@ -34,6 +34,6 @@ import { PasswordHasher } from './infrastructure/externals/password-hasher.exter
       inject: [UserRepositoryAdapter, IpasswordHasher],
     },
   ],
-  exports: [RegisterUseCase],
+  exports: [RegisterUseCase, UserRepositoryAdapter, IpasswordHasher],
 })
 export class UserModule {}

@@ -2,7 +2,18 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input LoginInputDto {
+  email: String!
+  password: String!
+}
+
+type LoginPayload {
+  accessToken: String!
+  user: User!
+}
+
 type Mutation {
+  login(input: LoginInputDto!): LoginPayload!
   register(input: RegisterInputDto!): RegisterPayload!
 }
 
@@ -19,4 +30,9 @@ input RegisterInputDto {
 type RegisterPayload {
   email: String!
   name: String!
+}
+
+type User {
+  email: String!
+  id: ID!
 }

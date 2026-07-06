@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ApolloDriverConfig } from '@nestjs/apollo';
 import { graphqlConfig } from './configs/graphql.config';
 import { MongooseConfig } from './configs/database.config';
+import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 
 @Module({
@@ -17,6 +18,7 @@ import { UserModule } from './modules/user/user.module';
       useClass: MongooseConfig,
     }),
     UserModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
