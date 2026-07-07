@@ -1,0 +1,107 @@
+import { RegisterUseCase } from '../register.use-case';
+import { UserRepositoryAdapter } from '../../ports/user.port';
+import { IpasswordHasher } from '../../ports/password-hasher.port';
+import { UserEntity } from '../../../domain/user.entity';
+import { UserStatus } from '../../../domain/user.type';
+
+const makeMockUserRepository = (): jest.Mocked<UserRepositoryAdapter> => ({
+  findByEmail: jest.fn(),
+  findById: jest.fn(),
+  save: jest.fn(),
+});
+
+const makeMockPasswordHasher = (): jest.Mocked<IpasswordHasher> => ({
+  hash: jest.fn(),
+  compare: jest.fn(),
+});
+
+const makePersistedUser = () =>
+  UserEntity.restore({
+    id: 'user-id-1',
+    name: 'Nguyen Van A',
+    email: 'test@example.com',
+    password: 'hashed_password',
+    status: UserStatus.ACTIVE,
+  });
+
+describe('RegisterUseCase', () => {
+  let registerUseCase: RegisterUseCase;
+  let userRepository: jest.Mocked<UserRepositoryAdapter>;
+  let passwordHasher: jest.Mocked<IpasswordHasher>;
+
+  const validInput = {
+    name: 'Nguyen Van A',
+    email: 'test@example.com',
+    password: '123456',
+  };
+
+  beforeEach(() => {
+    userRepository = makeMockUserRepository();
+    passwordHasher = makeMockPasswordHasher();
+    registerUseCase = new RegisterUseCase(userRepository, passwordHasher);
+  });
+
+  describe('execute', () => {
+    describe('khi đăng ký thành công', () => {
+      beforeEach(() => {
+        userRepository.findByEmail.mockResolvedValue(null);
+        passwordHasher.hash.mockResolvedValue('hashed_password');
+        userRepository.save.mockResolvedValue(makePersistedUser());
+      });
+
+      it('nên hash mật khẩu và lưu đúng entity với status ACTIVE', async () => {
+        const result = await registerUseCase.execute(validInput);
+
+        expect(result.getEmail()).toBe(validInput.email);
+        expect(result.getName()).toBe(validInput.name);
+
+        expect(userRepository.findByEmail).toHaveBeenCalledWith(
+          validInput.email,
+        );
+        expect(passwordHasher.hash).toHaveBeenCalledWith(validInput.password);
+        expect(userRepository.save).toHaveBeenCalledTimes(1);
+
+        const savedEntity: UserEntity = userRepository.save.mock.calls[0][0];
+        expect(savedEntity.getPassword()).toBe('hashed_password');
+        expect(savedEntity.getStatus()).toBe(UserStatus.ACTIVE);
+      });
+    });
+
+    describe('khi email đã tồn tại', () => {
+      beforeEach(() => {
+        userRepository.findByEmail.mockResolvedValue(makePersistedUser());
+      });
+
+      it('nên ném lỗi và không thực hiện hash hay lưu dữ liệu', async () => {
+        await expect(registerUseCase.execute(validInput)).rejects.toThrow(
+          'Email đã tồn tại',
+        );
+
+        expect(passwordHasher.hash).not.toHaveBeenCalled();
+        expect(userRepository.save).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('khi repository gặp lỗi', () => {
+      it('nên truyền lỗi lên khi findByEmail thất bại', async () => {
+        userRepository.findByEmail.mockRejectedValue(
+          new Error('DB connection failed'),
+        );
+
+        await expect(registerUseCase.execute(validInput)).rejects.toThrow(
+          'DB connection failed',
+        );
+      });
+
+      it('nên truyền lỗi lên khi save thất bại', async () => {
+        userRepository.findByEmail.mockResolvedValue(null);
+        passwordHasher.hash.mockResolvedValue('hashed_password');
+        userRepository.save.mockRejectedValue(new Error('DB write failed'));
+
+        await expect(registerUseCase.execute(validInput)).rejects.toThrow(
+          'DB write failed',
+        );
+      });
+    });
+  });
+});
