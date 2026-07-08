@@ -125,3 +125,8 @@
     @apply font-sans;
   }
 }
+
+[data-slot="input"],
+[data-slot="button"] {
+  height: 2.5rem;
+}
