@@ -127,6 +127,8 @@
 }
 
 [data-slot="input"],
-[data-slot="button"] {
+[data-slot="button"], 
+[data-slot="input-group"]
+{
   height: 2.5rem;
 }
