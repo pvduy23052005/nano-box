@@ -49,11 +49,8 @@ export default function RegisterPage() {
   const { register, isLoading } = useRegister();
 
   const onSubmit = async (registerData: RegisterInputDto) => {
-    const result = await register({
-      name: registerData.name,
-      email: registerData.email,
-      password: registerData.password,
-    });
+    const result = await register(registerData);
+    console.log(result);
   };
 
   return (

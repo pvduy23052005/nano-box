@@ -7,10 +7,14 @@ export class RegisterUseCase {
   constructor(
     private readonly userRepository: UserRepositoryAdapter,
     private readonly passwordHasher: IpasswordHasher,
-  ) {}
+  ) { }
 
   async execute(input: RegisterInputDto): Promise<UserEntity> {
     const existUser = await this.userRepository.findByEmail(input.email);
+
+    if (input.password != input.confirmPassword) {
+      throw new Error("Xác nhận mật khẩu không chính xác");
+    }
 
     if (existUser) {
       throw new Error('Email đã tồn tại');
