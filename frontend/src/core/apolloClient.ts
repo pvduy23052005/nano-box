@@ -1,7 +1,7 @@
 import { ApolloClient, InMemoryCache } from "@apollo/client";
 import { registerApolloClient } from "@apollo/client-integration-nextjs";
 import { cookies } from "next/headers";
-import { createHttpLink } from "./apollo-base";
+import { createHttpLink } from "./apolloBase";
 
 export const { getClient, query, PreloadQuery } = registerApolloClient(async () => {
   const cookieStore = await cookies();

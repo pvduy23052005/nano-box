@@ -1,7 +1,7 @@
 import "./globals.css";
 import { cn } from "@/src/lib/utils";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ApolloProvider } from "@/src/core/apollo-provider";
+import { ApolloProvider } from "@/src/core/apolloProvider";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 

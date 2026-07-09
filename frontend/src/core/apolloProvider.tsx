@@ -6,7 +6,7 @@ import {
   ApolloNextAppProvider,
 } from "@apollo/client-integration-nextjs";
 import { PropsWithChildren } from "react";
-import { createHttpLink } from "./apollo-base";
+import { createHttpLink } from "./apolloBase";
 import Cookies from "js-cookie";
 
 function makeClient() {
