@@ -14,10 +14,11 @@ import {
 } from "@/src/components/ui/input-group";
 import { Field, FieldGroup, FieldLabel } from "@/src/components/ui/field";
 import { useState } from "react";
-import { EyeIcon, EyeOffIcon, LockIcon, MailIcon } from "lucide-react";
-import { Controller, useForm } from "react-hook-form";
-import { Button } from "@/src/components/ui/button";
 import Link from "next/link";
+import { Button } from "@/src/components/ui/button";
+import { Controller, useForm } from "react-hook-form";
+import { LockIcon, MailIcon, EyeIcon, EyeOffIcon } from "lucide-react";
+import { LoginInputDto } from "@/src/types/graphql/graphql";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -28,7 +29,7 @@ export default function LoginPage() {
     },
   });
 
-  const onSubmit = (data) => console.log(data);
+  const onSubmit = async (data: LoginInputDto) => console.log(data);
 
   return (
     <div className="flex h-screen items-center justify-center">

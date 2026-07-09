@@ -4,7 +4,16 @@ import { GraphQLValidationPipe } from './common/pipes/validator.pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
+  app.enableCors({
+    origin: [
+      'http://localhost:3000',
+      'https://yourproductiondomain.com',
+    ],
+    credentials: true,
+    allowedHeaders: 'Content-Type, Authorization, Accept',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+  });
+  
   app.useGlobalPipes(GraphQLValidationPipe);
   await app.listen(process.env.PORT ?? 5050);
 }

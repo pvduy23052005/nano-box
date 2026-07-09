@@ -1,6 +1,7 @@
 import "./globals.css";
 import { cn } from "@/src/lib/utils";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ApolloProvider } from "@/src/core/apollo-provider";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -31,7 +32,9 @@ export default function RootLayout({
         geist.variable,
       )}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <ApolloProvider>{children}</ApolloProvider>
+      </body>
     </html>
   );
 }
