@@ -194,7 +194,7 @@ export default function RegisterPage() {
                 </Field>
               </FieldGroup>
 
-              <Button type="submit" className="mt-6 w-full">
+              <Button type="submit" className="mt-6 w-full cursor-pointer">
                 Tạo tài khoản
               </Button>
             </form>
