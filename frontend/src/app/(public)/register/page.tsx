@@ -25,6 +25,8 @@ import { useState } from "react";
 import { Button } from "@/src/components/ui/button";
 import { Controller, useForm } from "react-hook-form";
 import { Field, FieldGroup, FieldLabel } from "@/src/components/ui/field";
+import { RegisterInputDto } from "@/src/types/graphql/graphql";
+import { useRegister } from "@/src/features/auth/hooks/useRegister";
 
 export interface RegisterFormData {
   name: string;
@@ -36,7 +38,6 @@ export interface RegisterFormData {
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const { control, handleSubmit } = useForm({
     defaultValues: {
       name: "",
@@ -45,8 +46,15 @@ export default function RegisterPage() {
       confirmPassword: "",
     },
   });
+  const { register, isLoading } = useRegister();
 
-  const onSubmit = (data: RegisterFormData) => console.log(data);
+  const onSubmit = async (registerData: RegisterInputDto) => {
+    const result = await register({
+      name: registerData.name,
+      email: registerData.email,
+      password: registerData.password,
+    });
+  };
 
   return (
     <div className="flex items-center justify-center h-screen">
