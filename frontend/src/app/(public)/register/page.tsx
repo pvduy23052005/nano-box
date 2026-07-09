@@ -145,9 +145,9 @@ export default function RegisterPage() {
                             className="cursor-pointer hover:text-foreground transition-colors"
                           >
                             {showPassword ? (
-                              <EyeOffIcon className="size-4" />
-                            ) : (
                               <EyeIcon className="size-4" />
+                            ) : (
+                              <EyeOffIcon className="size-4" />
                             )}
                           </button>
                         </InputGroupAddon>
@@ -155,6 +155,7 @@ export default function RegisterPage() {
                     )}
                   />
                 </Field>
+
                 <Field>
                   <FieldLabel htmlFor="confirmPassword">Mật khẩu</FieldLabel>
                   <Controller
@@ -181,9 +182,9 @@ export default function RegisterPage() {
                             className="cursor-pointer hover:text-foreground transition-colors"
                           >
                             {showConfirmPassword ? (
-                              <EyeOffIcon className="size-4" />
-                            ) : (
                               <EyeIcon className="size-4" />
+                            ) : (
+                              <EyeOffIcon className="size-4" />
                             )}
                           </button>
                         </InputGroupAddon>
