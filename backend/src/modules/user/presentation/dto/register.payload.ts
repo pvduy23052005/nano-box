@@ -1,13 +1,6 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { ObjectType } from '@nestjs/graphql';
+import { BasePayload } from 'src/common/customs/base.payload';
+import { UserProfilePayload } from './profile.payload';
 
 @ObjectType()
-export class RegisterPayload {
-  @Field(() => ID)
-  id: string;
-
-  @Field()
-  name: string;
-
-  @Field()
-  email: string;
-}
+export class RegisterPayload extends BasePayload(UserProfilePayload) {}

@@ -59,8 +59,8 @@ export default function RegisterPage() {
   const onSubmit = async (registerData: RegisterInputDto) => {
     try {
       const result = await register(registerData);
-      if (result) {
-        toast.success("Đăng ký tài khoản thành công!");
+      if (result?.success) {
+        toast.success(result.message || "Đăng ký tài khoản thành công!");
         router.push("/login");
       }
     } catch (error) {

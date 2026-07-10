@@ -28,7 +28,7 @@ export default function LoginPage() {
     },
   });
 
-  const onSubmit = async (data: LoginInputDto) => console.log(data);
+  const onSubmit = async (data: any) => console.log(data);
 
   return (
     <div className="flex h-screen items-center justify-center">

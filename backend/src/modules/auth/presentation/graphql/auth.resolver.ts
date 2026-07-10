@@ -9,6 +9,11 @@ export class AuthResolver {
 
   @Mutation(() => LoginPayload)
   async login(@Args('input') input: LoginInputDto): Promise<LoginPayload> {
-    return this.loginUseCase.execute(input);
+    const result = await this.loginUseCase.execute(input);
+    return {
+      success: true,
+      message: 'Đăng nhập thành công',
+      data: result,
+    };
   }
 }
