@@ -5,7 +5,7 @@ import { LoginUseCase } from '../../applications/use-case/login.use-case';
 
 @Resolver()
 export class AuthResolver {
-  constructor(private readonly loginUseCase: LoginUseCase) { }
+  constructor(private readonly loginUseCase: LoginUseCase) {}
 
   @Mutation(() => LoginPayload)
   async login(@Args('input') input: LoginInputDto): Promise<LoginPayload> {

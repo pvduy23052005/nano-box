@@ -6,8 +6,13 @@ export const useRegister = () => {
   const [registerMutation, { loading }] = useMutation(REGISTER_MUTATION);
 
   const register = async (input: RegisterInputDto) => {
-    const { data } = await registerMutation({ variables: { input } });
-    return data?.register;
+    try {
+      const { data } = await registerMutation({ variables: { input } });
+      return data?.register;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
   }
 
   return {

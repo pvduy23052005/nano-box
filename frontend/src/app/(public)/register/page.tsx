@@ -27,6 +27,9 @@ import { Controller, useForm } from "react-hook-form";
 import { Field, FieldGroup, FieldLabel } from "@/src/components/ui/field";
 import { RegisterInputDto } from "@/src/types/graphql/graphql";
 import { useRegister } from "@/src/features/auth/hooks/useRegister";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Spinner } from "@/src/components/ui/spinner";
 
 export interface RegisterFormData {
   name: string;
@@ -38,6 +41,7 @@ export interface RegisterFormData {
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const router = useRouter();
   const { control, handleSubmit } = useForm({
     defaultValues: {
       name: "",
@@ -49,8 +53,15 @@ export default function RegisterPage() {
   const { register, isLoading } = useRegister();
 
   const onSubmit = async (registerData: RegisterInputDto) => {
-    const result = await register(registerData);
-    console.log(result);
+    try {
+      const result = await register(registerData);
+      if (result) {
+        toast.success("Đăng ký tài khoản thành công!");
+        router.push("/login");
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -200,7 +211,7 @@ export default function RegisterPage() {
               </FieldGroup>
 
               <Button type="submit" className="mt-6 w-full cursor-pointer">
-                Tạo tài khoản
+                {isLoading ? <Spinner /> : "Tạo tài khoản"}
               </Button>
             </form>
           </CardContent>
