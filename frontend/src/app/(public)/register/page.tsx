@@ -20,22 +20,27 @@ import {
   MailIcon,
   UserIcon,
 } from "lucide-react";
-import Link from "next/link";
-import { useState } from "react";
-import { Button } from "@/src/components/ui/button";
-import { Controller, useForm } from "react-hook-form";
 import {
   Field,
   FieldGroup,
   FieldLabel,
   FieldError,
 } from "@/src/components/ui/field";
+import Link from "next/link";
+import { useState } from "react";
+import { Button } from "@/src/components/ui/button";
+import { Controller, useForm } from "react-hook-form";
 import { RegisterInputDto } from "@/src/types/graphql/graphql";
 import { useRegister } from "@/src/features/auth/hooks/useRegister";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Spinner } from "@/src/components/ui/spinner";
 import { handleFormError } from "@/src/core/utils/handleFormError";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  RegisterFormValue,
+  registerSchema,
+} from "@/src/features/auth/schemas/register";
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -47,7 +52,9 @@ export default function RegisterPage() {
     handleSubmit,
     setError,
     formState: { errors },
-  } = useForm({
+  } = useForm<RegisterFormValue>({
+    resolver: zodResolver(registerSchema),
+    mode: "onBlur",
     defaultValues: {
       name: "",
       email: "",
@@ -99,7 +106,7 @@ export default function RegisterPage() {
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)}>
               <FieldGroup>
-                <Field aria-invalid={!!errors.name}>
+                <Field data-invalid={!!errors.name}>
                   <FieldLabel htmlFor="name">Họ và tên</FieldLabel>
 
                   <Controller
@@ -124,7 +131,7 @@ export default function RegisterPage() {
                   )}
                 </Field>
 
-                <Field data-invalid={errors.email}>
+                <Field data-invalid={!!errors.email}>
                   <FieldLabel htmlFor="email">Email</FieldLabel>
 
                   <Controller
@@ -137,6 +144,7 @@ export default function RegisterPage() {
                         </InputGroupAddon>
                         <InputGroupInput
                           id="email"
+                          aria-invalid={!!errors.email}
                           placeholder="example@gmail.com"
                           {...field}
                         />
@@ -148,7 +156,7 @@ export default function RegisterPage() {
                   )}
                 </Field>
 
-                <Field data-invalid={errors.password}>
+                <Field data-invalid={!!errors.password}>
                   <FieldLabel htmlFor="password">Mật khẩu</FieldLabel>
                   <Controller
                     control={control}
@@ -160,6 +168,7 @@ export default function RegisterPage() {
                         </InputGroupAddon>
                         <InputGroupInput
                           id="password"
+                          aria-invalid={!!errors.password}
                           type={showPassword ? "text" : "password"}
                           placeholder="Nhập mật khẩu"
                           {...field}
@@ -187,7 +196,9 @@ export default function RegisterPage() {
                 </Field>
 
                 <Field data-invalid={!!errors.confirmPassword}>
-                  <FieldLabel htmlFor="confirmPassword">Mật khẩu</FieldLabel>
+                  <FieldLabel htmlFor="confirmPassword">
+                    Xác nhận Mật khẩu
+                  </FieldLabel>
                   <Controller
                     control={control}
                     name="confirmPassword"
@@ -198,6 +209,7 @@ export default function RegisterPage() {
                         </InputGroupAddon>
                         <InputGroupInput
                           id="confirmPassword"
+                          aria-invalid={!!errors.confirmPassword}
                           type={showConfirmPassword ? "text" : "password"}
                           placeholder="Nhập lại mật khẩu"
                           {...field}
