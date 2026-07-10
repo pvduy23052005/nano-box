@@ -21,17 +21,20 @@ export class AuthGuard implements CanActivate {
     const gqlContext = GqlExecutionContext.create(context);
     const { req } = gqlContext.getContext<{ req: AuthenticatedRequest }>();
 
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException(
-        'Thiếu token hoặc định dạng token không hợp lệ',
-      );
+    let accessToken: string | undefined = (
+      req.cookies as Record<string, string> | undefined
+    )?.accessToken;
+
+    if (!accessToken) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        accessToken = authHeader.substring(7).trim();
+      }
     }
 
-    const accessToken = authHeader.substring(7).trim();
     if (!accessToken) {
       throw new UnauthorizedException(
-        'Phiên làm việc đã kết thúc hoặc không có quyền',
+        'Thiếu token hoặc phiên làm việc không hợp lệ',
       );
     }
 

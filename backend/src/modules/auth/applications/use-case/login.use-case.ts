@@ -9,7 +9,7 @@ export class LoginUseCase {
     private readonly userRepository: UserRepositoryAdapter,
     private readonly passwordHasher: IpasswordHasher,
     private readonly tokenGenerator: ITokenGenerator,
-  ) { }
+  ) {}
 
   async execute(input: LoginRequest): Promise<LoginResponse> {
     const user = await this.userRepository.findByEmail(input.email);

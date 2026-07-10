@@ -149,10 +149,7 @@ export default function LoginPage() {
                 </Field>
               </FieldGroup>
 
-              <Button
-                type="submit"
-                className="mt-6 w-full cursor-pointer"
-              >
+              <Button type="submit" className="mt-6 w-full cursor-pointer">
                 {isLoading ? (
                   <>
                     <Spinner /> Đang đăng nhập...
