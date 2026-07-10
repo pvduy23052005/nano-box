@@ -18,7 +18,6 @@ import Link from "next/link";
 import { Button } from "@/src/components/ui/button";
 import { Controller, useForm } from "react-hook-form";
 import { LockIcon, MailIcon, EyeIcon, EyeOffIcon } from "lucide-react";
-import { LoginInputDto } from "@/src/types/graphql/graphql";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState<boolean>(false);

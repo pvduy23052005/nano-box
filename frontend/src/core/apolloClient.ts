@@ -4,7 +4,7 @@ import { registerApolloClient } from "@apollo/client-integration-nextjs";
 import { onError } from "@apollo/client/link/error";
 import { cookies } from "next/headers";
 import { createHttpLink } from "./apolloBase";
-import { handleGlobalError } from "./utils/handlError";
+import { handleGlobalError } from "./utils/handleGlobalError";
 
 export const { getClient, query } = registerApolloClient(async () => {
   const cookieStore = await cookies();

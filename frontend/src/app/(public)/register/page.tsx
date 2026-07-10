@@ -24,25 +24,30 @@ import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/src/components/ui/button";
 import { Controller, useForm } from "react-hook-form";
-import { Field, FieldGroup, FieldLabel } from "@/src/components/ui/field";
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+  FieldError,
+} from "@/src/components/ui/field";
 import { RegisterInputDto } from "@/src/types/graphql/graphql";
 import { useRegister } from "@/src/features/auth/hooks/useRegister";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Spinner } from "@/src/components/ui/spinner";
-
-export interface RegisterFormData {
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
+import { handleFormError } from "@/src/core/utils/handleFormError";
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
-  const { control, handleSubmit } = useForm({
+  const { register, isLoading } = useRegister();
+  const {
+    control,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = useForm({
     defaultValues: {
       name: "",
       email: "",
@@ -50,7 +55,6 @@ export default function RegisterPage() {
       confirmPassword: "",
     },
   });
-  const { register, isLoading } = useRegister();
 
   const onSubmit = async (registerData: RegisterInputDto) => {
     try {
@@ -60,7 +64,7 @@ export default function RegisterPage() {
         router.push("/login");
       }
     } catch (error) {
-      console.error(error);
+      handleFormError(error, setError);
     }
   };
 
@@ -95,7 +99,7 @@ export default function RegisterPage() {
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)}>
               <FieldGroup>
-                <Field>
+                <Field aria-invalid={!!errors.name}>
                   <FieldLabel htmlFor="name">Họ và tên</FieldLabel>
 
                   <Controller
@@ -108,15 +112,19 @@ export default function RegisterPage() {
                         </InputGroupAddon>
                         <InputGroupInput
                           id="name"
+                          aria-invalid={!!errors.name}
                           placeholder="Nguyễn văn A"
                           {...field}
                         />
                       </InputGroup>
                     )}
                   />
+                  {errors.name && (
+                    <FieldError>{errors.name.message}</FieldError>
+                  )}
                 </Field>
 
-                <Field>
+                <Field data-invalid={errors.email}>
                   <FieldLabel htmlFor="email">Email</FieldLabel>
 
                   <Controller
@@ -135,9 +143,12 @@ export default function RegisterPage() {
                       </InputGroup>
                     )}
                   />
+                  {errors.email && (
+                    <FieldError>{errors.email.message}</FieldError>
+                  )}
                 </Field>
 
-                <Field>
+                <Field data-invalid={errors.password}>
                   <FieldLabel htmlFor="password">Mật khẩu</FieldLabel>
                   <Controller
                     control={control}
@@ -170,9 +181,12 @@ export default function RegisterPage() {
                       </InputGroup>
                     )}
                   />
+                  {errors.password && (
+                    <FieldError>{errors.password.message}</FieldError>
+                  )}
                 </Field>
 
-                <Field>
+                <Field data-invalid={!!errors.confirmPassword}>
                   <FieldLabel htmlFor="confirmPassword">Mật khẩu</FieldLabel>
                   <Controller
                     control={control}
@@ -207,6 +221,9 @@ export default function RegisterPage() {
                       </InputGroup>
                     )}
                   />
+                  {errors.confirmPassword && (
+                    <FieldError>{errors.confirmPassword.message}</FieldError>
+                  )}
                 </Field>
               </FieldGroup>
 
