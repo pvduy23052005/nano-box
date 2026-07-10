@@ -12,23 +12,50 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/src/components/ui/input-group";
-import { Field, FieldGroup, FieldLabel } from "@/src/components/ui/field";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/src/components/ui/field";
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/src/components/ui/button";
 import { Controller, useForm } from "react-hook-form";
 import { LockIcon, MailIcon, EyeIcon, EyeOffIcon } from "lucide-react";
+import { LoginFormValue, loginSchema } from "@/src/features/auth/schemas/login";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { LoginInputDto } from "@/src/types/graphql/graphql";
+import { useLogin } from "@/src/features/auth/hooks/useLogin";
+import { handleFormError } from "@/src/core/utils/handleFormError";
+import { useRouter } from "next/navigation";
+import { Spinner } from "@/src/components/ui/spinner";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const { control, handleSubmit } = useForm({
+  const router = useRouter();
+  const { login, isLoading } = useLogin();
+  const {
+    control,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = useForm<LoginFormValue>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
-  const onSubmit = async (data: any) => console.log(data);
+  const onSubmit = async (input: LoginInputDto) => {
+    try {
+      const result = await login(input);
+      if (result?.success) router.push("/");
+    } catch (error) {
+      handleFormError(error, setError);
+    }
+  };
 
   return (
     <div className="flex h-screen items-center justify-center">
@@ -58,7 +85,7 @@ export default function LoginPage() {
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)}>
               <FieldGroup>
-                <Field>
+                <Field data-invalid={!!errors.email}>
                   <FieldLabel htmlFor="email">Họ và tên</FieldLabel>
 
                   <Controller
@@ -70,15 +97,19 @@ export default function LoginPage() {
                           <MailIcon />
                         </InputGroupAddon>
                         <InputGroupInput
-                          {...field}
                           id="email"
+                          aria-invalid={!!errors.email}
                           placeholder="example@gmail.com"
+                          {...field}
                         />
                       </InputGroup>
                     )}
                   />
+                  {errors.email && (
+                    <FieldError>{errors.email.message}</FieldError>
+                  )}
                 </Field>
-                <Field>
+                <Field data-invalid={!!errors.password}>
                   <FieldLabel htmlFor="password">Password</FieldLabel>
                   <Controller
                     control={control}
@@ -89,10 +120,11 @@ export default function LoginPage() {
                           <LockIcon />
                         </InputGroupAddon>
                         <InputGroupInput
-                          {...field}
                           id="password"
+                          aria-invalid={!!errors.password}
                           placeholder="Nhập mật khẩu"
                           type={showPassword ? "text" : "password"}
+                          {...field}
                         />
 
                         <InputGroupAddon align="inline-end">
@@ -111,11 +143,23 @@ export default function LoginPage() {
                       </InputGroup>
                     )}
                   />
+                  {errors.password && (
+                    <FieldError>{errors.password.message}</FieldError>
+                  )}
                 </Field>
               </FieldGroup>
 
-              <Button type="submit" className="mt-6 w-full cursor-pointer">
-                Đăng nhập
+              <Button
+                type="submit"
+                className="mt-6 w-full cursor-pointer"
+              >
+                {isLoading ? (
+                  <>
+                    <Spinner /> Đang đăng nhập...
+                  </>
+                ) : (
+                  "Đăng nhập"
+                )}
               </Button>
             </form>
           </CardContent>

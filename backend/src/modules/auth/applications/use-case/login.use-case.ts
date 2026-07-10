@@ -1,3 +1,4 @@
+import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 import { LoginResponse, LoginRequest } from '../dto/login.type';
 import { ITokenGenerator } from '../ports/token-generator.port';
 import { IpasswordHasher } from 'src/modules/user/applications/ports/password-hasher.port';
@@ -8,17 +9,19 @@ export class LoginUseCase {
     private readonly userRepository: UserRepositoryAdapter,
     private readonly passwordHasher: IpasswordHasher,
     private readonly tokenGenerator: ITokenGenerator,
-  ) {}
+  ) { }
 
   async execute(input: LoginRequest): Promise<LoginResponse> {
     const user = await this.userRepository.findByEmail(input.email);
-
     const isValid = await this.passwordHasher.compare(
       input.password,
       user?.getPassword() || '',
     );
     if (!isValid || !user) {
-      throw new Error('Email hoặc mật khẩu không đúng');
+      throw new DomainValidationException({
+        email: 'Email hoặc mật khẩu không chính xác',
+        password: 'Email hoặc mật khẩu không chính xác',
+      });
     }
 
     const accessToken = this.tokenGenerator.generateToken({
@@ -30,6 +33,7 @@ export class LoginUseCase {
       accessToken,
       user: {
         id: user.getId() || '',
+        name: user.getName() || '',
         email: user.getEmail(),
       },
     };

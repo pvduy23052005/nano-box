@@ -13,3 +13,20 @@ export const REGISTER_MUTATION = graphql(`
     }
   }
 `);
+
+export const LOGIN_MUTATION = graphql(`
+  mutation Login($input: LoginInputDto!) {
+    login(input: $input) {
+      success
+      message
+      data {
+        accessToken
+        user {
+          id
+          name
+          email
+        }
+      }
+    }
+  }
+`);

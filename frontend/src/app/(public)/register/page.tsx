@@ -249,7 +249,7 @@ export default function RegisterPage() {
             Bạn đã có tài khoản?{" "}
             <Link
               href="/login"
-              className="text-primary hover:underline font-medium hover:text-muted-foreground"
+              className="text-primary hover:underline font-medium"
             >
               Đăng nhập
             </Link>
