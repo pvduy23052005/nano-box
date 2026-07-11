@@ -1,41 +1,46 @@
 # This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
 
-name: Backend Dedicated CI
+name: Backend Dedicated CI (PNPM)
 
 on:
   push:
     branches: [ "main" ]
     paths:
-      - 'backend/**' # Chỉ kích hoạt khi có thay đổi code trong folder backend
+      - 'backend/**'
   pull_request:
     branches: [ "main" ]
     paths:
-      - 'backend/**' # Chỉ kích hoạt khi tạo PR có chỉnh sửa folder backend
+      - 'backend/**'
 
 jobs:
   backend-ci:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./backend # Thiết lập thư mục làm việc mặc định
+        working-directory: ./backend
 
     steps:
     - name: Checkout mã nguồn
       uses: actions/checkout@v4
     
-    - name: Khởi tạo môi trường Node.js
+    - name: Cài đặt PNPM CLI
+      uses: pnpm/action-setup@v3
+      with:
+        version: 8 # Hoặc chỉ định phiên bản pnpm cụ thể bạn đang dùng ở local
+
+    - name: Khởi tạo môi trường Node.js (Bản 22)
       uses: actions/setup-node@v4
       with:
-        node-version: 20
-        cache: 'npm'
-        cache-dependency-path: './backend/package-lock.json' # Cache tối ưu theo lockfile backend
+        node-version: 22
+        cache: 'pnpm'
+        cache-dependency-path: './backend/pnpm-lock.yaml'
 
     - name: Cài đặt Dependencies sạch
-      run: npm ci
+      run: pnpm install --frozen-lockfile
 
     - name: Kiểm tra biên dịch hệ thống (Production Build)
-      run: npm run build --if-present
+      run: pnpm run build --if-present
 
     - name: Thực thi bộ cài đặt Unit Test
-      run: npm test --if-present
+      run: pnpm test --if-present
