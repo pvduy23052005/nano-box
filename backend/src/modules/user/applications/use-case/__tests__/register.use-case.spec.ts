@@ -135,7 +135,9 @@ describe('RegisterUseCase', () => {
       it('nên truyền lỗi lên khi save thất bại', async () => {
         userRepository.findByEmail.mockResolvedValue(null);
         passwordHasher.hash.mockResolvedValue('hashed_password');
-        userRepository.save.mockRejectedValue(new Error('Ghi dữ liệu cơ sở dữ liệu thất bại'));
+        userRepository.save.mockRejectedValue(
+          new Error('Ghi dữ liệu cơ sở dữ liệu thất bại'),
+        );
 
         await expect(registerUseCase.execute(validInput)).rejects.toThrow(
           'Ghi dữ liệu cơ sở dữ liệu thất bại',

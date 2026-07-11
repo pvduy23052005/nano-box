@@ -175,7 +175,9 @@ describe('UserEntity', () => {
     it('nên ném lỗi DomainValidationException khi tên chỉ chứa khoảng trắng', () => {
       const user = makeRestoredUser();
 
-      expect(() => user.updateProfile('   ')).toThrow(DomainValidationException);
+      expect(() => user.updateProfile('   ')).toThrow(
+        DomainValidationException,
+      );
 
       try {
         user.updateProfile('   ');

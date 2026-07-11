@@ -47,7 +47,10 @@ export class UserEntity {
 
   public changePassword(newPassword: string): void {
     if (newPassword.length < 6) {
-      throw new DomainValidationException('password', 'Mật khẩu phải có ít nhất 6 ký tự');
+      throw new DomainValidationException(
+        'password',
+        'Mật khẩu phải có ít nhất 6 ký tự',
+      );
     }
     this.password = newPassword;
   }

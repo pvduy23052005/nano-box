@@ -107,7 +107,7 @@ describe('LoginUseCase', () => {
       it('nên ném lỗi với thông báo chung chung', async () => {
         const promise = loginUseCase.execute(validInput);
         await expect(promise).rejects.toThrow(DomainValidationException);
-        
+
         try {
           await promise;
         } catch (error) {
@@ -135,7 +135,7 @@ describe('LoginUseCase', () => {
       it('nên ném lỗi với thông báo chung chung', async () => {
         const promise = loginUseCase.execute(validInput);
         await expect(promise).rejects.toThrow(DomainValidationException);
-        
+
         try {
           await promise;
         } catch (error) {
