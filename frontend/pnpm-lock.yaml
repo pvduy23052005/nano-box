@@ -32,6 +32,9 @@ importers:
       graphql:
         specifier: ^17.0.2
         version: 17.0.2
+      jose:
+        specifier: ^6.2.3
+        version: 6.2.3
       js-cookie:
         specifier: ^3.0.8
         version: 3.0.8
