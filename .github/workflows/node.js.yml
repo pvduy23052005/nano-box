@@ -34,7 +34,6 @@ jobs:
       with:
         node-version: 22
         cache: 'pnpm'
-        cache-dependency-path: 'backend/pnpm-lock.yaml'
 
     - name: Cài đặt Dependencies sạch
       run: pnpm install --frozen-lockfile
