@@ -22,7 +22,12 @@ export class UserResolver {
   }
 
   @Mutation(() => RegisterPayload)
-  register(@Args('input') input: RegisterInputDto) {
-    return this.registerUseCase.execute(input);
+  async register(@Args('input') input: RegisterInputDto) {
+    const result = await this.registerUseCase.execute(input);
+    return {
+      success: true,
+      message: 'Đăng ký thành công',
+      data: result,
+    };
   }
 }

@@ -17,7 +17,7 @@ export class MongooseConfig implements MongooseOptionsFactory {
       minPoolSize: 2,
 
       connectionFactory: (connection: Connection) => {
-        if (connection.readyState === 1) {
+        if (Number(connection.readyState) === 1) {
           this.logger.log('MongoDB connected successfully');
         }
 

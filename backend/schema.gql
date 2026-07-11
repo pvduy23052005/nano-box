@@ -8,6 +8,12 @@ input LoginInputDto {
 }
 
 type LoginPayload {
+  data: LoginResult
+  message: String!
+  success: Boolean!
+}
+
+type LoginResult {
   accessToken: String!
   user: User!
 }
@@ -22,19 +28,22 @@ type Query {
 }
 
 input RegisterInputDto {
+  confirmPassword: String!
   email: String!
   name: String!
   password: String!
 }
 
 type RegisterPayload {
-  email: String!
-  name: String!
+  data: UserProfilePayload
+  message: String!
+  success: Boolean!
 }
 
 type User {
   email: String!
   id: ID!
+  name: String!
 }
 
 type UserProfilePayload {
