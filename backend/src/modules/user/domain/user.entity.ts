@@ -1,3 +1,4 @@
+import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 import { UserProps, UserStatus } from './user.type';
 
 export class UserEntity {
@@ -16,6 +17,24 @@ export class UserEntity {
   }
 
   public static create(props: Omit<UserProps, 'id' | 'status'>): UserEntity {
+    const errors: Record<string, string> = {};
+
+    if (!props.name || !props.name.trim()) {
+      errors.name = 'Tên không được để trống';
+    }
+
+    if (!props.email || !props.email.includes('@')) {
+      errors.email = 'Email không đúng định dạng';
+    }
+
+    if (!props.password || props.password.length < 6) {
+      errors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      throw new DomainValidationException(errors);
+    }
+
     return new UserEntity({
       ...props,
       status: UserStatus.ACTIVE,
@@ -27,7 +46,9 @@ export class UserEntity {
   }
 
   public changePassword(newPassword: string): void {
-    if (newPassword.length < 6) throw new Error('Invalid password length.');
+    if (newPassword.length < 6) {
+      throw new DomainValidationException('password', 'Mật khẩu phải có ít nhất 6 ký tự');
+    }
     this.password = newPassword;
   }
 
@@ -40,7 +61,9 @@ export class UserEntity {
   }
 
   public updateProfile(name: string): void {
-    if (!name.trim()) throw new Error('Name cannot be empty.');
+    if (!name.trim()) {
+      throw new DomainValidationException('name', 'Tên không được để trống');
+    }
     this.name = name;
   }
 
