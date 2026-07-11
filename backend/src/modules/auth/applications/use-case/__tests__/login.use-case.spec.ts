@@ -4,6 +4,7 @@ import { IpasswordHasher } from 'src/modules/user/applications/ports/password-ha
 import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
 import { UserEntity } from 'src/modules/user/domain/user.entity';
 import { UserStatus } from 'src/modules/user/domain/user.type';
+import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 
 const makeMockUserRepository = (): jest.Mocked<UserRepositoryAdapter> => ({
   findByEmail: jest.fn(),
@@ -104,9 +105,18 @@ describe('LoginUseCase', () => {
       });
 
       it('nên ném lỗi với thông báo chung chung', async () => {
-        await expect(loginUseCase.execute(validInput)).rejects.toThrow(
-          'Email hoặc mật khẩu không đúng',
-        );
+        const promise = loginUseCase.execute(validInput);
+        await expect(promise).rejects.toThrow(DomainValidationException);
+
+        try {
+          await promise;
+        } catch (error) {
+          const domainError = error as DomainValidationException;
+          expect(domainError.errors).toEqual({
+            email: 'Email hoặc mật khẩu không chính xác',
+            password: 'Email hoặc mật khẩu không chính xác',
+          });
+        }
       });
 
       it('không nên tạo token', async () => {
@@ -123,9 +133,18 @@ describe('LoginUseCase', () => {
       });
 
       it('nên ném lỗi với thông báo chung chung', async () => {
-        await expect(loginUseCase.execute(validInput)).rejects.toThrow(
-          'Email hoặc mật khẩu không đúng',
-        );
+        const promise = loginUseCase.execute(validInput);
+        await expect(promise).rejects.toThrow(DomainValidationException);
+
+        try {
+          await promise;
+        } catch (error) {
+          const domainError = error as DomainValidationException;
+          expect(domainError.errors).toEqual({
+            email: 'Email hoặc mật khẩu không chính xác',
+            password: 'Email hoặc mật khẩu không chính xác',
+          });
+        }
       });
 
       it('không nên tạo token', async () => {

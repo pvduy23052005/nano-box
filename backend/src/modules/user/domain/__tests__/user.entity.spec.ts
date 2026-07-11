@@ -1,5 +1,6 @@
 import { UserEntity } from '../user.entity';
 import { UserStatus } from '../user.type';
+import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 
 const makeRestoredUser = (
   overrides: Partial<Parameters<typeof UserEntity.restore>[0]> = {},
@@ -46,6 +47,27 @@ describe('UserEntity', () => {
       expect(user.getEmail()).toBe('test@example.com');
       expect(user.getPassword()).toBe('hashed_password');
     });
+
+    it('nên ném lỗi DomainValidationException khi nhiều trường không hợp lệ cùng lúc', () => {
+      let validationError: DomainValidationException | undefined;
+
+      try {
+        UserEntity.create({
+          name: '   ',
+          email: 'invalid-email',
+          password: '123',
+        });
+      } catch (error) {
+        validationError = error as DomainValidationException;
+      }
+
+      expect(validationError).toBeInstanceOf(DomainValidationException);
+      expect(validationError?.errors).toEqual({
+        name: 'Tên không được để trống',
+        email: 'Email không đúng định dạng',
+        password: 'Mật khẩu phải có ít nhất 6 ký tự',
+      });
+    });
   });
 
   describe('restore', () => {
@@ -75,18 +97,36 @@ describe('UserEntity', () => {
       expect(user.getPassword()).toBe('new_password_123');
     });
 
-    it('nên ném lỗi khi mật khẩu mới ngắn hơn 6 ký tự', () => {
+    it('nên ném lỗi DomainValidationException khi mật khẩu mới ngắn hơn 6 ký tự', () => {
       const user = makeRestoredUser();
 
       expect(() => user.changePassword('12345')).toThrow(
-        'Invalid password length.',
+        DomainValidationException,
       );
+
+      try {
+        user.changePassword('12345');
+      } catch (error) {
+        const validationError = error as DomainValidationException;
+        expect(validationError.errors).toEqual({
+          password: 'Mật khẩu phải có ít nhất 6 ký tự',
+        });
+      }
     });
 
-    it('nên ném lỗi khi mật khẩu mới là chuỗi rỗng', () => {
+    it('nên ném lỗi DomainValidationException khi mật khẩu mới là chuỗi rỗng', () => {
       const user = makeRestoredUser();
 
-      expect(() => user.changePassword('')).toThrow('Invalid password length.');
+      expect(() => user.changePassword('')).toThrow(DomainValidationException);
+
+      try {
+        user.changePassword('');
+      } catch (error) {
+        const validationError = error as DomainValidationException;
+        expect(validationError.errors).toEqual({
+          password: 'Mật khẩu phải có ít nhất 6 ký tự',
+        });
+      }
     });
   });
 
@@ -117,16 +157,36 @@ describe('UserEntity', () => {
       expect(user.getName()).toBe('Tran Van B');
     });
 
-    it('nên ném lỗi khi tên là chuỗi rỗng', () => {
+    it('nên ném lỗi DomainValidationException khi tên là chuỗi rỗng', () => {
       const user = makeRestoredUser();
 
-      expect(() => user.updateProfile('')).toThrow('Name cannot be empty.');
+      expect(() => user.updateProfile('')).toThrow(DomainValidationException);
+
+      try {
+        user.updateProfile('');
+      } catch (error) {
+        const validationError = error as DomainValidationException;
+        expect(validationError.errors).toEqual({
+          name: 'Tên không được để trống',
+        });
+      }
     });
 
-    it('nên ném lỗi khi tên chỉ chứa khoảng trắng', () => {
+    it('nên ném lỗi DomainValidationException khi tên chỉ chứa khoảng trắng', () => {
       const user = makeRestoredUser();
 
-      expect(() => user.updateProfile('   ')).toThrow('Name cannot be empty.');
+      expect(() => user.updateProfile('   ')).toThrow(
+        DomainValidationException,
+      );
+
+      try {
+        user.updateProfile('   ');
+      } catch (error) {
+        const validationError = error as DomainValidationException;
+        expect(validationError.errors).toEqual({
+          name: 'Tên không được để trống',
+        });
+      }
     });
   });
 });
