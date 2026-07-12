@@ -128,9 +128,9 @@ export function AppSidebar() {
                 {group.items.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
-                      size="lg"
+                      size="sm"
                       isActive={item.isActive}
-                      className="h-10"
+                      className="h-8"
                       render={<Link href={item.url} />}
                     >
                       <item.icon />
