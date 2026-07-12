@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import {
   Sidebar,
@@ -22,7 +25,6 @@ import {
   BarChart,
   Folder,
   FileText,
-  Settings,
 } from "lucide-react";
 
 const data = {
@@ -38,19 +40,13 @@ const data = {
       label: "GIAO TIẾP",
       items: [
         {
-          title: "Hộp thư",
-          url: "/",
-          icon: Mail,
-        },
-        {
           title: "Tin nhắn trực tiếp",
-          url: "/",
+          url: "/chat",
           icon: MessageSquare,
-          isActive: true,
         },
         {
           title: "Kênh nhóm",
-          url: "/",
+          url: "/channel",
           icon: Users,
         },
       ],
@@ -58,30 +54,25 @@ const data = {
     {
       label: "CÔNG VIỆC",
       items: [
-        { title: "Dự án", url: "/", icon: ClipboardList },
-        { title: "Nhiệm vụ", url: "/", icon: CheckCircle },
-        { title: "Lịch", url: "/", icon: Calendar },
+        { title: "Dự án", url: "/project", icon: ClipboardList },
+        { title: "Nhiệm vụ", url: "/task", icon: CheckCircle },
+        { title: "Lịch", url: "/calendar", icon: Calendar },
       ],
     },
     {
       label: "TÀI NGUYÊN",
       items: [
-        { title: "Báo cáo", url: "/", icon: BarChart },
-        { title: "Tập tin", url: "/", icon: Folder },
-        { title: "Tài liệu", url: "/", icon: FileText },
+        { title: "Báo cáo", url: "/report", icon: BarChart },
+        { title: "Tập tin", url: "/files", icon: Folder },
+        { title: "Tài liệu", url: "/docs", icon: FileText },
       ],
-    },
-  ],
-  footer: [
-    {
-      title: "Cài đặt",
-      url: "/cai-dat",
-      icon: Settings,
     },
   ],
 };
 
 export function AppSidebar() {
+  const pathname = usePathname();
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center">
@@ -96,7 +87,9 @@ export function AppSidebar() {
             />
           </div>
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-            <span className="text-lg font-bold text-primary">NANO BOX</span>
+            <span className="text-lg font-bold text-primary whitespace-nowrap ">
+              NANO BOX
+            </span>
           </div>
         </div>
       </SidebarHeader>
@@ -109,6 +102,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     size="lg"
+                    isActive={pathname === item.url}
                     render={<Link href={item.url} />}
                   >
                     <item.icon />
@@ -129,8 +123,12 @@ export function AppSidebar() {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       size="sm"
-                      isActive={item.isActive}
                       className="h-8"
+                      isActive={
+                        item.url === "/"
+                          ? pathname === "/"
+                          : pathname.startsWith(item.url)
+                      }
                       render={<Link href={item.url} />}
                     >
                       <item.icon />
