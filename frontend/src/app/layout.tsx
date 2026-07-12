@@ -3,6 +3,7 @@ import { cn } from "@/src/lib/utils";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ApolloProvider } from "@/src/core/apolloProvider";
 import { Toaster } from "sonner";
+import { Metadata } from "next";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -15,6 +16,19 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+export const metadata: Metadata = {
+  title: "Tên ứng dụng của bạn",
+  description: "Mô tả ứng dụng",
+  icons: {
+    icon: [
+      { url: "/logo.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/apple-icon.png",
+  },
+};
 
 export default function RootLayout({
   children,
