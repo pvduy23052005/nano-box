@@ -70,7 +70,7 @@ const data = {
   ],
 };
 
-export function AppSidebar() {
+export default function AppSidebar() {
   const pathname = usePathname();
 
   return (

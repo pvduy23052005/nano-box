@@ -1,5 +1,6 @@
-import { AppSidebar } from "@/src/components/common/AppSidebar";
-import { SidebarProvider, SidebarTrigger } from "@/src/components/ui/sidebar";
+import AppHeader from "@/src/components/common/AppHeader";
+import AppSidebar from "@/src/components/common/AppSidebar";
+import { SidebarProvider } from "@/src/components/ui/sidebar";
 
 export default function LayoutMain({
   children,
@@ -9,9 +10,9 @@ export default function LayoutMain({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <main className="flex-1 overflow-auto p-3">
-        <SidebarTrigger />
-        {children}
+      <main className="flex flex-col flex-1  overflow-hidden">
+        <AppHeader />
+        <div className="flex-1 min-h-0 relative">{children}</div>
       </main>
     </SidebarProvider>
   );
