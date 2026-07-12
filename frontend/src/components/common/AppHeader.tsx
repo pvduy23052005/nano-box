@@ -2,7 +2,6 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { SidebarTrigger } from "../ui/sidebar";
-import { Typography } from "../ui/typography";
 
 export default function AppHeader() {
   return (

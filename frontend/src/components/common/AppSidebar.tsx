@@ -16,7 +16,6 @@ import {
 } from "../ui/sidebar";
 import {
   LayoutGrid,
-  Mail,
   MessageSquare,
   Users,
   ClipboardList,
