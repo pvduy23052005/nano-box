@@ -4,7 +4,7 @@ import { useQuery } from "@apollo/client/react";
 import { GET_ME_QUERY } from "../services/mutations";
 import { useAuthStore } from "../store/useAuthStore";
 import { useEffect } from "react";
-import { Spinner } from "@/src/components/ui/spinner";
+import LoadingPage from "@/src/components/common/LoadingPage";
 
 export default function AuthProvider({
   children,
@@ -24,12 +24,7 @@ export default function AuthProvider({
     }
   }, [data, setUser, error]);
 
-  if (loading)
-    return (
-      <>
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"></div>
-      </>
-    );
+  if (loading) return <LoadingPage />;
 
   return children;
 }
