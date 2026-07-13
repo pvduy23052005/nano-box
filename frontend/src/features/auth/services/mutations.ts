@@ -30,3 +30,13 @@ export const LOGIN_MUTATION = graphql(`
     }
   }
 `);
+
+export const GET_ME_QUERY = graphql(`
+  query GetMe {
+    getMe {
+      id
+      name
+      email
+    }
+  }
+`);
