@@ -1,9 +1,12 @@
 "use client";
 
+import { useAuthStore } from "@/src/features/auth/store/useAuthStore";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { SidebarTrigger } from "../ui/sidebar";
 
 export default function AppHeader() {
+  const { user } = useAuthStore();
+
   return (
     <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background/80 px-2">
       <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground cursor-pointer" />
@@ -15,9 +18,11 @@ export default function AppHeader() {
         </Avatar>
         <div className="hidden md:flex flex-col">
           <span className="text-sm font-medium text-foreground">
-            Phùng Văn Duy
+            {user?.name}
           </span>
-          <span className="text-xs text-muted-foreground trunced">pvduy@gmail.com</span>
+          <span className="text-xs text-muted-foreground trunced">
+            {user?.email}
+          </span>
         </div>
       </div>
     </header>
