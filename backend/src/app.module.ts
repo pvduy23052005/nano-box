@@ -7,6 +7,8 @@ import { graphqlConfig } from './configs/graphql.config';
 import { MongooseConfig } from './configs/database.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
+import { ChatModule } from './modules/chat/chat.module';
+import { WebsocketModule } from './infrastructure/websocket/ws.module';
 
 @Module({
   imports: [
@@ -17,8 +19,10 @@ import { UserModule } from './modules/user/user.module';
     MongooseModule.forRootAsync({
       useClass: MongooseConfig,
     }),
+    WebsocketModule,
     UserModule,
     AuthModule,
+    ChatModule,
   ],
   controllers: [],
   providers: [],
