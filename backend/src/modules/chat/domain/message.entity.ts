@@ -1,5 +1,5 @@
-import { MessageProps } from "./message.type";
-import { DomainValidationException } from "src/common/customs/domain-validation.exception";
+import { MessageProps } from './message.type';
+import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 
 export class MessageEntity {
   private id?: string;
