@@ -1,19 +1,19 @@
-import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { WsException } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
 import * as cookie from 'cookie';
-import { TokenPayload } from "src/modules/auth/applications/dto/login.type";
+import { TokenPayload } from 'src/modules/auth/applications/dto/login.type';
 
 export type SockeAuth = {
   data: {
     user: TokenPayload;
   };
-}
+};
 
 @Injectable()
 export class WsAuthGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService) { }
+  constructor(private readonly jwtService: JwtService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
@@ -39,7 +39,6 @@ export class WsAuthGuard implements CanActivate {
     const rawCookie = client.handshake?.headers?.cookie;
 
     if (rawCookie) {
-
       const parsedCookies = cookie.parseCookie(rawCookie);
 
       if (parsedCookies['accessToken']) {

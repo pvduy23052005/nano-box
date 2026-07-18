@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { EventGateway } from './presentation/gateway/event.gateway';
 import { MesageRepository } from './infrastructure/database/message.repository';
-import { MessageRepositoryAdapter } from './application/ports/mesage.port';
+import { MessageRepositoryAdapter } from './application/ports/message.port';
 import { SendMessageUseCase } from './application/use-cases/send-message.use-case';
 import {
   Message,

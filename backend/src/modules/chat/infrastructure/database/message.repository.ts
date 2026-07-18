@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { MessageRepositoryAdapter } from '../../application/ports/mesage.port';
+import { MessageRepositoryAdapter } from '../../application/ports/message.port';
 import { MessageEntity } from '../../domain/message.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Message, MessageDocument } from './message.schema';
@@ -11,7 +11,7 @@ export class MesageRepository implements MessageRepositoryAdapter {
   constructor(
     @InjectModel(Message.name)
     private readonly messageModel: Model<MessageDocument>,
-  ) { }
+  ) {}
 
   private toPersistence(message: MessageEntity) {
     return {

@@ -16,18 +16,20 @@ import type { SockeAuth } from 'src/common/guards/ws.guard';
 export class EventGateway {
   constructor(
     private readonly websocketService: WebsocketService,
-    private readonly sendMessageUseCase: SendMessageUseCase
-
-  ) { }
+    private readonly sendMessageUseCase: SendMessageUseCase,
+  ) {}
 
   @UseGuards(WsAuthGuard)
   @SubscribeMessage(SOCKET_EVENTS.CHAT.SEND_MESSAGE)
   async sendMessage(
     @MessageBody() messageData: MessageState,
-    @ConnectedSocket() client: SockeAuth
+    @ConnectedSocket() client: SockeAuth,
   ) {
     const curentUserId = client.data.user.id;
-    const data = await this.sendMessageUseCase.execute({ ...messageData, senderId: curentUserId });
+    const data = await this.sendMessageUseCase.execute({
+      ...messageData,
+      senderId: curentUserId,
+    });
     const server = this.websocketService.server;
     if (server) {
       server.emit(SOCKET_EVENTS.CHAT.RECEIVE_MESSAGE, data);

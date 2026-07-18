@@ -23,14 +23,9 @@ export class WebsocketGateway
 
   afterInit(server: Server) {
     this.websocketService.server = server;
-    console.log(`[Websocket] Server initialized successfully`);
   }
 
-  handleConnection(client: Socket) {
-    console.log(`Client connected: ${client.id}`);
-  }
+  handleConnection(_client: Socket) {}
 
-  handleDisconnect(client: Socket) {
-    console.log(`Client disconnected: ${client.id}`);
-  }
+  handleDisconnect(_client: Socket) {}
 }
