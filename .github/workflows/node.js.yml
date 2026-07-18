@@ -27,9 +27,9 @@ jobs:
     - name: Cài đặt PNPM CLI
       uses: pnpm/action-setup@v3
       with:
-        version: 8 # Hoặc chỉ định phiên bản pnpm cụ thể bạn đang dùng ở local
+        version: 10.33.0
 
-    - name: Khởi tạo môi trường Node.js (Bản 22)
+    - name: Khởi tạo môi trường Node.js (Bản 24)
       uses: actions/setup-node@v4
       with:
         node-version: 24
