@@ -5,7 +5,7 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
+import { Server } from 'socket.io';
 import { WebsocketService } from './ws.service';
 
 @WebSocketGateway({
@@ -25,7 +25,7 @@ export class WebsocketGateway
     this.websocketService.server = server;
   }
 
-  handleConnection(_client: Socket) {}
+  handleConnection() {}
 
-  handleDisconnect(_client: Socket) {}
+  handleDisconnect() {}
 }
