@@ -32,8 +32,9 @@ jobs:
     - name: Khởi tạo môi trường Node.js (Bản 22)
       uses: actions/setup-node@v4
       with:
-        node-version: 22
+        node-version: 24
         cache: 'pnpm'
+        cache-dependency-path: ./backend/pnpm-lock.yaml
 
     - name: Cài đặt Dependencies sạch
       run: pnpm install --frozen-lockfile
