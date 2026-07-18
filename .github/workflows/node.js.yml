@@ -25,21 +25,22 @@ jobs:
       uses: actions/checkout@v4
     
     - name: Cài đặt PNPM CLI
-      uses: pnpm/action-setup@v3
+      uses: pnpm/action-setup@v4
       with:
-        version: 8 # Hoặc chỉ định phiên bản pnpm cụ thể bạn đang dùng ở local
+        version: 10.33.0
 
-    - name: Khởi tạo môi trường Node.js (Bản 22)
+    - name: Khởi tạo môi trường Node.js (Bản 24)
       uses: actions/setup-node@v4
       with:
-        node-version: 22
+        node-version: 24
         cache: 'pnpm'
+        cache-dependency-path: ./backend/pnpm-lock.yaml
 
-    - name: Cài đặt Dependencies sạch
+    - name: Cài đặt Dependencies
       run: pnpm install --frozen-lockfile
 
     - name: Kiểm tra biên dịch hệ thống (Production Build)
-      run: pnpm run build --if-present
+      run: pnpm build
 
     - name: Thực thi bộ cài đặt Unit Test
-      run: pnpm test --if-present
+      run: pnpm test
