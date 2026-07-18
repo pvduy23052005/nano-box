@@ -1,4 +1,4 @@
-import { MessageProps } from './message.type';
+import { MessageState } from './message.type';
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 
 export class MessageEntity {
@@ -8,7 +8,7 @@ export class MessageEntity {
   private attachments: string[];
   private readBy: string[];
 
-  private constructor(props: MessageProps) {
+  private constructor(props: MessageState) {
     this.id = props.id;
     this.senderId = props.senderId;
     this.content = props.content;
@@ -16,10 +16,10 @@ export class MessageEntity {
     this.readBy = props.readBy;
   }
 
-  public static create(props: Omit<MessageProps, 'id'>): MessageEntity {
+  public static create(props: Omit<MessageState, 'id'>): MessageEntity {
     const errors: Record<string, string> = {};
 
-    if (!props.content.trim().length && !props.attachments.length) {
+    if (!props.content.length && !props.attachments.length) {
       errors.content = 'Nội dung hoặc file đính kèm không được để trống';
     }
 
@@ -30,7 +30,7 @@ export class MessageEntity {
     return new MessageEntity(props);
   }
 
-  public static restore(props: Required<MessageProps>): MessageEntity {
+  public static restore(props: MessageState): MessageEntity {
     return new MessageEntity(props);
   }
 

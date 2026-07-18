@@ -1,7 +1,6 @@
-export interface MessageProps {
+export interface MessageState {
   id?: string;
   senderId: string;
-  receiverId: string;
   content: string;
   attachments: string[];
   readBy: string[];

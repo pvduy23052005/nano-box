@@ -13,9 +13,6 @@ export class Message {
   senderId: string;
 
   @Prop({ required: true, trim: true })
-  receiverId: string;
-
-  @Prop({ required: true, trim: true })
   content: string;
 
   @Prop({ default: [], type: [String] })
