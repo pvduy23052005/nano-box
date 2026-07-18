@@ -17,6 +17,7 @@ export class MesageRepository implements MessageRepositoryAdapter {
     return {
       content: message.getContent(),
       attachments: message.getAttachments(),
+      senderId: message.getSenderId(),
       readBy: message.getReadBy(),
     };
   }
@@ -33,7 +34,7 @@ export class MesageRepository implements MessageRepositoryAdapter {
 
   async save(message: MessageEntity): Promise<MessageState> {
     const persistenceData = this.toPersistence(message);
-    const newMessage = new this.messageModel({ ...persistenceData, senderId: "8927398472893478" });
+    const newMessage = new this.messageModel(persistenceData);
     const saved = await newMessage.save();
     return this.toDTO(saved);
   }
