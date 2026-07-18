@@ -9,7 +9,7 @@ import { HydratedDocument } from 'mongoose';
   collection: 'messages',
 })
 export class Message {
-  @Prop({ required: true, trim: true })
+  @Prop({ required: true, trim: true, index: true })
   senderId: string;
 
   @Prop({ required: true, trim: true })
