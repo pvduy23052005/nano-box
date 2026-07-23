@@ -1,61 +1,89 @@
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/src/components/ui/avatar";
-import { Bubble, BubbleContent } from "@/src/components/ui/bubble";
-import {
-  Message,
-  MessageAvatar,
-  MessageContent,
-  MessageFooter,
-} from "@/src/components/ui/message";
+"use client";
+
+import ChatMessage, {
+  ChatMessageProps,
+} from "@/src/features/chat/components/ChatMessage";
+import { useState } from "react";
 
 export default function ChatPage() {
+  const [messages, setMessage] = useState<
+    (ChatMessageProps & { id: number })[]
+  >([
+    {
+      id: 1,
+      isMe: true,
+      content:
+        "Chào bạn, bạn có thể giúp mình xem qua đoạn code này được không?",
+      avatar: "/avatars/10.png",
+    },
+    {
+      id: 2,
+      isMe: false,
+      content: "Chào bạn! Rất sẵn lòng, bạn gửi đoạn code qua nhé.",
+      avatar: "/avatars/02.png",
+    },
+    {
+      id: 3,
+      isMe: true,
+      content:
+        "Mình đang làm giao diện chat bằng React và Tailwind CSS nhưng bị vướng phần scroll.",
+      avatar: "/avatars/10.png",
+    },
+    {
+      id: 4,
+      isMe: false,
+      content:
+        "Vấn đề cụ thể là gì vậy? Màn hình bị giật (jumping) khi tải tin nhắn cũ hay không tự cuộn xuống cuối?",
+      avatar: "/avatars/02.png",
+    },
+    {
+      id: 5,
+      isMe: true,
+      content:
+        "Đúng rồi, khi có tin nhắn mới gửi đến nó không tự động cuộn xuống dưới cùng ấy.",
+      avatar: "/avatars/10.png",
+    },
+    {
+      id: 6,
+      isMe: false,
+      content:
+        "À, vấn đề đó bạn có thể xử lý bằng `useEffect` kết hợp với `useRef` trỏ vào phần tử cuối danh sách.",
+      avatar: "/avatars/02.png",
+    },
+    {
+      id: 7,
+      isMe: false,
+      content:
+        "Hoặc nếu bạn dùng bộ UI của shadcn/ui thì có thể tham khảo component MessageScroller nhé!",
+      avatar: "/avatars/02.png",
+    },
+    {
+      id: 8,
+      isMe: true,
+      content:
+        "Hay quá! Để mình thử dùng `scrollIntoView({ behavior: 'smooth' })` xem sao.",
+      avatar: "/avatars/10.png",
+    },
+    {
+      id: 9,
+      isMe: true,
+      content: "Cảm ơn bạn nhiều nhé, mượt hơn hẳn rồi!",
+      avatar: "/avatars/10.png",
+    },
+    {
+      id: 10,
+      isMe: false,
+      content:
+        "Không có gì đâu! Cần trợ giúp gì thêm cứ bảo mình nhé. Chúc bạn code vui vẻ! 🚀",
+      avatar: "/avatars/02.png",
+    },
+  ]);
+
   return (
     <div className="flex w-full flex-col gap-6 py-12 items-center">
-      <Message align="end">
-        <MessageAvatar>
-          <Avatar>
-            <AvatarImage src="/avatars/10.png" alt="@me" />
-            <AvatarFallback>ME</AvatarFallback>
-          </Avatar>
-        </MessageAvatar>
-        <MessageContent>
-          <Bubble>
-            <BubbleContent>Deploying to prod real quick.</BubbleContent>
-          </Bubble>
-        </MessageContent>
-      </Message>
-
-      <Message>
-        <MessageAvatar>
-          <Avatar>
-            <AvatarImage src="/avatars/02.png" alt="@rabbit" />
-            <AvatarFallback>R</AvatarFallback>
-          </Avatar>
-        </MessageAvatar>
-        <MessageContent>
-          <Bubble variant="muted">
-            <BubbleContent>It&apos;s 4:55 PM. On a Friday.</BubbleContent>
-          </Bubble>
-        </MessageContent>
-      </Message>
-
-      <Message align="end">
-        <MessageAvatar>
-          <Avatar>
-            <AvatarImage src="/avatars/10.png" alt="@me" />
-            <AvatarFallback>ME</AvatarFallback>
-          </Avatar>
-        </MessageAvatar>
-        <MessageContent>
-          <Bubble>
-            <BubbleContent>It&apos;s a one-line change.</BubbleContent>
-          </Bubble>
-          <MessageFooter>Delivered</MessageFooter>
-        </MessageContent>
-      </Message>
+      {messages.map((message) => (
+        <ChatMessage key={message.id} {...message} />
+      ))}
     </div>
   );
 }
