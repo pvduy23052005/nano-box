@@ -1,14 +1,14 @@
 import {
+  Message,
+  MessageAvatar,
+  MessageContent,
+} from "@/src/components/ui/message";
+import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@/src/components/ui/avatar";
 import { Bubble, BubbleContent } from "@/src/components/ui/bubble";
-import {
-  Message,
-  MessageAvatar,
-  MessageContent,
-} from "@/src/components/ui/message";
 
 export interface ChatMessageProps {
   content: string;

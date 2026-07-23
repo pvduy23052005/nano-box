@@ -3,6 +3,7 @@
 import ChatMessage, {
   ChatMessageProps,
 } from "@/src/features/chat/components/ChatMessage";
+import ChatSidebar from "@/src/features/chat/components/ChatSidebar";
 import { useState } from "react";
 
 export default function ChatPage() {
@@ -80,10 +81,12 @@ export default function ChatPage() {
   ]);
 
   return (
-    <div className="flex w-full h-full flex-col gap-6">
-      {messages.map((message) => (
+    <div className="flex flex-col w-full h-full gap-6">
+      <ChatSidebar />
+
+      {/* {messages.map((message) => (
         <ChatMessage key={message.id} {...message} />
-      ))}
+      ))} */}
     </div>
   );
 }
