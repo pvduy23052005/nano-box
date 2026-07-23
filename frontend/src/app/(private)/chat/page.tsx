@@ -80,7 +80,7 @@ export default function ChatPage() {
   ]);
 
   return (
-    <div className="flex w-full flex-col gap-6 py-12 items-center">
+    <div className="flex w-full h-full flex-col gap-6">
       {messages.map((message) => (
         <ChatMessage key={message.id} {...message} />
       ))}

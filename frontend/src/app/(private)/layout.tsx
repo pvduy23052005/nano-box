@@ -14,9 +14,9 @@ export default function LayoutMain({
       <SocketProvider>
         <SidebarProvider>
           <AppSidebar />
-          <main className="flex flex-col flex-1  overflow-hidden">
+          <main className="flex flex-col flex-1 overflow-hidden h-screen">
             <AppHeader />
-            <div className="flex-1 min-h-0 relative">{children}</div>
+            <div className="flex-1  min-h-0 relative ">{children}</div>
           </main>
         </SidebarProvider>
       </SocketProvider>
