@@ -9,6 +9,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/src/components/ui/input-group";
+import { Typography } from "@/src/components/ui/typography";
 
 const MOCK_USERS = [
   {
@@ -74,14 +75,10 @@ export default function ChatSidebar() {
 
               <div className="flex flex-col overflow-hidden">
                 <div className="flex justify-between">
-                  <p className="text-sm font-medium truncate">{user.name}</p>
-                  <span className="text-[10px] text-muted-foreground shrink-0">
-                    {user.time}
-                  </span>
+                  <Typography variant="small">{user.name}</Typography>
+                  <Typography variant="caption">{user.time}</Typography>
                 </div>
-                <p className="text-xs text-muted-foreground truncate mt-0.5">
-                  {user.lastMessage}
-                </p>
+                <Typography variant="caption">{user.lastMessage}</Typography>
               </div>
             </div>
           ))}

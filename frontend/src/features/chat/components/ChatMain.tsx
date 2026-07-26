@@ -1,3 +1,9 @@
 export default function ChatMain() {
-    return <></>;
+  return (
+    <>
+      {/* {messages.map((message) => (
+        <ChatMessage key={message.id} {...message} />
+      ))} */}
+    </>
+  );
 }

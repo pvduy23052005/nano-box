@@ -1,5 +1,8 @@
 "use client";
 
+import ChatFooter from "@/src/features/chat/components/ChatFooter";
+import ChatHeader from "@/src/features/chat/components/ChatHeader";
+import ChatMain from "@/src/features/chat/components/ChatMain";
 import ChatMessage, {
   ChatMessageProps,
 } from "@/src/features/chat/components/ChatMessage";
@@ -81,12 +84,15 @@ export default function ChatPage() {
   ]);
 
   return (
-    <div className="flex flex-col w-full h-full gap-6">
+    <div className="flex w-full h-full">
       <ChatSidebar />
 
-      {/* {messages.map((message) => (
-        <ChatMessage key={message.id} {...message} />
-      ))} */}
+
+      <div className="flex-1 flex flex-col">
+        <ChatHeader />
+        <ChatMain />
+        <ChatFooter />
+      </div>
     </div>
   );
 }
