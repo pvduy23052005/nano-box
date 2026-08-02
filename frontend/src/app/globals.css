@@ -124,10 +124,10 @@
   html {
     @apply font-sans;
   }
-}
 
-[data-slot="input"],
-[data-slot="input-group"],
-[data-slot="button"] {
-  height: 2.5rem;
+  [data-slot="input"],
+  [data-slot="input-group"],
+  [data-slot="button"] {
+    height: 2.5rem;
+  }
 }

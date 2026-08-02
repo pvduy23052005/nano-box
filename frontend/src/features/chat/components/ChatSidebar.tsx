@@ -49,14 +49,14 @@ const MOCK_USERS = [
 export default function ChatSidebar() {
   return (
     <>
-      <aside className="w-80 border-r flex flex-col h-full bg-background shrink-0">
-        <div className="p-2 border-b ">
-          <InputGroup className="h-6">
+      <aside className="w-70 border-r flex flex-col h-full bg-background shrink-0">
+        <div className="h-12 p-2 border-b flex items-center">
+          <InputGroup className="h-7">
             <InputGroupAddon>
-              <Search />
+              <Search className="size-3.5" />
             </InputGroupAddon>
             <InputGroupInput
-              className="text-sm"
+              className="h-7 py-0 text-xs"
               placeholder="Tìm kiếm cuộc trò truyện..."
             />
           </InputGroup>
@@ -73,12 +73,14 @@ export default function ChatSidebar() {
                 <AvatarFallback>{}</AvatarFallback>
               </Avatar>
 
-              <div className="flex flex-col overflow-hidden">
+              <div className="flex flex-col flex-1 overflow-hidden space-y-2">
                 <div className="flex justify-between">
                   <Typography variant="small">{user.name}</Typography>
                   <Typography variant="caption">{user.time}</Typography>
                 </div>
-                <Typography variant="caption">{user.lastMessage}</Typography>
+                <Typography variant="caption" className="truncate">
+                  {user.lastMessage}
+                </Typography>
               </div>
             </div>
           ))}

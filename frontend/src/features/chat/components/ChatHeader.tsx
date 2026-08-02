@@ -3,7 +3,7 @@ import { Typography } from "@/src/components/ui/typography";
 
 export default function ChatHeader() {
   return (
-    <header className="flex border-b items-center gap-2 p-2">
+    <header className="h-12 flex border-b items-center gap-2 p-2">
       <Avatar>
         <AvatarImage src={"/avatar.png"} />
       </Avatar>
