@@ -38,4 +38,9 @@ export class MesageRepository implements MessageRepositoryAdapter {
     const saved = await newMessage.save();
     return this.toDTO(saved);
   }
+
+  async findAll(): Promise<MessageState[]> {
+    const messages = await this.messageModel.find().exec();
+    return messages.map((message) => this.toDTO(message));
+  }
 }

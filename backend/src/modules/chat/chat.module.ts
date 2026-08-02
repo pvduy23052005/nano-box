@@ -8,6 +8,8 @@ import {
   Message,
   MessageSchema,
 } from './infrastructure/database/message.schema';
+import { ChatResolver } from './presentation/graphql/chat.resolver';
+import { GetMessagesUseCase } from './application/use-cases/get-message.use-case';
 
 @Module({
   imports: [
@@ -15,6 +17,7 @@ import {
   ],
   providers: [
     EventGateway,
+    ChatResolver,
     {
       provide: MessageRepositoryAdapter,
       useClass: MesageRepository,
@@ -23,6 +26,12 @@ import {
       provide: SendMessageUseCase,
       useFactory: (messageRepository: MessageRepositoryAdapter) =>
         new SendMessageUseCase(messageRepository),
+      inject: [MessageRepositoryAdapter],
+    },
+    {
+      provide: GetMessagesUseCase,
+      useFactory: (messageRepository: MessageRepositoryAdapter) =>
+        new GetMessagesUseCase(messageRepository),
       inject: [MessageRepositoryAdapter],
     },
   ],

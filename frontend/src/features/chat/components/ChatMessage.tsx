@@ -8,12 +8,12 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/src/components/ui/avatar";
-import { Bubble, BubbleContent } from "@/src/components/ui/bubble";
 import { cn } from "@/src/lib/utils";
+import { Bubble, BubbleContent } from "@/src/components/ui/bubble";
 
 export interface ChatMessageProps {
   content: string;
-  avatar: string;
+  avatar?: string;
   isMe: boolean;
 }
 

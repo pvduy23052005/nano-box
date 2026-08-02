@@ -2,6 +2,13 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type ChatPayload {
+  attachments: [String!]
+  content: String!
+  id: String!
+  senderId: String!
+}
+
 input LoginInputDto {
   email: String!
   password: String!
@@ -25,6 +32,7 @@ type Mutation {
 
 type Query {
   getMe: UserProfilePayload!
+  getMessages: [ChatPayload!]!
 }
 
 input RegisterInputDto {
