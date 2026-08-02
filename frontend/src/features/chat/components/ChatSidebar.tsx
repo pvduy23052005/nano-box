@@ -49,7 +49,7 @@ const MOCK_USERS = [
 export default function ChatSidebar() {
   return (
     <>
-      <aside className="w-70 border-r flex flex-col h-full bg-background shrink-0">
+      <aside className="w-50 md:w-70 border-r flex flex-col h-full bg-background shrink-0">
         <div className="h-12 p-2 border-b flex items-center">
           <InputGroup className="h-7">
             <InputGroupAddon>
@@ -62,18 +62,15 @@ export default function ChatSidebar() {
           </InputGroup>
         </div>
 
-        <div className="w-full flex flex-col gap-2">
+        <div className="w-full flex flex-col gap-5 p-2 overflow-auto">
           {MOCK_USERS.map((user) => (
-            <div
-              key={user.id}
-              className="flex items-center gap-2 px-3 py-1 rounded-sm"
-            >
+            <div key={user.id} className="flex items-center gap-2 rounded-sm">
               <Avatar>
                 <AvatarImage src={user.avatar} />
                 <AvatarFallback>{}</AvatarFallback>
               </Avatar>
 
-              <div className="flex flex-col flex-1 overflow-hidden space-y-2">
+              <div className="flex flex-col flex-1 gap-2 overflow-hidden">
                 <div className="flex justify-between">
                   <Typography variant="small">{user.name}</Typography>
                   <Typography variant="caption">{user.time}</Typography>

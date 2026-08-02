@@ -9,6 +9,7 @@ import {
   AvatarImage,
 } from "@/src/components/ui/avatar";
 import { Bubble, BubbleContent } from "@/src/components/ui/bubble";
+import { cn } from "@/src/lib/utils";
 
 export interface ChatMessageProps {
   content: string;
@@ -29,7 +30,13 @@ export default function ChatMessage(chatProp: ChatMessageProps) {
       )}
       <MessageContent>
         <Bubble variant={chatProp.isMe ? "default" : "muted"}>
-          <BubbleContent className="">{chatProp.content}</BubbleContent>
+          <BubbleContent
+            className={cn(
+              chatProp.isMe ? "rounded-br-none" : "rounded-bl-none"
+            )}
+          >
+            {chatProp.content}
+          </BubbleContent>
         </Bubble>
       </MessageContent>
     </Message>

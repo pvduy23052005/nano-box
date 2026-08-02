@@ -87,8 +87,7 @@ export default function ChatPage() {
     <div className="flex w-full h-full">
       <ChatSidebar />
 
-
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col h-full">
         <ChatHeader />
         <ChatMain />
         <ChatFooter />
