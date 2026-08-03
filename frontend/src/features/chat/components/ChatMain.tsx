@@ -9,7 +9,7 @@ import { useReceiveMessage } from "../socket/useReceiveMessage";
 export default function ChatMain() {
   const { messages, isLoading } = useGetMessages();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
+
   useReceiveMessage();
 
   const scrollToBottom = () => {
@@ -26,10 +26,10 @@ export default function ChatMain() {
         <ChatLoading />
       ) : (
         messages.map((message, index) => (
-          <ChatMessage 
-            key={message.id} 
+          <ChatMessage
+            key={message.id}
             isLastMessage={index === messages.length - 1}
-            {...message} 
+            {...message}
           />
         ))
       )}
