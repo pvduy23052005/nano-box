@@ -1,4 +1,4 @@
-import { MessageState } from './message.type';
+import { MessageType } from './message.type';
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 
 export class MessageEntity {
@@ -8,7 +8,7 @@ export class MessageEntity {
   private attachments: string[];
   private readBy: string[];
 
-  private constructor(props: MessageState) {
+  private constructor(props: MessageType) {
     this.id = props.id;
     this.senderId = props.senderId;
     this.content = props.content;
@@ -16,7 +16,7 @@ export class MessageEntity {
     this.readBy = props.readBy || [];
   }
 
-  public static create(props: Omit<MessageState, 'id'>): MessageEntity {
+  public static create(props: Omit<MessageType, 'id'>): MessageEntity {
     const errors: Record<string, string> = {};
 
     if (!props.content.length && !props.attachments?.length) {
@@ -30,7 +30,7 @@ export class MessageEntity {
     return new MessageEntity(props);
   }
 
-  public static restore(props: MessageState): MessageEntity {
+  public static restore(props: MessageType): MessageEntity {
     return new MessageEntity(props);
   }
 

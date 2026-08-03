@@ -1,4 +1,4 @@
-export interface MessageState {
+export interface MessageType {
   id?: string;
   senderId: string;
   content: string;
