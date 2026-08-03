@@ -25,9 +25,14 @@ type LoginResult {
   user: User!
 }
 
+input MessageInput {
+  content: String!
+}
+
 type Mutation {
   login(input: LoginInputDto!): LoginPayload!
   register(input: RegisterInputDto!): RegisterPayload!
+  sendMessage(input: MessageInput!): ChatPayload!
 }
 
 type Query {

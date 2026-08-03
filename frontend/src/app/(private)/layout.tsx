@@ -12,7 +12,7 @@ export default function LayoutMain({
   return (
     <AuthProvider>
       <SocketProvider>
-        <SidebarProvider>
+        <SidebarProvider defaultOpen={false}>
           <AppSidebar />
           <main className="flex flex-col flex-1 overflow-hidden h-screen">
             <AppHeader />

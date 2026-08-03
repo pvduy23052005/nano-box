@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSendMessage } from "../hooks/useSendMessage";
 import { Button } from "@/src/components/ui/button";
 import {
   Smile,
@@ -20,12 +21,13 @@ import {
 
 export default function ChatFooter() {
   const [message, setMessage] = useState("");
+  const { sendMessage } = useSendMessage();
 
   const handleSend = () => {
     if (!message.trim()) {
       return;
     }
-    console.log(message);
+    sendMessage(message);
     setMessage("");
   };
 

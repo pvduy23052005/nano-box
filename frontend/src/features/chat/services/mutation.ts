@@ -10,3 +10,14 @@ export const GET_MESSAGE_QUERY = graphql(`
     }
   }
 `);
+
+export const SEND_MESSAGE_MUTATION = graphql(`
+  mutation SendMessage($input: MessageInput!) {
+    sendMessage(input: $input) {
+      id  
+      content
+      senderId
+      attachments
+    }
+  }
+`);

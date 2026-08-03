@@ -12,14 +12,14 @@ export class MessageEntity {
     this.id = props.id;
     this.senderId = props.senderId;
     this.content = props.content;
-    this.attachments = props.attachments;
-    this.readBy = props.readBy;
+    this.attachments = props.attachments || [];
+    this.readBy = props.readBy || [];
   }
 
   public static create(props: Omit<MessageState, 'id'>): MessageEntity {
     const errors: Record<string, string> = {};
 
-    if (!props.content.length && !props.attachments.length) {
+    if (!props.content.length && !props.attachments?.length) {
       errors.content = 'Nội dung hoặc file đính kèm không được để trống';
     }
 
