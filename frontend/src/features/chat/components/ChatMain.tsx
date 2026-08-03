@@ -4,10 +4,13 @@ import { useEffect, useRef } from "react";
 import { useGetMessages } from "../hooks/useGetMessages";
 import ChatLoading from "./ChatLoading";
 import ChatMessage from "./ChatMessage";
+import { useReceiveMessage } from "../socket/useReceiveMessage";
 
 export default function ChatMain() {
   const { messages, isLoading } = useGetMessages();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  useReceiveMessage();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
