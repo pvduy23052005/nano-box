@@ -1,6 +1,3 @@
-export const SOCKET_EVENTS = {
-  CHAT: {
-    SEND_MESSAGE: 'send:message',
-    RECEIVE_MESSAGE: 'receive:message',
-  },
+export const CHAT_SOCKET_EVENTS = {
+  RECEIVE_MESSAGE: 'receive:message',
 };

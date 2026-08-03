@@ -1,9 +1,10 @@
-import { useApolloClient } from "@apollo/client/react";
 import { useEffect } from "react";
+import { useApolloClient } from "@apollo/client/react";
 import { useSocket } from "@/src/providers/SocketProvider";
 import { GET_MESSAGE_QUERY } from "../services/mutation";
 import { useAuthStore } from "../../auth/store/useAuthStore";
-import { Message } from "../types";
+import { Message } from "../types/chat.types";
+import { CHAT_SOCKET_EVENTS } from "../types/event.types";
 
 export const useReceiveMessage = () => {
   const client = useApolloClient();
@@ -36,10 +37,10 @@ export const useReceiveMessage = () => {
       }
     };
 
-    socket.on('receive:message', handleReceiveMessage);
+    socket.on(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, handleReceiveMessage);
 
     return () => {
-      socket.off('receive:message', handleReceiveMessage);
+      socket.off(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, handleReceiveMessage);
     };
   }, [client, socket, user?.id]);
 };

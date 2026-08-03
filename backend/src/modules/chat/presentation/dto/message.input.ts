@@ -1,5 +1,5 @@
-import { Field, InputType } from "@nestjs/graphql";
-import { IsNotEmpty } from "class-validator";
+import { Field, InputType } from '@nestjs/graphql';
+import { IsNotEmpty } from 'class-validator';
 
 @InputType()
 export class MessageInput {
@@ -7,4 +7,3 @@ export class MessageInput {
   @IsNotEmpty()
   content: string;
 }
-

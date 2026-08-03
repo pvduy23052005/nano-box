@@ -5,7 +5,7 @@ import { MessageInput } from '../dto/message.input';
 import { CurrentUser } from 'src/common/customs/current-user.decorator';
 import { SendMessageUseCase } from '../../application/use-cases/send-message.use-case';
 import { WebsocketService } from 'src/infrastructure/websocket/ws.service';
-import { SOCKET_EVENTS } from '../gateway/event.type';
+import { CHAT_SOCKET_EVENTS } from '../gateway/event.type';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 
@@ -15,8 +15,8 @@ export class ChatResolver {
   constructor(
     private readonly getMessagesUseCase: GetMessagesUseCase,
     private readonly sendMessageUseCase: SendMessageUseCase,
-    private readonly webSocketService: WebsocketService
-  ) { }
+    private readonly webSocketService: WebsocketService,
+  ) {}
 
   @Query(() => [ChatPayload])
   async getMessages(): Promise<ChatPayload[]> {
@@ -32,13 +32,16 @@ export class ChatResolver {
 
   @Mutation(() => ChatPayload)
   async sendMessage(
-    @Args("input") input: MessageInput,
-    @CurrentUser("id") userId: string
+    @Args('input') input: MessageInput,
+    @CurrentUser('id') userId: string,
   ) {
-    const message = await this.sendMessageUseCase.execute({ ...input, senderId: userId });
+    const message = await this.sendMessageUseCase.execute({
+      ...input,
+      senderId: userId,
+    });
 
     const server = this.webSocketService.server;
-    server.emit(SOCKET_EVENTS.CHAT.RECEIVE_MESSAGE, message);
+    server.emit(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, message);
     return message;
   }
 }
