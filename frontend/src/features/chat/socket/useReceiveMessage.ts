@@ -5,6 +5,7 @@ import { GET_MESSAGE_QUERY } from "../services/mutation";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { Message } from "../types/chat.types";
 import { CHAT_SOCKET_EVENTS } from "../types/event.types";
+import { appendMessageToCache } from "../utils/chatCache";
 
 export const useReceiveMessage = () => {
   const client = useApolloClient();
@@ -17,24 +18,7 @@ export const useReceiveMessage = () => {
     const handleReceiveMessage = (newMessage: Message) => {
       if (newMessage.senderId === user?.id) return;
 
-      const existingData = client.cache.readQuery({
-        query: GET_MESSAGE_QUERY,
-      });
-
-      if (existingData && existingData.getMessages) {
-        const messageExists = existingData.getMessages.some(
-          (msg: Message) => msg.id === newMessage.id
-        );
-
-        if (!messageExists) {
-          client.cache.writeQuery({
-            query: GET_MESSAGE_QUERY,
-            data: {
-              getMessages: [...existingData.getMessages, newMessage],
-            },
-          });
-        }
-      }
+      appendMessageToCache(client.cache, GET_MESSAGE_QUERY, newMessage);
     };
 
     socket.on(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, handleReceiveMessage);
