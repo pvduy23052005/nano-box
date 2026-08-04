@@ -33,9 +33,7 @@ export const useSendMessage = () => {
           appendMessageToCache(cache, GET_MESSAGE_QUERY, data.sendMessage, optimisticId);
         }
       });
-    } catch (err) {
-      console.error("Failed to send message:", err);
-    }
+    } catch {}
   };
 
   return {
