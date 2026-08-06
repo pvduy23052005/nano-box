@@ -21,7 +21,6 @@ import {
   ListOrdered,
   List,
   Outdent,
-  Code,
 } from "lucide-react";
 
 export default function ChatFooter() {

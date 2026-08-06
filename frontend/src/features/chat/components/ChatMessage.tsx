@@ -12,7 +12,6 @@ import { BubbleGroup, Bubble, BubbleContent } from "@/src/components/ui/bubble";
 import { Typography } from "@/src/components/ui/typography";
 import DOMPurify from "isomorphic-dompurify";
 import { MessageGroup } from "../types/chat.types";
-import { cn } from "@/src/lib/utils";
 
 export interface ChatMessageGroupProps extends MessageGroup {
   isLastGroup?: boolean;
