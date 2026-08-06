@@ -12,6 +12,8 @@ import { cn } from "@/src/lib/utils";
 import { Bubble, BubbleContent } from "@/src/components/ui/bubble";
 import { Typography } from "@/src/components/ui/typography";
 
+import DOMPurify from "isomorphic-dompurify";
+
 export interface ChatMessageProps {
   id?: string;
   content: string;
@@ -24,7 +26,7 @@ export default function ChatMessage(chatProp: ChatMessageProps) {
   const isSending = chatProp.id?.startsWith("temp-");
   const showStatus = isSending || chatProp.isLastMessage;
 
-  const isHtml = /<[a-z][\s\S]*>/i.test(chatProp.content);
+  const cleanContent = DOMPurify.sanitize(chatProp.content);
 
   return (
     <Message align={chatProp.isMe ? "end" : "start"}>
@@ -40,17 +42,15 @@ export default function ChatMessage(chatProp: ChatMessageProps) {
         <Bubble variant={chatProp.isMe ? "default" : "muted"}>
           <BubbleContent
             className={cn(
-              "break-words [overflow-wrap:anywhere]",
-              !isHtml && "whitespace-pre-wrap",
-              isHtml && "chat-html-content",
-              chatProp.isMe ? "rounded-br-none" : "rounded-bl-none"
+              "break-words [overflow-wrap:anywhere] chat-html-content",
+              chatProp.isMe ? "rounded-br-none" : "rounded-bl-none",
             )}
           >
-            {isHtml ? (
-              <div dangerouslySetInnerHTML={{ __html: chatProp.content }} />
-            ) : (
-              chatProp.content
-            )}
+            <div
+              dangerouslySetInnerHTML={{
+                __html: cleanContent,
+              }}
+            />
           </BubbleContent>
         </Bubble>
         {chatProp.isMe && showStatus && (
