@@ -5,6 +5,10 @@
   outline: none;
 }
 
+.chat-html-content p {
+  margin: 0;
+}
+
 /* Placeholder chỉ áp dụng cho p đầu tiên khi editor hoàn toàn rỗng */
 .tiptap > p.is-editor-empty:first-child::before,
 .ProseMirror > p.is-editor-empty:first-child::before {

@@ -8,52 +8,55 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/src/components/ui/avatar";
-import { cn } from "@/src/lib/utils";
-import { Bubble, BubbleContent } from "@/src/components/ui/bubble";
+import { BubbleGroup, Bubble, BubbleContent } from "@/src/components/ui/bubble";
 import { Typography } from "@/src/components/ui/typography";
-
 import DOMPurify from "isomorphic-dompurify";
+import { MessageGroup } from "../types/chat.types";
+import { cn } from "@/src/lib/utils";
 
-export interface ChatMessageProps {
-  id?: string;
-  content: string;
-  avatar?: string;
-  isMe: boolean;
-  isLastMessage?: boolean;
+export interface ChatMessageGroupProps extends MessageGroup {
+  isLastGroup?: boolean;
 }
 
-export default function ChatMessage(chatProp: ChatMessageProps) {
-  const isSending = chatProp.id?.startsWith("temp-");
-  const showStatus = isSending || chatProp.isLastMessage;
-
-  const cleanContent = DOMPurify.sanitize(chatProp.content);
+export default function ChatMessage({
+  isMe,
+  avatar,
+  messages,
+  isLastGroup,
+}: ChatMessageGroupProps) {
+  const lastMessage = messages[messages.length - 1];
+  const isSending = lastMessage?.id?.startsWith("temp-");
+  const showStatus = isMe && (isSending || isLastGroup);
 
   return (
-    <Message align={chatProp.isMe ? "end" : "start"}>
-      {!chatProp.isMe && (
+    <Message align={isMe ? "end" : "start"}>
+      {!isMe && (
         <MessageAvatar>
           <Avatar>
-            <AvatarImage src={chatProp.avatar} />
+            <AvatarImage src={avatar} />
             <AvatarFallback>user</AvatarFallback>
           </Avatar>
         </MessageAvatar>
       )}
       <MessageContent>
-        <Bubble variant={chatProp.isMe ? "default" : "muted"}>
-          <BubbleContent
-            className={cn(
-              "break-words [overflow-wrap:anywhere] chat-html-content",
-              chatProp.isMe ? "rounded-br-none" : "rounded-bl-none",
-            )}
-          >
-            <div
-              dangerouslySetInnerHTML={{
-                __html: cleanContent,
-              }}
-            />
-          </BubbleContent>
-        </Bubble>
-        {chatProp.isMe && showStatus && (
+        <BubbleGroup>
+          {messages.map((msg) => {
+            const cleanContent = DOMPurify.sanitize(msg.content);
+            return (
+              <Bubble key={msg.id} variant={isMe ? "default" : "muted"}>
+                <BubbleContent>
+                  <div
+                    className="w-max max-w-full"
+                    dangerouslySetInnerHTML={{
+                      __html: cleanContent,
+                    }}
+                  />
+                </BubbleContent>
+              </Bubble>
+            );
+          })}
+        </BubbleGroup>
+        {showStatus && (
           <Typography variant="caption" className="text-right">
             {isSending ? "Đang gửi..." : "Đã gửi"}
           </Typography>
