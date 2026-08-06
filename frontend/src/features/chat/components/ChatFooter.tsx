@@ -34,7 +34,7 @@ export default function ChatFooter() {
       LinkExtension.configure({
         openOnClick: false,
         HTMLAttributes: {
-          class: "text-primary underline cursor-pointer",
+          class: "underline cursor-pointer",
         },
       }),
       Placeholder.configure({

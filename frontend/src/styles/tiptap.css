@@ -65,7 +65,7 @@
   padding-left: 0.75rem;
   margin: 0.25rem 0;
   font-style: italic;
-  color: var(--muted-foreground);
+  color: inherit;
 }
 
 .tiptap pre,
@@ -92,7 +92,7 @@
 .tiptap a,
 .ProseMirror a,
 .chat-html-content a {
-  color: var(--primary);
+  color: inherit;
   text-decoration: underline;
   cursor: pointer;
 }
