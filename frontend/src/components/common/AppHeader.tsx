@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { SidebarTrigger } from "../ui/sidebar";
 
 export default function AppHeader() {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   return (
     <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background/80 px-2">
@@ -14,7 +14,7 @@ export default function AppHeader() {
       <div className="flex gap-2">
         <Avatar>
           <AvatarImage src="/logo.png" alt="avatar" />
-          <AvatarFallback>NB</AvatarFallback>
+          <AvatarFallback>{user?.name.slice(0, 2)}</AvatarFallback>
         </Avatar>
         <div className="hidden md:flex flex-col">
           <span className="text-sm font-medium text-foreground">
