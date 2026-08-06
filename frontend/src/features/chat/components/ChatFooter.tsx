@@ -1,6 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import UnderlineExtension from "@tiptap/extension-underline";
+import LinkExtension from "@tiptap/extension-link";
+import Placeholder from "@tiptap/extension-placeholder";
+
 import { useSendMessage } from "../hooks/useSendMessage";
 import { Button } from "@/src/components/ui/button";
 import {
@@ -20,15 +25,67 @@ import {
 } from "lucide-react";
 
 export default function ChatFooter() {
-  const [message, setMessage] = useState("");
   const { sendMessage } = useSendMessage();
 
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      UnderlineExtension,
+      LinkExtension.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: "text-primary underline cursor-pointer",
+        },
+      }),
+      Placeholder.configure({
+        placeholder: "Nhập tin nhắn...",
+      }),
+    ],
+    editorProps: {
+      attributes: {
+        class:
+          "w-full min-h-[44px] border-0 bg-transparent p-3 text-sm outline-none placeholder:text-muted-foreground",
+      },
+      handleKeyDown: (view, event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+          event.preventDefault();
+          const textContent = view.state.doc.textContent.trim();
+          if (!textContent && view.state.doc.content.size <= 2) {
+            return true;
+          }
+          const sendBtn = document.getElementById("chat-send-btn");
+          if (sendBtn) {
+            sendBtn.click();
+          }
+          return true;
+        }
+        return false;
+      },
+    },
+    immediatelyRender: false,
+  });
+
   const handleSend = () => {
-    if (!message.trim()) {
+    if (!editor) return;
+    const textContent = editor.getText().trim();
+    if (!textContent && editor.isEmpty) {
       return;
     }
-    sendMessage(message);
-    setMessage("");
+    const htmlContent = editor.getHTML();
+    sendMessage(htmlContent);
+    editor.commands.clearContent();
+  };
+
+  const handleSetLink = () => {
+    if (!editor) return;
+    const previousUrl = editor.getAttributes("link").href;
+    const url = window.prompt("Nhập đường dẫn (URL):", previousUrl);
+    if (url === null) return;
+    if (url.trim() === "") {
+      editor.chain().focus().extendMarkRange("link").unsetLink().run();
+      return;
+    }
+    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
   };
 
   return (
@@ -39,7 +96,12 @@ export default function ChatFooter() {
             variant="ghost"
             size="icon"
             type="button"
-            className="size-8 text-muted-foreground hover:text-foreground"
+            className={`size-8 text-muted-foreground hover:text-foreground ${
+              editor?.isActive("bold")
+                ? "bg-accent text-accent-foreground font-bold"
+                : ""
+            }`}
+            onClick={() => editor?.chain().focus().toggleBold().run()}
           >
             <Bold className="size-4.5" />
           </Button>
@@ -47,7 +109,12 @@ export default function ChatFooter() {
             variant="ghost"
             size="icon"
             type="button"
-            className="size-8 text-muted-foreground hover:text-foreground"
+            className={`size-8 text-muted-foreground hover:text-foreground ${
+              editor?.isActive("italic")
+                ? "bg-accent text-accent-foreground font-bold"
+                : ""
+            }`}
+            onClick={() => editor?.chain().focus().toggleItalic().run()}
           >
             <Italic className="size-4.5" />
           </Button>
@@ -55,7 +122,12 @@ export default function ChatFooter() {
             variant="ghost"
             size="icon"
             type="button"
-            className="size-8 text-muted-foreground hover:text-foreground"
+            className={`size-8 text-muted-foreground hover:text-foreground ${
+              editor?.isActive("underline")
+                ? "bg-accent text-accent-foreground font-bold"
+                : ""
+            }`}
+            onClick={() => editor?.chain().focus().toggleUnderline().run()}
           >
             <Underline className="size-4.5" />
           </Button>
@@ -63,7 +135,12 @@ export default function ChatFooter() {
             variant="ghost"
             size="icon"
             type="button"
-            className="size-8 text-muted-foreground hover:text-foreground"
+            className={`size-8 text-muted-foreground hover:text-foreground ${
+              editor?.isActive("strike")
+                ? "bg-accent text-accent-foreground font-bold"
+                : ""
+            }`}
+            onClick={() => editor?.chain().focus().toggleStrike().run()}
           >
             <Strikethrough className="size-4.5" />
           </Button>
@@ -74,7 +151,12 @@ export default function ChatFooter() {
             variant="ghost"
             size="icon"
             type="button"
-            className="size-8 text-muted-foreground hover:text-foreground"
+            className={`size-8 text-muted-foreground hover:text-foreground ${
+              editor?.isActive("link")
+                ? "bg-accent text-accent-foreground font-bold"
+                : ""
+            }`}
+            onClick={handleSetLink}
           >
             <Link className="size-4.5" />
           </Button>
@@ -82,7 +164,12 @@ export default function ChatFooter() {
             variant="ghost"
             size="icon"
             type="button"
-            className="size-8 text-muted-foreground hover:text-foreground"
+            className={`size-8 text-muted-foreground hover:text-foreground ${
+              editor?.isActive("orderedList")
+                ? "bg-accent text-accent-foreground font-bold"
+                : ""
+            }`}
+            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
           >
             <ListOrdered className="size-4.5" />
           </Button>
@@ -90,7 +177,12 @@ export default function ChatFooter() {
             variant="ghost"
             size="icon"
             type="button"
-            className="size-8 text-muted-foreground hover:text-foreground"
+            className={`size-8 text-muted-foreground hover:text-foreground ${
+              editor?.isActive("bulletList")
+                ? "bg-accent text-accent-foreground font-bold"
+                : ""
+            }`}
+            onClick={() => editor?.chain().focus().toggleBulletList().run()}
           >
             <List className="size-4.5" />
           </Button>
@@ -101,33 +193,20 @@ export default function ChatFooter() {
             variant="ghost"
             size="icon"
             type="button"
-            className="size-8 text-muted-foreground hover:text-foreground"
+            className={`size-8 text-muted-foreground hover:text-foreground ${
+              editor?.isActive("blockquote")
+                ? "bg-accent text-accent-foreground font-bold"
+                : ""
+            }`}
+            onClick={() => editor?.chain().focus().toggleBlockquote().run()}
           >
             <Outdent className="size-4.5" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            type="button"
-            className="size-8 text-muted-foreground hover:text-foreground"
-          >
-            <Code className="size-4.5" />
-          </Button>
         </div>
 
-        <textarea
-          className="w-full min-h-[50px] max-h-[150px] resize-none border-0 bg-transparent p-3 text-sm outline-none placeholder:text-muted-foreground"
-          placeholder="Nhập tin nhắn..."
-          rows={1}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleSend();
-            }
-          }}
-        />
+        <div className="max-h-[140px] overflow-y-auto">
+          <EditorContent editor={editor} />
+        </div>
 
         <div className="flex items-center justify-between p-2">
           <div className="flex items-center gap-1">
@@ -157,6 +236,7 @@ export default function ChatFooter() {
               <FileText className="size-5" />
             </Button>
             <Button
+              id="chat-send-btn"
               variant="ghost"
               size="icon"
               type="button"

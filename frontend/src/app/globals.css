@@ -131,3 +131,5 @@
     height: 2.5rem;
   }
 }
+
+@import "../styles/tiptap.css";

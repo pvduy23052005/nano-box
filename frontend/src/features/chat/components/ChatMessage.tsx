@@ -24,6 +24,8 @@ export default function ChatMessage(chatProp: ChatMessageProps) {
   const isSending = chatProp.id?.startsWith("temp-");
   const showStatus = isSending || chatProp.isLastMessage;
 
+  const isHtml = /<[a-z][\s\S]*>/i.test(chatProp.content);
+
   return (
     <Message align={chatProp.isMe ? "end" : "start"}>
       {!chatProp.isMe && (
@@ -38,11 +40,17 @@ export default function ChatMessage(chatProp: ChatMessageProps) {
         <Bubble variant={chatProp.isMe ? "default" : "muted"}>
           <BubbleContent
             className={cn(
-              "whitespace-pre-wrap break-words [overflow-wrap:anywhere]",
+              "break-words [overflow-wrap:anywhere]",
+              !isHtml && "whitespace-pre-wrap",
+              isHtml && "chat-html-content",
               chatProp.isMe ? "rounded-br-none" : "rounded-bl-none"
             )}
           >
-            {chatProp.content}
+            {isHtml ? (
+              <div dangerouslySetInnerHTML={{ __html: chatProp.content }} />
+            ) : (
+              chatProp.content
+            )}
           </BubbleContent>
         </Bubble>
         {chatProp.isMe && showStatus && (
