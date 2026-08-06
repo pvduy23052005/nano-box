@@ -38,7 +38,8 @@ export default function ChatMessage(chatProp: ChatMessageProps) {
         <Bubble variant={chatProp.isMe ? "default" : "muted"}>
           <BubbleContent
             className={cn(
-              chatProp.isMe ? "rounded-br-none" : "rounded-bl-none",
+              "whitespace-pre-wrap break-words [overflow-wrap:anywhere]",
+              chatProp.isMe ? "rounded-br-none" : "rounded-bl-none"
             )}
           >
             {chatProp.content}

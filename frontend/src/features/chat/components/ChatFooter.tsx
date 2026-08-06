@@ -38,6 +38,7 @@ export default function ChatFooter() {
           <Button
             variant="ghost"
             size="icon"
+            type="button"
             className="size-8 text-muted-foreground hover:text-foreground"
           >
             <Bold className="size-4.5" />
@@ -45,6 +46,7 @@ export default function ChatFooter() {
           <Button
             variant="ghost"
             size="icon"
+            type="button"
             className="size-8 text-muted-foreground hover:text-foreground"
           >
             <Italic className="size-4.5" />
@@ -52,6 +54,7 @@ export default function ChatFooter() {
           <Button
             variant="ghost"
             size="icon"
+            type="button"
             className="size-8 text-muted-foreground hover:text-foreground"
           >
             <Underline className="size-4.5" />
@@ -59,6 +62,7 @@ export default function ChatFooter() {
           <Button
             variant="ghost"
             size="icon"
+            type="button"
             className="size-8 text-muted-foreground hover:text-foreground"
           >
             <Strikethrough className="size-4.5" />
@@ -69,6 +73,7 @@ export default function ChatFooter() {
           <Button
             variant="ghost"
             size="icon"
+            type="button"
             className="size-8 text-muted-foreground hover:text-foreground"
           >
             <Link className="size-4.5" />
@@ -76,6 +81,7 @@ export default function ChatFooter() {
           <Button
             variant="ghost"
             size="icon"
+            type="button"
             className="size-8 text-muted-foreground hover:text-foreground"
           >
             <ListOrdered className="size-4.5" />
@@ -83,6 +89,7 @@ export default function ChatFooter() {
           <Button
             variant="ghost"
             size="icon"
+            type="button"
             className="size-8 text-muted-foreground hover:text-foreground"
           >
             <List className="size-4.5" />
@@ -93,6 +100,7 @@ export default function ChatFooter() {
           <Button
             variant="ghost"
             size="icon"
+            type="button"
             className="size-8 text-muted-foreground hover:text-foreground"
           >
             <Outdent className="size-4.5" />
@@ -100,6 +108,7 @@ export default function ChatFooter() {
           <Button
             variant="ghost"
             size="icon"
+            type="button"
             className="size-8 text-muted-foreground hover:text-foreground"
           >
             <Code className="size-4.5" />
@@ -125,6 +134,7 @@ export default function ChatFooter() {
             <Button
               variant="ghost"
               size="icon"
+              type="button"
               className="size-10 text-muted-foreground hover:text-foreground"
             >
               <Smile className="size-5" />
@@ -132,6 +142,7 @@ export default function ChatFooter() {
             <Button
               variant="ghost"
               size="icon"
+              type="button"
               className="size-10 text-muted-foreground hover:text-foreground"
             >
               <AtSign className="size-5" />
@@ -140,6 +151,7 @@ export default function ChatFooter() {
             <Button
               variant="ghost"
               size="icon"
+              type="button"
               className="size-10 text-muted-foreground hover:text-foreground"
             >
               <FileText className="size-5" />
@@ -147,6 +159,7 @@ export default function ChatFooter() {
             <Button
               variant="ghost"
               size="icon"
+              type="button"
               className="size-10 text-primary hover:text-primary/80"
               onClick={handleSend}
             >
