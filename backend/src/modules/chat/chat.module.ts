@@ -9,6 +9,7 @@ import { MessageRepositoryAdapter } from './application/ports/message.port';
 import { SendMessageUseCase } from './application/use-cases/send-message.use-case';
 import { ChatResolver } from './presentation/graphql/chat.resolver';
 import { GetMessagesUseCase } from './application/use-cases/get-message.use-case';
+import { ChatGateway } from './presentation/gateway/chat.gateway';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { GetMessagesUseCase } from './application/use-cases/get-message.use-case
   ],
   providers: [
     ChatResolver,
+    ChatGateway,
     {
       provide: MessageRepositoryAdapter,
       useClass: MesageRepository,
