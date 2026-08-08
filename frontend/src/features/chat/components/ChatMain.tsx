@@ -4,22 +4,29 @@ import { useEffect, useRef, useMemo } from "react";
 import { useGetMessages } from "../hooks/useGetMessages";
 import ChatLoading from "./ChatLoading";
 import ChatMessage from "./ChatMessage";
+import ChatTypingIndicator from "./ChatTypingIndicator";
 import { useReceiveMessage } from "../socket/useReceiveMessage";
+import { useReceiveTyping } from "../socket/useReceiveTyping";
+import { useTypingStore } from "../stores/useTypingStore";
 import { Message, MessageGroup } from "../types/chat.types";
 
 export default function ChatMain() {
   const { messages, isLoading } = useGetMessages();
+  const { typingUsers } = useTypingStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useReceiveMessage();
+  useReceiveTyping();
 
+  const typingList = useMemo(() => Object.values(typingUsers), [typingUsers]);
+  
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, typingList.length]);
 
   const messageGroups = useMemo(() => {
     return messages.reduce<MessageGroup[]>(
@@ -55,7 +62,9 @@ export default function ChatMain() {
           />
         ))
       )}
+      <ChatTypingIndicator typingUsers={typingList} />
       <div ref={messagesEndRef} />
     </div>
   );
 }
+
