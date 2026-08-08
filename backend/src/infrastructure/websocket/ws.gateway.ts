@@ -19,14 +19,15 @@ import type { AuthenticatedSocket } from './ws.type';
   },
 })
 export class WebsocketGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
   constructor(
     private readonly websocketService: WebsocketService,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   afterInit(server: Server) {
     this.websocketService.server = server;
@@ -39,7 +40,8 @@ export class WebsocketGateway
             return next(new Error('Unauthorized: Thiếu token xác thực'));
           }
 
-          const payload = await this.jwtService.verifyAsync<TokenPayload>(token);
+          const payload =
+            await this.jwtService.verifyAsync<TokenPayload>(token);
           socket.data.user = payload;
           socket.data.userId = payload.id;
           next();
@@ -50,11 +52,9 @@ export class WebsocketGateway
     });
   }
 
-  handleConnection(_client: AuthenticatedSocket) {
-  }
+  handleConnection(_client: AuthenticatedSocket) {}
 
-  handleDisconnect(_client: AuthenticatedSocket) {
-  }
+  handleDisconnect(_client: AuthenticatedSocket) {}
 
   private extractToken(client: AuthenticatedSocket | Socket): string | null {
     const authHeader = client.handshake?.headers?.authorization;

@@ -6,10 +6,9 @@ export interface AppSocketData {
   userId?: string;
 }
 
-export interface AuthenticatedSocket
-  extends Socket<
-    DefaultEventsMap,
-    DefaultEventsMap,
-    DefaultEventsMap,
-    AppSocketData
-  > {}
+export interface AuthenticatedSocket extends Socket<
+  DefaultEventsMap,
+  DefaultEventsMap,
+  DefaultEventsMap,
+  AppSocketData
+> {}

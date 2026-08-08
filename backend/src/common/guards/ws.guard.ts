@@ -37,8 +37,7 @@ export class WsAuthGuard implements CanActivate {
 
   private extractToken(client: AuthenticatedSocket): string | null {
     const auth = client.handshake?.auth as
-      | { token?: string; accessToken?: string }
-      | undefined;
+      { token?: string; accessToken?: string } | undefined;
     if (auth?.token && typeof auth.token === 'string') {
       return auth.token.startsWith('Bearer ')
         ? auth.token.substring(7).trim()
