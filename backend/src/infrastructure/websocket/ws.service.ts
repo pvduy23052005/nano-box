@@ -1,4 +1,3 @@
-// infrastructure/websocket/websocket.service.ts
 import { Injectable } from '@nestjs/common';
 import { Server } from 'socket.io';
 
