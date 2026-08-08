@@ -7,6 +7,7 @@ import LinkExtension from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 
 import { useSendMessage } from "../hooks/useSendMessage";
+import { useSendTyping } from "../hooks/useSendTyping";
 import { Button } from "@/src/components/ui/button";
 import {
   Smile,
@@ -25,6 +26,7 @@ import {
 
 export default function ChatFooter() {
   const { sendMessage } = useSendMessage();
+  const { sendTyping, stopTyping } = useSendTyping();
 
   const editor = useEditor({
     extensions: [
@@ -61,6 +63,14 @@ export default function ChatFooter() {
         return false;
       },
     },
+    onUpdate: ({ editor: currentEditor }) => {
+      const text = currentEditor.getText().trim();
+      if (text) {
+        sendTyping();
+      } else {
+        stopTyping();
+      }
+    },
     immediatelyRender: false,
   });
 
@@ -70,6 +80,7 @@ export default function ChatFooter() {
     if (!textContent && editor.isEmpty) {
       return;
     }
+    stopTyping();
     const htmlContent = editor.getHTML();
     sendMessage(htmlContent);
     editor.commands.clearContent();
