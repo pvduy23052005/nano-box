@@ -30,7 +30,15 @@ export const useSendMessage = () => {
         update: (cache, { data }) => {
           if (!data?.sendMessage) return;
 
-          appendMessageToCache(cache, GET_MESSAGE_QUERY, data.sendMessage, optimisticId);
+          appendMessageToCache(
+            cache,
+            GET_MESSAGE_QUERY,
+            {
+              ...data.sendMessage,
+              isMe: data.sendMessage.senderId === user.id,
+            },
+            optimisticId
+          );
         }
       });
     } catch {}

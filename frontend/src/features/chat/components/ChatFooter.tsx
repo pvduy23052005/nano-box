@@ -9,8 +9,8 @@ import Placeholder from "@tiptap/extension-placeholder";
 import { useSendMessage } from "../hooks/useSendMessage";
 import { useSendTyping } from "../hooks/useSendTyping";
 import { Button } from "@/src/components/ui/button";
+import ChatEmojiPicker from "./ChatEmojiPicker";
 import {
-  Smile,
   AtSign,
   FileText,
   SendHorizontal,
@@ -84,6 +84,12 @@ export default function ChatFooter() {
     const htmlContent = editor.getHTML();
     sendMessage(htmlContent);
     editor.commands.clearContent();
+  };
+
+  const handleEmojiSelect = (emoji: string) => {
+    if (!editor) return;
+    editor.chain().focus().insertContent(emoji).run();
+    sendTyping();
   };
 
   const handleSetLink = () => {
@@ -220,14 +226,8 @@ export default function ChatFooter() {
 
         <div className="flex items-center justify-between p-2">
           <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              type="button"
-              className="size-10 text-muted-foreground hover:text-foreground"
-            >
-              <Smile className="size-5" />
-            </Button>
+            <ChatEmojiPicker onSelect={handleEmojiSelect} />
+
             <Button
               variant="ghost"
               size="icon"
