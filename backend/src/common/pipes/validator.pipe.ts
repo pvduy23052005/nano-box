@@ -1,12 +1,42 @@
 import { GraphQLError } from 'graphql';
 import { ValidationError } from 'class-validator';
 import { GqlExceptionFilter } from '@nestjs/graphql';
-import { Catch, HttpStatus, HttpException } from '@nestjs/common';
+import {
+  Catch,
+  HttpStatus,
+  HttpException,
+  ArgumentsHost,
+  ExceptionFilter,
+} from '@nestjs/common';
+import { Response } from 'express';
 import { DomainValidationException } from '../customs/domain-validation.exception';
 
 @Catch()
-export class GlobalGraphQLExceptionFilter implements GqlExceptionFilter {
-  catch(exception: unknown) {
+export class GlobalGraphQLExceptionFilter
+  implements ExceptionFilter, GqlExceptionFilter
+{
+  catch(exception: unknown, host: ArgumentsHost) {
+    if (host.getType<'http' | 'graphql'>() === 'http') {
+      const ctx = host.switchToHttp();
+      const response = ctx.getResponse<Response>();
+
+      let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+      let message: any = 'Hệ thống gặp sự cố. Vui lòng thử lại sau.';
+
+      if (exception instanceof HttpException) {
+        statusCode = exception.getStatus();
+        message = exception.getResponse();
+      } else if (exception instanceof Error) {
+        console.error(exception);
+        message = exception.message;
+      }
+
+      return response.status(statusCode).json(
+        typeof message === 'object'
+          ? message
+          : { statusCode, message },
+      );
+    }
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
     let errorCode = 'INTERNAL_SERVER_ERROR';
     let message = 'Hệ thống gặp sự cố. Vui lòng thử lại sau.';

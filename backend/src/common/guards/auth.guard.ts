@@ -18,8 +18,14 @@ export class AuthGuard implements CanActivate {
   constructor(private readonly jwtService: JwtService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const gqlContext = GqlExecutionContext.create(context);
-    const { req } = gqlContext.getContext<{ req: AuthenticatedRequest }>();
+    let req: AuthenticatedRequest;
+
+    if (context.getType<'http' | 'graphql'>() === 'http') {
+      req = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    } else {
+      const gqlContext = GqlExecutionContext.create(context);
+      req = gqlContext.getContext<{ req: AuthenticatedRequest }>().req;
+    }
 
     let accessToken: string | undefined = (
       req.cookies as Record<string, string> | undefined
