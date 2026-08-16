@@ -16,7 +16,7 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
 @Controller('upload')
 @UseGuards(AuthGuard)
 export class UploadController {
-  constructor(private readonly uploadService: UploadService) { }
+  constructor(private readonly uploadService: UploadService) {}
 
   @Post()
   @UseInterceptors(
@@ -29,7 +29,9 @@ export class UploadController {
     @Query('folder') folder?: string,
   ): Promise<UploadResponseDto> {
     if (!file) {
-      throw new BadRequestException('Vui lòng cung cấp file trong trường "file"');
+      throw new BadRequestException(
+        'Vui lòng cung cấp file trong trường "file"',
+      );
     }
     return this.uploadService.uploadFile(file, folder || 'uploads');
   }

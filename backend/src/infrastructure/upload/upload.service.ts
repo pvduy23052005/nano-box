@@ -10,7 +10,11 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 import 'multer';
 import { UploadResponseDto } from './dto/upload-response.dto';
-import { detectFileCategory, MAX_FILE_SIZE } from './constants/upload.constant';
+import {
+  detectFileCategory,
+  resolveMimeType,
+  MAX_FILE_SIZE,
+} from './constants/upload.constant';
 
 @Injectable()
 export class UploadService {
@@ -22,11 +26,19 @@ export class UploadService {
 
   constructor(private readonly configService: ConfigService) {
     this.accountId = this.configService.getOrThrow<string>('R2_ACCOUNT_ID');
-    const accessKeyId = this.configService.getOrThrow<string>('R2_ACCESS_KEY_ID');
-    const secretAccessKey = this.configService.getOrThrow<string>('R2_SECRET_ACCESS_KEY');
-    
-    this.bucketName = this.configService.getOrThrow<string>('R2_BUCKET_NAME').replace(/"/g, '');
-    this.publicUrl = this.configService.getOrThrow<string>('R2_PUBLIC_URL').replace(/"/g, '').replace(/\/+$/, '');
+    const accessKeyId =
+      this.configService.getOrThrow<string>('R2_ACCESS_KEY_ID');
+    const secretAccessKey = this.configService.getOrThrow<string>(
+      'R2_SECRET_ACCESS_KEY',
+    );
+
+    this.bucketName = this.configService
+      .getOrThrow<string>('R2_BUCKET_NAME')
+      .replace(/"/g, '');
+    this.publicUrl = this.configService
+      .getOrThrow<string>('R2_PUBLIC_URL')
+      .replace(/"/g, '')
+      .replace(/\/+$/, '');
 
     this.awsClient = new AwsClient({
       accessKeyId,
@@ -46,16 +58,21 @@ export class UploadService {
 
     if (file.size > MAX_FILE_SIZE) {
       const maxMb = (MAX_FILE_SIZE / (1024 * 1024)).toFixed(0);
-      throw new BadRequestException(`Kích thước file vượt quá giới hạn tối đa ${maxMb}MB`);
+      throw new BadRequestException(
+        `Kích thước file vượt quá giới hạn tối đa ${maxMb}MB`,
+      );
     }
 
     const originalName = file.originalname || 'file';
     const ext = path.extname(originalName).toLowerCase();
     const cleanFolder = folder.replace(/^\/+|\/+$/g, '');
     const category = detectFileCategory(file.mimetype, originalName);
-    
+    const mimeType = resolveMimeType(originalName, file.mimetype);
+
     const shortId = `${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}`;
-    const key = cleanFolder ? `${cleanFolder}/${shortId}${ext}` : `${shortId}${ext}`;
+    const key = cleanFolder
+      ? `${cleanFolder}/${shortId}${ext}`
+      : `${shortId}${ext}`;
 
     const endpointUrl = `https://${this.accountId}.r2.cloudflarestorage.com/${this.bucketName}/${key}`;
 
@@ -63,15 +80,18 @@ export class UploadService {
       const response = await this.awsClient.fetch(endpointUrl, {
         method: 'PUT',
         headers: {
-          'Content-Type': file.mimetype || 'application/octet-stream',
+          'Content-Type': mimeType,
           'Content-Length': file.size.toString(),
+          'Content-Disposition': 'inline',
         },
         body: new Uint8Array(file.buffer),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        this.logger.error(`R2 Upload failed [${response.status}]: ${errorText}`);
+        this.logger.error(
+          `R2 Upload failed [${response.status}]: ${errorText}`,
+        );
         throw new BadRequestException('Tải file lên R2 thất bại');
       }
 
@@ -80,13 +100,15 @@ export class UploadService {
         key,
         name: originalName,
         size: file.size,
-        mimeType: file.mimetype || 'application/octet-stream',
+        mimeType,
         category,
       };
     } catch (error) {
       if (error instanceof BadRequestException) throw error;
       this.logger.error(`Error uploading to R2: ${error}`);
-      throw new InternalServerErrorException('Lỗi hệ thống khi tải file lên Cloudflare R2');
+      throw new InternalServerErrorException(
+        'Lỗi hệ thống khi tải file lên Cloudflare R2',
+      );
     }
   }
 }

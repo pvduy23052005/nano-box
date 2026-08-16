@@ -31,11 +31,9 @@ export class GlobalGraphQLExceptionFilter
         message = exception.message;
       }
 
-      return response.status(statusCode).json(
-        typeof message === 'object'
-          ? message
-          : { statusCode, message },
-      );
+      return response
+        .status(statusCode)
+        .json(typeof message === 'object' ? message : { statusCode, message });
     }
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
     let errorCode = 'INTERNAL_SERVER_ERROR';
