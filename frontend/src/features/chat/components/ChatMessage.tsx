@@ -76,24 +76,11 @@ export default function ChatMessage({
                   url,
                 ),
               );
-              
+
               return (
                 <div key={msg.id} className="flex flex-col gap-1">
-                  {cleanContent && (
-                    <Bubble variant={isMe ? "default" : "muted"}>
-                      <BubbleContent>
-                        <div
-                          className="w-max max-w-full [&_img]:rounded-lg [&_img]:max-h-72 [&_img]:w-auto [&_img]:object-cover [&_img]:my-1.5 [&_img]:cursor-pointer hover:[&_img]:opacity-90 transition-opacity"
-                          onClick={handleContentClick}
-                          dangerouslySetInnerHTML={{
-                            __html: cleanContent,
-                          }}
-                        />
-                      </BubbleContent>
-                    </Bubble>
-                  )}
                   {attachmentImages.length > 0 && (
-                    <Bubble variant={isMe ? "default" : "muted"} className="bg-red-500">
+                    <Bubble variant="ghost">
                       <BubbleContent>
                         <div
                           className="flex flex-wrap gap-1.5"
@@ -111,6 +98,19 @@ export default function ChatMessage({
                             />
                           ))}
                         </div>
+                      </BubbleContent>
+                    </Bubble>
+                  )}
+                  {cleanContent && (
+                    <Bubble variant={isMe ? "default" : "muted"}>
+                      <BubbleContent>
+                        <div
+                          className="w-max max-w-full [&_img]:rounded-lg [&_img]:max-h-72 [&_img]:w-auto [&_img]:object-cover [&_img]:my-1.5 [&_img]:cursor-pointer hover:[&_img]:opacity-90 transition-opacity"
+                          onClick={handleContentClick}
+                          dangerouslySetInnerHTML={{
+                            __html: cleanContent,
+                          }}
+                        />
                       </BubbleContent>
                     </Bubble>
                   )}
