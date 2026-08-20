@@ -1,9 +1,14 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsNotEmpty } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 @InputType()
 export class MessageInput {
-  @Field()
-  @IsNotEmpty()
+  @Field({ defaultValue: '' })
+  @IsString()
+  @IsOptional()
   content: string;
+
+  @Field(() => [String], { nullable: true })
+  @IsOptional()
+  tempKeys?: string[];
 }

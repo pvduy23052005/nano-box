@@ -11,7 +11,7 @@ import { useSendTyping } from "../hooks/useSendTyping";
 import { Button } from "@/src/components/ui/button";
 import ChatEmojiPicker from "./ChatEmojiPicker";
 import ChatImagePreview, { PendingImage, UploadStatus } from "./ChatImagePreview";
-import { uploadFile } from "@/src/services/upload.service";
+import { uploadTempFile } from "@/src/services/upload.service";
 import { useRef, useState } from "react";
 import {
   AtSign,
@@ -49,11 +49,16 @@ export default function ChatFooter() {
 
     newImages.forEach(async (item) => {
       try {
-        const result = await uploadFile(item.file, "chat-images");
+        const result = await uploadTempFile(item.file);
         setImages((prev) =>
           prev.map((img) =>
             img.id === item.id
-              ? { ...img, status: UploadStatus.SUCCESS, uploadedUrl: result.url }
+              ? {
+                  ...img,
+                  status: UploadStatus.SUCCESS,
+                  uploadedUrl: result.url,
+                  tempKey: result.tempKey,
+                }
               : img,
           ),
         );
@@ -161,7 +166,7 @@ export default function ChatFooter() {
     if (!editor || isAnyImageUploading) return;
     const textContent = editor.getText().trim();
     const successfulImages = images.filter(
-      (img) => img.status === "success" && img.uploadedUrl,
+      (img) => img.status === "success" && img.tempKey,
     );
 
     if (!textContent && editor.isEmpty && successfulImages.length === 0) {
@@ -169,19 +174,10 @@ export default function ChatFooter() {
     }
 
     stopTyping();
-    let htmlContent = editor.isEmpty ? "" : editor.getHTML();
+    const htmlContent = editor.isEmpty ? "" : editor.getHTML();
+    const tempKeys = successfulImages.map((img) => img.tempKey!)
 
-    if (successfulImages.length > 0) {
-      const imagesHtml = successfulImages
-        .map(
-          (img) =>
-            `<p><img src="${img.uploadedUrl}" alt="${img.file.name}" class="rounded-lg max-h-72 max-w-full my-1 object-cover" /></p>`,
-        )
-        .join("");
-      htmlContent = htmlContent ? `${htmlContent}${imagesHtml}` : imagesHtml;
-    }
-
-    sendMessage(htmlContent);
+    sendMessage(htmlContent, tempKeys);
     editor.commands.clearContent();
     images.forEach((img) => URL.revokeObjectURL(img.previewUrl));
     setImages([]);

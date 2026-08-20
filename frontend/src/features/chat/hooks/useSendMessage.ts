@@ -7,7 +7,7 @@ export const useSendMessage = () => {
   const { user } = useAuthStore();
   const [sendMessageMutation, { loading, error }] = useMutation(SEND_MESSAGE_MUTATION);
 
-  const sendMessage = async (content: string) => {
+  const sendMessage = async (content: string, tempKeys?: string[]) => {
     if (!user) return;
 
     const optimisticId = `temp-${Date.now()}`;
@@ -17,6 +17,7 @@ export const useSendMessage = () => {
         variables: {
           input: {
             content,
+            ...(tempKeys?.length ? { tempKeys } : {}),
           }
         },
         optimisticResponse: {
@@ -50,3 +51,4 @@ export const useSendMessage = () => {
     error,
   };
 };
+

@@ -10,6 +10,7 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 import 'multer';
 import { UploadResponseDto } from './dto/upload-response.dto';
+import { TempUploadResponseDto } from './dto/temp-upload-response.dto';
 import {
   detectFileCategory,
   resolveMimeType,
@@ -48,6 +49,10 @@ export class UploadService {
     });
   }
 
+  private get r2Endpoint(): string {
+    return `https://${this.accountId}.r2.cloudflarestorage.com/${this.bucketName}`;
+  }
+
   async uploadFile(
     file: Express.Multer.File,
     folder: string = 'uploads',
@@ -74,7 +79,7 @@ export class UploadService {
       ? `${cleanFolder}/${shortId}${ext}`
       : `${shortId}${ext}`;
 
-    const endpointUrl = `https://${this.accountId}.r2.cloudflarestorage.com/${this.bucketName}/${key}`;
+    const endpointUrl = `${this.r2Endpoint}/${key}`;
 
     try {
       const response = await this.awsClient.fetch(endpointUrl, {
@@ -109,6 +114,68 @@ export class UploadService {
       throw new InternalServerErrorException(
         'Lỗi hệ thống khi tải file lên Cloudflare R2',
       );
+    }
+  }
+
+  async uploadToTemp(
+    file: Express.Multer.File,
+  ): Promise<TempUploadResponseDto> {
+    const result = await this.uploadFile(file, 'temp');
+    return {
+      tempKey: result.key,
+      url: result.url,
+    };
+  }
+
+  async copyTempToUploads(tempKey: string): Promise<string> {
+    const filename = tempKey.replace(/^temp\//, '');
+    const destKey = `uploads/${filename}`;
+    const destUrl = `${this.r2Endpoint}/${destKey}`;
+
+    try {
+      const response = await this.awsClient.fetch(destUrl, {
+        method: 'PUT',
+        headers: {
+          'x-amz-copy-source': `/${this.bucketName}/${tempKey}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        this.logger.error(
+          `R2 CopyObject failed [${response.status}]: ${errorText}`,
+        );
+        throw new BadRequestException(
+          'Sao chép file từ temp sang uploads thất bại',
+        );
+      }
+
+      return `${this.publicUrl}/${destKey}`;
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+      this.logger.error(`Error copying object in R2: ${error}`);
+      throw new InternalServerErrorException(
+        'Lỗi hệ thống khi sao chép file trên Cloudflare R2',
+      );
+    }
+  }
+
+  async deleteTempFile(tempKey: string): Promise<void> {
+    const deleteUrl = `${this.r2Endpoint}/${tempKey}`;
+
+    try {
+      const response = await this.awsClient.fetch(deleteUrl, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        this.logger.warn(
+          `R2 DeleteObject failed [${response.status}]: ${errorText}`,
+        );
+      }
+    } catch (error) {
+      this.logger.warn(`Error deleting temp file from R2: ${error}`);
     }
   }
 }

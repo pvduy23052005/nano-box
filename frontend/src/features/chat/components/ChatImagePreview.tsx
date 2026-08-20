@@ -13,6 +13,7 @@ export interface PendingImage {
   previewUrl: string;
   status: UploadStatus;
   uploadedUrl?: string;
+  tempKey?: string;
   errorMessage?: string;
 }
 

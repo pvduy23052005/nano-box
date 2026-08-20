@@ -31,6 +31,8 @@ export const appendMessageToCache = (
     const isExist = existing.getMessages.some((msg) => msg.id === newMessage.id);
     if (isExist) return existing;
 
+    console.log("newMessage", newMessage);
+    console.log("existing.getMessages", existing.getMessages);
     return {
       getMessages: [...existing.getMessages, newMessage],
     };

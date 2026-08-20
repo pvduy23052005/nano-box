@@ -9,6 +9,11 @@ export interface UploadResponse {
   category?: FileCategory;
 }
 
+export interface TempUploadResponse {
+  tempKey: string;
+  url: string;
+}
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
 
 export async function uploadFile(
@@ -32,9 +37,30 @@ export async function uploadFile(
   return response.json();
 }
 
+export async function uploadTempFile(
+  file: File,
+): Promise<TempUploadResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${API_URL}/upload/temp`, {
+    method: "POST",
+    body: formData,
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Upload failed");
+  }
+
+  return response.json();
+}
+
 export async function uploadMultipleFiles(
   files: File[],
   folder: string = "uploads",
 ): Promise<UploadResponse[]> {
   return Promise.all(files.map((file) => uploadFile(file, folder)));
 }
+
