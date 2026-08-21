@@ -12,7 +12,7 @@ export class Message {
   @Prop({ required: true, trim: true, index: true })
   senderId: string;
 
-  @Prop({ required: true, trim: true })
+  @Prop({ trim: true })
   content: string;
 
   @Prop({ default: [], type: [String] })

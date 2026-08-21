@@ -11,7 +11,7 @@ export class MesageRepository implements MessageRepositoryAdapter {
   constructor(
     @InjectModel(Message.name)
     private readonly messageModel: Model<MessageDocument>,
-  ) {}
+  ) { }
 
   private toPersistence(message: MessageEntity) {
     return {
@@ -26,7 +26,7 @@ export class MesageRepository implements MessageRepositoryAdapter {
     return {
       id: document._id.toString() || '',
       senderId: document.senderId.toString(),
-      content: document.content,
+      content: document.content || '',
       attachments: document.attachments,
       readBy: document.readBy,
     };

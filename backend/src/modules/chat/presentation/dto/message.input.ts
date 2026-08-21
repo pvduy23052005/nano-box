@@ -3,7 +3,7 @@ import { IsOptional, IsString } from 'class-validator';
 
 @InputType()
 export class MessageInput {
-  @Field({ defaultValue: '' })
+  @Field({ nullable: true })
   @IsString()
   @IsOptional()
   content: string;
