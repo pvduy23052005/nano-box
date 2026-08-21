@@ -26,7 +26,7 @@ type LoginResult {
 }
 
 input MessageInput {
-  content: String! = ""
+  content: String
   tempKeys: [String!]
 }
 

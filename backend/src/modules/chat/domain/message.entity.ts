@@ -11,7 +11,7 @@ export class MessageEntity {
   private constructor(props: MessageType) {
     this.id = props.id;
     this.senderId = props.senderId;
-    this.content = props.content;
+    this.content = props.content || '';
     this.attachments = props.attachments || [];
     this.readBy = props.readBy || [];
   }
@@ -19,7 +19,7 @@ export class MessageEntity {
   public static create(props: Omit<MessageType, 'id'>): MessageEntity {
     const errors: Record<string, string> = {};
 
-    if (!props.content.length && !props.attachments?.length) {
+    if (!props.content?.length && !props.attachments?.length) {
       errors.content = 'Nội dung hoặc file đính kèm không được để trống';
     }
 
