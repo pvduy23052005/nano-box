@@ -17,7 +17,7 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
 @Controller('upload')
 @UseGuards(AuthGuard)
 export class UploadController {
-  constructor(private readonly uploadService: UploadService) { }
+  constructor(private readonly uploadService: UploadService) {}
 
   @Post()
   @UseInterceptors(
@@ -53,8 +53,7 @@ export class UploadController {
     }
 
     const result = await this.uploadService.uploadToTemp(file);
-    
+
     return result;
   }
 }
-

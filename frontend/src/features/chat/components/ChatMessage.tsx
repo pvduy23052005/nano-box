@@ -72,6 +72,8 @@ export default function ChatMessage({
               const cleanContent = DOMPurify.sanitize(msg.content);
 
               const attachmentImages = (msg.attachments ?? []).filter((url) =>
+                url.startsWith("blob:") ||
+                url.startsWith("data:image/") ||
                 /\.(jpg|jpeg|png|gif|webp|avif|heic|heif|svg|bmp|ico|tiff|tif)(\?.*)?$/i.test(
                   url,
                 ),
@@ -86,7 +88,7 @@ export default function ChatMessage({
                           className="flex flex-wrap gap-1.5"
                           onClick={handleContentClick}
                         >
-                          {msg.attachments?.map((url, idx) => (
+                          {attachmentImages.map((url, idx) => (
                             <Image
                               key={idx}
                               src={url}

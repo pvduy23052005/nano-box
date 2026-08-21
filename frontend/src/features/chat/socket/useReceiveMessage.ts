@@ -19,7 +19,10 @@ export const useReceiveMessage = () => {
 
       if (newMessage.senderId === user?.id) return;
 
-      appendMessageToCache(client.cache, GET_MESSAGE_QUERY, newMessage);
+      appendMessageToCache(client.cache, GET_MESSAGE_QUERY, {
+        ...newMessage,
+        isMe: newMessage.senderId === user?.id,
+      });
     };
 
     socket.on(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, handleReceiveMessage);

@@ -20,7 +20,7 @@ export class ChatResolver {
     private readonly sendMessageUseCase: SendMessageUseCase,
     private readonly webSocketService: WebsocketService,
     private readonly uploadService: UploadService,
-  ) { }
+  ) {}
 
   @Query(() => [ChatPayload])
   async getMessages(): Promise<ChatPayload[]> {
@@ -61,9 +61,7 @@ export class ChatResolver {
     if (tempKeysToDelete.length) {
       Promise.all(
         tempKeysToDelete.map((key) => this.uploadService.deleteTempFile(key)),
-      ).catch((err) =>
-        this.logger.warn(`Failed to delete temp files: ${err}`),
-      );
+      ).catch((err) => this.logger.warn(`Failed to delete temp files: ${err}`));
     }
 
     const server = this.webSocketService.server;
@@ -71,4 +69,3 @@ export class ChatResolver {
     return message;
   }
 }
-

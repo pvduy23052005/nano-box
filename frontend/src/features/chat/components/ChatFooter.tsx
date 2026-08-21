@@ -26,7 +26,6 @@ import {
   List,
   Outdent,
   Image as ImageIcon,
-  Loader2,
 } from "lucide-react";
 
 export default function ChatFooter() {
@@ -34,6 +33,9 @@ export default function ChatFooter() {
   const { sendTyping, stopTyping } = useSendTyping();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [images, setImages] = useState<PendingImage[]>([]);
+  const uploadPromisesRef = useRef(
+    new Map<string, Promise<{ tempKey: string; url: string } | null>>()
+  );
 
   const handleSelectFiles = (files: File[]) => {
     if (!files.length) return;
@@ -47,32 +49,37 @@ export default function ChatFooter() {
 
     setImages((prev) => [...prev, ...newImages]);
 
-    newImages.forEach(async (item) => {
-      try {
-        const result = await uploadTempFile(item.file);
-        setImages((prev) =>
-          prev.map((img) =>
-            img.id === item.id
-              ? {
-                  ...img,
-                  status: UploadStatus.SUCCESS,
-                  uploadedUrl: result.url,
-                  tempKey: result.tempKey,
-                }
-              : img,
-          ),
-        );
-      } catch (err: unknown) {
-        const errorMsg =
-          err instanceof Error ? err.message : "Tải ảnh thất bại";
-        setImages((prev) =>
-          prev.map((img) =>
-            img.id === item.id
-              ? { ...img, status: UploadStatus.ERROR, errorMessage: errorMsg }
-              : img,
-          ),
-        );
-      }
+    newImages.forEach((item) => {
+      const promise = uploadTempFile(item.file)
+        .then((result) => {
+          setImages((prev) =>
+            prev.map((img) =>
+              img.id === item.id
+                ? {
+                    ...img,
+                    status: UploadStatus.SUCCESS,
+                    uploadedUrl: result.url,
+                    tempKey: result.tempKey,
+                  }
+                : img,
+            ),
+          );
+          return result;
+        })
+        .catch((err: unknown) => {
+          const errorMsg =
+            err instanceof Error ? err.message : "Tải ảnh thất bại";
+          setImages((prev) =>
+            prev.map((img) =>
+              img.id === item.id
+                ? { ...img, status: UploadStatus.ERROR, errorMessage: errorMsg }
+                : img,
+            ),
+          );
+          return null;
+        });
+
+      uploadPromisesRef.current.set(item.id, promise);
     });
   };
 
@@ -84,6 +91,7 @@ export default function ChatFooter() {
   };
 
   const handleRemoveImage = (id: string) => {
+    uploadPromisesRef.current.delete(id);
     setImages((prev) => {
       const target = prev.find((img) => img.id === id);
       if (target?.previewUrl) {
@@ -92,8 +100,6 @@ export default function ChatFooter() {
       return prev.filter((img) => img.id !== id);
     });
   };
-
-  const isAnyImageUploading = images.some((img) => img.status === "uploading");
 
   const editor = useEditor({
     extensions: [
@@ -163,24 +169,32 @@ export default function ChatFooter() {
   });
 
   const handleSend = () => {
-    if (!editor || isAnyImageUploading) return;
+    if (!editor) return;
     const textContent = editor.getText().trim();
-    const successfulImages = images.filter(
-      (img) => img.status === "success" && img.tempKey,
-    );
+    const pendingImages = images.filter((img) => img.status !== UploadStatus.ERROR);
 
-    if (!textContent && editor.isEmpty && successfulImages.length === 0) {
-      return;
-    }
+    if (!textContent && editor.isEmpty && pendingImages.length === 0) return;
 
     stopTyping();
     const htmlContent = editor.isEmpty ? "" : editor.getHTML();
-    const tempKeys = successfulImages.map((img) => img.tempKey!)
 
-    sendMessage(htmlContent, tempKeys);
+    const previewUrls = pendingImages.map((img) => img.previewUrl);
+
+    const promises = pendingImages
+      .map((img) => uploadPromisesRef.current.get(img.id))
+      .filter((p): p is Promise<{ tempKey: string; url: string } | null> => !!p);
+    pendingImages.forEach((img) => uploadPromisesRef.current.delete(img.id));
+
+    const tempKeysPromise = Promise.all(promises).then((results) =>
+      results
+        .filter((r): r is { tempKey: string; url: string } => r !== null)
+        .map((r) => r.tempKey),
+    );
+
     editor.commands.clearContent();
-    images.forEach((img) => URL.revokeObjectURL(img.previewUrl));
     setImages([]);
+
+    sendMessage(htmlContent, tempKeysPromise, previewUrls);
   };
 
   const handleEmojiSelect = (emoji: string) => {
@@ -371,15 +385,10 @@ export default function ChatFooter() {
             variant="ghost"
             size="icon"
             type="button"
-            disabled={isAnyImageUploading}
-            className="size-10 text-primary hover:text-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="size-10 text-primary hover:text-primary/80"
             onClick={handleSend}
           >
-            {isAnyImageUploading ? (
-              <Loader2 className="size-5 animate-spin" />
-            ) : (
-              <SendHorizontal className="size-5" />
-            )}
+            <SendHorizontal className="size-5" />
           </Button>
         </div>
       </div>
