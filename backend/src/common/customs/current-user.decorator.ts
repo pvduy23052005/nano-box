@@ -11,14 +11,9 @@ export const CurrentUser = createParamDecorator(
     data: keyof TokenPayload | undefined,
     context: ExecutionContext,
   ): TokenPayload | string | undefined => {
-    let req: AuthenticatedRequest;
-    if (context.getType<'http' | 'graphql'>() === 'http') {
-      req = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    } else {
-      const ctx = GqlExecutionContext.create(context);
-      req = ctx.getContext<{ req: AuthenticatedRequest }>().req;
-    }
-    const user = req?.user;
+    const ctx = GqlExecutionContext.create(context);
+    const req = ctx.getContext<{ req: AuthenticatedRequest }>().req;
+    const user = req.user;
 
     if (!user) return undefined;
 

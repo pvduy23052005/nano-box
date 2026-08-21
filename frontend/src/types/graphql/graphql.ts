@@ -11,7 +11,6 @@ export type LoginInputDto = {
 
 export type MessageInput = {
   content: string;
-  tempKeys?: Array<string> | null;
 };
 
 export type RegisterInputDto = {

@@ -10,12 +10,10 @@ import { SendMessageUseCase } from './application/use-cases/send-message.use-cas
 import { ChatResolver } from './presentation/graphql/chat.resolver';
 import { GetMessagesUseCase } from './application/use-cases/get-message.use-case';
 import { ChatGateway } from './presentation/gateway/chat.gateway';
-import { UploadModule } from 'src/infrastructure/upload/upload.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Message.name, schema: MessageSchema }]),
-    UploadModule,
   ],
   providers: [
     ChatResolver,

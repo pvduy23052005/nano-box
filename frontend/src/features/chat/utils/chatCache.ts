@@ -9,14 +9,12 @@ interface GetMessagesData {
 export const appendMessageToCache = (
   cache: ApolloCache,
   query: DocumentNode,
-  newMessage: Omit<Message, "isMe"> & { isMe?: boolean },
+  newMessage: Message,
   tempId?: string
 ): void => {
-  const normalizedMessage: Message = { ...newMessage, isMe: newMessage.isMe ?? false };
-
   cache.updateQuery<GetMessagesData>({ query }, (existing) => {
     if (!existing?.getMessages) {
-      return { getMessages: [normalizedMessage] };
+      return { getMessages: [newMessage] };
     }
 
     if (tempId) {
@@ -24,7 +22,7 @@ export const appendMessageToCache = (
       if (isTempExist) {
         return {
           getMessages: existing.getMessages.map((msg: Message) =>
-            msg.id === tempId ? normalizedMessage : msg
+            msg.id === tempId ? newMessage : msg
           ),
         };
       }
@@ -34,7 +32,7 @@ export const appendMessageToCache = (
     if (isExist) return existing;
 
     return {
-      getMessages: [...existing.getMessages, normalizedMessage],
+      getMessages: [...existing.getMessages, newMessage],
     };
   });
 };

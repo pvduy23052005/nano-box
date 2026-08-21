@@ -10,9 +10,6 @@ import { useSendMessage } from "../hooks/useSendMessage";
 import { useSendTyping } from "../hooks/useSendTyping";
 import { Button } from "@/src/components/ui/button";
 import ChatEmojiPicker from "./ChatEmojiPicker";
-import ChatImagePreview, { PendingImage, UploadStatus } from "./ChatImagePreview";
-import { uploadTempFile } from "@/src/services/upload.service";
-import { useRef, useState } from "react";
 import {
   AtSign,
   FileText,
@@ -25,81 +22,11 @@ import {
   ListOrdered,
   List,
   Outdent,
-  Image as ImageIcon,
 } from "lucide-react";
 
 export default function ChatFooter() {
   const { sendMessage } = useSendMessage();
   const { sendTyping, stopTyping } = useSendTyping();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [images, setImages] = useState<PendingImage[]>([]);
-  const uploadPromisesRef = useRef(
-    new Map<string, Promise<{ tempKey: string; url: string } | null>>()
-  );
-
-  const handleSelectFiles = (files: File[]) => {
-    if (!files.length) return;
-
-    const newImages: PendingImage[] = files.map((file) => ({
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      file,
-      previewUrl: URL.createObjectURL(file),
-      status: UploadStatus.UPLOADING,
-    }));
-
-    setImages((prev) => [...prev, ...newImages]);
-
-    newImages.forEach((item) => {
-      const promise = uploadTempFile(item.file)
-        .then((result) => {
-          setImages((prev) =>
-            prev.map((img) =>
-              img.id === item.id
-                ? {
-                    ...img,
-                    status: UploadStatus.SUCCESS,
-                    uploadedUrl: result.url,
-                    tempKey: result.tempKey,
-                  }
-                : img,
-            ),
-          );
-          return result;
-        })
-        .catch((err: unknown) => {
-          const errorMsg =
-            err instanceof Error ? err.message : "Tải ảnh thất bại";
-          setImages((prev) =>
-            prev.map((img) =>
-              img.id === item.id
-                ? { ...img, status: UploadStatus.ERROR, errorMessage: errorMsg }
-                : img,
-            ),
-          );
-          return null;
-        });
-
-      uploadPromisesRef.current.set(item.id, promise);
-    });
-  };
-
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      handleSelectFiles(Array.from(e.target.files));
-      e.target.value = "";
-    }
-  };
-
-  const handleRemoveImage = (id: string) => {
-    uploadPromisesRef.current.delete(id);
-    setImages((prev) => {
-      const target = prev.find((img) => img.id === id);
-      if (target?.previewUrl) {
-        URL.revokeObjectURL(target.previewUrl);
-      }
-      return prev.filter((img) => img.id !== id);
-    });
-  };
 
   const editor = useEditor({
     extensions: [
@@ -124,34 +51,13 @@ export default function ChatFooter() {
         if (event.key === "Enter" && !event.shiftKey) {
           event.preventDefault();
           const textContent = view.state.doc.textContent.trim();
-          if (
-            !textContent &&
-            view.state.doc.content.size <= 2 &&
-            images.length === 0
-          ) {
+          if (!textContent && view.state.doc.content.size <= 2) {
             return true;
           }
           const sendBtn = document.getElementById("chat-send-btn");
           if (sendBtn) {
             sendBtn.click();
           }
-          return true;
-        }
-        return false;
-      },
-      handlePaste: (view, event) => {
-        const items = event.clipboardData?.items;
-        if (!items) return false;
-        const imageFiles: File[] = [];
-        for (let i = 0; i < items.length; i++) {
-          if (items[i].type.startsWith("image/")) {
-            const file = items[i].getAsFile();
-            if (file) imageFiles.push(file);
-          }
-        }
-        if (imageFiles.length > 0) {
-          event.preventDefault();
-          handleSelectFiles(imageFiles);
           return true;
         }
         return false;
@@ -171,30 +77,13 @@ export default function ChatFooter() {
   const handleSend = () => {
     if (!editor) return;
     const textContent = editor.getText().trim();
-    const pendingImages = images.filter((img) => img.status !== UploadStatus.ERROR);
-
-    if (!textContent && editor.isEmpty && pendingImages.length === 0) return;
-
+    if (!textContent && editor.isEmpty) {
+      return;
+    }
     stopTyping();
-    const htmlContent = editor.isEmpty ? "" : editor.getHTML();
-
-    const previewUrls = pendingImages.map((img) => img.previewUrl);
-
-    const promises = pendingImages
-      .map((img) => uploadPromisesRef.current.get(img.id))
-      .filter((p): p is Promise<{ tempKey: string; url: string } | null> => !!p);
-    pendingImages.forEach((img) => uploadPromisesRef.current.delete(img.id));
-
-    const tempKeysPromise = Promise.all(promises).then((results) =>
-      results
-        .filter((r): r is { tempKey: string; url: string } => r !== null)
-        .map((r) => r.tempKey),
-    );
-
+    const htmlContent = editor.getHTML();
+    sendMessage(htmlContent);
     editor.commands.clearContent();
-    setImages([]);
-
-    sendMessage(htmlContent, tempKeysPromise, previewUrls);
   };
 
   const handleEmojiSelect = (emoji: string) => {
@@ -331,8 +220,6 @@ export default function ChatFooter() {
           </Button>
         </div>
 
-        <ChatImagePreview images={images} onRemove={handleRemoveImage} />
-
         <div className="max-h-[140px] overflow-y-auto">
           <EditorContent editor={editor} />
         </div>
@@ -340,26 +227,6 @@ export default function ChatFooter() {
         <div className="flex items-center justify-between p-2">
           <div className="flex items-center gap-1">
             <ChatEmojiPicker onSelect={handleEmojiSelect} />
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={handleFileInputChange}
-            />
-
-            <Button
-              variant="ghost"
-              size="icon"
-              type="button"
-              className="size-10 text-muted-foreground hover:text-foreground"
-              onClick={() => fileInputRef.current?.click()}
-              title="Chọn ảnh"
-            >
-              <ImageIcon className="size-5" />
-            </Button>
 
             <Button
               variant="ghost"
@@ -378,18 +245,17 @@ export default function ChatFooter() {
             >
               <FileText className="size-5" />
             </Button>
+            <Button
+              id="chat-send-btn"
+              variant="ghost"
+              size="icon"
+              type="button"
+              className="size-10 text-primary hover:text-primary/80"
+              onClick={handleSend}
+            >
+              <SendHorizontal className="size-5" />
+            </Button>
           </div>
-
-          <Button
-            id="chat-send-btn"
-            variant="ghost"
-            size="icon"
-            type="button"
-            className="size-10 text-primary hover:text-primary/80"
-            onClick={handleSend}
-          >
-            <SendHorizontal className="size-5" />
-          </Button>
         </div>
       </div>
     </div>
