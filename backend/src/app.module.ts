@@ -9,6 +9,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { WebsocketModule } from './infrastructure/websocket/ws.module';
+import { UploadModule } from './infrastructure/upload/upload.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { WebsocketModule } from './infrastructure/websocket/ws.module';
       useClass: MongooseConfig,
     }),
     WebsocketModule,
+    UploadModule,
     UserModule,
     AuthModule,
     ChatModule,
