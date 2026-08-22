@@ -3,7 +3,12 @@ import { DocumentNode } from "graphql";
 import { Message } from "../types/chat.types";
 
 interface GetMessagesData {
-  getMessages: Message[];
+  getMessages: {
+    __typename?: string;
+    items: Message[];
+    hasMore: boolean;
+    nextCursor: string | null;
+  };
 }
 
 export const appendMessageToCache = (
@@ -16,25 +21,39 @@ export const appendMessageToCache = (
 
   cache.updateQuery<GetMessagesData>({ query }, (existing) => {
     if (!existing?.getMessages) {
-      return { getMessages: [normalizedMessage] };
+      return {
+        getMessages: {
+          items: [normalizedMessage],
+          hasMore: false,
+          nextCursor: null,
+        },
+      };
     }
 
+    const currentItems = existing.getMessages.items || [];
+
     if (tempId) {
-      const isTempExist = existing.getMessages.some((msg: Message) => msg.id === tempId);
+      const isTempExist = currentItems.some((msg: Message) => msg.id === tempId);
       if (isTempExist) {
         return {
-          getMessages: existing.getMessages.map((msg: Message) =>
-            msg.id === tempId ? normalizedMessage : msg
-          ),
+          getMessages: {
+            ...existing.getMessages,
+            items: currentItems.map((msg: Message) =>
+              msg.id === tempId ? normalizedMessage : msg
+            ),
+          },
         };
       }
     }
 
-    const isExist = existing.getMessages.some((msg) => msg.id === newMessage.id);
+    const isExist = currentItems.some((msg) => msg.id === newMessage.id);
     if (isExist) return existing;
 
     return {
-      getMessages: [...existing.getMessages, normalizedMessage],
+      getMessages: {
+        ...existing.getMessages,
+        items: [...currentItems, normalizedMessage],
+      },
     };
   });
 };

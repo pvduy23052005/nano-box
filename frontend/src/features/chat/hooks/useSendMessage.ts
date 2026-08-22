@@ -22,6 +22,7 @@ export const useSendMessage = () => {
       content,
       senderId: user.id,
       attachments: previewUrls ?? [],
+      readBy: [],
     };
     appendMessageToCache(client.cache, GET_MESSAGE_QUERY, optimisticMsg);
 

@@ -5,6 +5,7 @@ export interface Message {
   avatar?: string;
   isMe: boolean;
   attachments?: string[] | null;
+  readBy?: string[] | null;
 }
 
 export interface MessageGroup {

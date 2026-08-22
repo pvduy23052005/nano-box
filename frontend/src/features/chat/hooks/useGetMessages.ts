@@ -8,7 +8,7 @@ export const useGetMessages = () => {
   const { data, loading } = useQuery(GET_MESSAGE_QUERY);
 
   const messages: Message[] =
-    data?.getMessages?.map((message) => ({
+    data?.getMessages?.items?.map((message) => ({
       ...message,
       isMe: message.senderId === user?.id,
     })) || [];
