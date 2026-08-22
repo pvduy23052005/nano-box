@@ -1,5 +1,6 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { ChatPayload } from '../dto/chat.payload';
+import { MessagesPagePayload } from '../dto/messages-page.payload';
 import { GetMessagesUseCase } from '../../application/use-cases/get-message.use-case';
 import { MessageInput } from '../dto/message.input';
 import { CurrentUser } from 'src/common/customs/current-user.decorator';
@@ -22,16 +23,24 @@ export class ChatResolver {
     private readonly uploadService: UploadService,
   ) {}
 
-  @Query(() => [ChatPayload])
-  async getMessages(): Promise<ChatPayload[]> {
-    const messages = await this.getMessagesUseCase.execute();
-    return messages.map((msg) => ({
-      id: msg.id as string,
-      content: msg.content,
-      senderId: msg.senderId,
-      attachments: msg.attachments || [],
-      readBy: msg.readBy || [],
-    }));
+  @Query(() => MessagesPagePayload)
+  async getMessages(
+    @Args('cursor', { nullable: true }) cursor?: string,
+    @Args('limit', { nullable: true }) limit?: number,
+  ): Promise<MessagesPagePayload> {
+    const result = await this.getMessagesUseCase.execute(cursor, limit);
+
+    return {
+      items: result.items.map((msg) => ({
+        id: msg.id as string,
+        content: msg.content,
+        senderId: msg.senderId,
+        attachments: msg.attachments || [],
+        readBy: msg.readBy || [],
+      })),
+      nextCursor: result.nextCursor ?? null,
+      hasMore: result.hasmore,
+    };
   }
 
   @Mutation(() => ChatPayload)
