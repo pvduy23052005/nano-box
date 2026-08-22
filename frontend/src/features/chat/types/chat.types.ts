@@ -15,3 +15,14 @@ export interface MessageGroup {
   avatar?: string;
   messages: Message[];
 }
+
+export interface GetMessageInput {
+  cursor: string;
+  limit: number;
+};
+
+export interface GetMessagesResponse {
+  items: readonly Message[];
+  hasMore: boolean;
+  nextCursor: string | null;
+}

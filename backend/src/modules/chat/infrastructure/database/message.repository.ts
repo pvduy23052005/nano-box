@@ -15,7 +15,7 @@ export class MesageRepository implements MessageRepositoryAdapter {
   constructor(
     @InjectModel(Message.name)
     private readonly messageModel: Model<MessageDocument>,
-  ) {}
+  ) { }
 
   private toPersistence(message: MessageEntity) {
     return {
@@ -69,7 +69,7 @@ export class MesageRepository implements MessageRepositoryAdapter {
       : null;
 
     return {
-      items: itemsToReturn.map((doc) => this.toDTO(doc)),
+      items: itemsToReturn.reverse().map((doc) => this.toDTO(doc)),
       nextCursor: nextCursor,
       hasmore: hasMore,
     };
