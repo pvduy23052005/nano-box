@@ -1,10 +1,9 @@
 import { ApolloCache } from "@apollo/client";
 import { DocumentNode } from "graphql";
-import { Message } from "../types/chat.types";
+import { Message, PAGINATION_LIMIT } from "../types/chat.types";
 
 interface GetMessagesData {
   getMessages: {
-    __typename?: string;
     items: Message[];
     hasMore: boolean;
     nextCursor: string | null;
@@ -19,7 +18,7 @@ export const appendMessageToCache = (
 ): void => {
   const normalizedMessage: Message = { ...newMessage, isMe: newMessage.isMe ?? false };
 
-  cache.updateQuery<GetMessagesData>({ query }, (existing) => {
+  cache.updateQuery<GetMessagesData>({ query, variables: { limit: PAGINATION_LIMIT } }, (existing) => {
     if (!existing?.getMessages) {
       return {
         getMessages: {

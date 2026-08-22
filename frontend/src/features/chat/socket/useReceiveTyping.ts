@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
 import { useSocket } from "@/src/providers/SocketProvider";
-import { CHAT_SOCKET_EVENTS, TypingPayload } from "../types/event.types";
+import { CHAT_SOCKET_EVENTS } from "../types/event.types";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { useTypingStore } from "../stores/useTypingStore";
+import { TypingPayload } from "../types/chat.types";
 
 export const useReceiveTyping = () => {
   const { socket } = useSocket();

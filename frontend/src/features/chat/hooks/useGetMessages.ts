@@ -1,14 +1,14 @@
 import { useQuery } from "@apollo/client/react";
 import { GET_MESSAGE_QUERY } from "../services/mutation";
 import { useAuthStore } from "../../auth/store/useAuthStore";
-import { Message } from "../types/chat.types";
+import { Message, PAGINATION_LIMIT } from "../types/chat.types";
 import { useCallback, useMemo, useState } from "react";
 
 export const useGetMessages = () => {
   const { user } = useAuthStore();
   const [isFetchingNextPage, setIsFetchingNextPage] = useState(false);
   const { data, loading, fetchMore } = useQuery(GET_MESSAGE_QUERY, {
-    variables: { limit: 10 },
+    variables: { limit: PAGINATION_LIMIT },
   });
 
   const messages: Message[] = useMemo(() => {
@@ -30,6 +30,7 @@ export const useGetMessages = () => {
       await fetchMore({
         variables: {
           cursor: nextCursor,
+          limit: PAGINATION_LIMIT,
         },
         updateQuery: (prev, { fetchMoreResult }) => {
           if (!fetchMoreResult) return prev;

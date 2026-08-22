@@ -26,3 +26,11 @@ export interface GetMessagesResponse {
   hasMore: boolean;
   nextCursor: string | null;
 }
+
+export const PAGINATION_LIMIT = 10;
+
+export type TypingPayload = {
+  userId: string;
+  name: string;
+  isTyping: boolean;
+};
