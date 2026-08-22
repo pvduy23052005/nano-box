@@ -15,7 +15,7 @@ export class MesageRepository implements MessageRepositoryAdapter {
   constructor(
     @InjectModel(Message.name)
     private readonly messageModel: Model<MessageDocument>,
-  ) { }
+  ) {}
 
   private toPersistence(message: MessageEntity) {
     return {
