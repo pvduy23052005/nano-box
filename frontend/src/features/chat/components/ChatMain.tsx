@@ -3,6 +3,7 @@
 import { useEffect, useRef, useMemo, useLayoutEffect } from "react";
 import { useInView } from "react-intersection-observer";
 import { useGetMessages } from "../hooks/useGetMessages";
+import LogoSpinner from "@/src/components/common/LogoSpinner";
 import ChatLoading from "./ChatLoading";
 import ChatMessage from "./ChatMessage";
 import ChatTypingIndicator from "./ChatTypingIndicator";
@@ -12,7 +13,13 @@ import { useTypingStore } from "../stores/useTypingStore";
 import { Message, MessageGroup } from "../types/chat.types";
 
 export default function ChatMain() {
-  const { messages, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetMessages();
+  const {
+    messages,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useGetMessages();
   const { typingUsers } = useTypingStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -34,12 +41,17 @@ export default function ChatMain() {
   }, [isFetchingNextPage]);
 
   useLayoutEffect(() => {
-    if (!isFetchingNextPage && previousScrollHeight.current > 0 && scrollContainerRef.current) {
+    if (
+      !isFetchingNextPage &&
+      previousScrollHeight.current > 0 &&
+      scrollContainerRef.current
+    ) {
       const newScrollHeight = scrollContainerRef.current.scrollHeight;
       const heightDifference = newScrollHeight - previousScrollHeight.current;
-      
+
       if (heightDifference > 0) {
-        scrollContainerRef.current.scrollTop = previousScrollTop.current + heightDifference;
+        scrollContainerRef.current.scrollTop =
+          previousScrollTop.current + heightDifference;
       }
       previousScrollHeight.current = 0;
     }
@@ -54,7 +66,8 @@ export default function ChatMain() {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-  const lastMessageId = messages.length > 0 ? messages[messages.length - 1].id : null;
+  const lastMessageId =
+    messages.length > 0 ? messages[messages.length - 1].id : null;
 
   useEffect(() => {
     scrollToBottom();
@@ -82,7 +95,7 @@ export default function ChatMain() {
   }, [messages]);
 
   return (
-    <div 
+    <div
       ref={scrollContainerRef}
       className="flex-1 flex flex-col gap-4 px-3 py-3 overflow-y-auto"
     >
@@ -91,12 +104,15 @@ export default function ChatMain() {
       ) : (
         <>
           {hasNextPage && (
-            <div ref={loadMoreRef} className="flex justify-center py-4 h-12">
-              {isFetchingNextPage && (
-                <span className="loading loading-spinner loading-sm text-primary"></span>
-              )}
+            <div ref={loadMoreRef} className="h-4 w-full flex-shrink-0" />
+          )}
+
+          {isFetchingNextPage && (
+            <div className="flex justify-center py-4 w-full">
+              <LogoSpinner size="sm" showText={true} />
             </div>
           )}
+
           {messageGroups.map((group, index) => (
             <ChatMessage
               key={group.id}
@@ -106,10 +122,9 @@ export default function ChatMain() {
           ))}
         </>
       )}
-      
+
       <ChatTypingIndicator typingUsers={typingList} />
       <div ref={messagesEndRef} />
     </div>
   );
 }
-

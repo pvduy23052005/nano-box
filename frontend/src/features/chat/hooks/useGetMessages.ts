@@ -38,8 +38,8 @@ export const useGetMessages = () => {
             getMessages: {
               ...fetchMoreResult.getMessages,
               items: [
-                ...prev.getMessages.items,
                 ...fetchMoreResult.getMessages.items,
+                ...prev.getMessages.items,
               ],
             },
           };
