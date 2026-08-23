@@ -3,9 +3,3 @@ export const CHAT_SOCKET_EVENTS = {
   CLIENT_SEND_TYPING: 'client:send:typing',
   SERVER_SEND_TYPING: 'server:send:typing',
 };
-
-export type TypingPayload = {
-  userId: string;
-  name: string;
-  isTyping: boolean;
-};

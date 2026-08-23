@@ -6,6 +6,7 @@ type ChatPayload {
   attachments: [String!]
   content: String!
   id: String!
+  readBy: [String!]
   senderId: String!
 }
 
@@ -30,6 +31,12 @@ input MessageInput {
   tempKeys: [String!]
 }
 
+type MessagesPagePayload {
+  hasMore: Boolean!
+  items: [ChatPayload!]!
+  nextCursor: String
+}
+
 type Mutation {
   login(input: LoginInputDto!): LoginPayload!
   register(input: RegisterInputDto!): RegisterPayload!
@@ -38,7 +45,7 @@ type Mutation {
 
 type Query {
   getMe: UserProfilePayload!
-  getMessages: [ChatPayload!]!
+  getMessages(cursor: String, limit: Float): MessagesPagePayload!
 }
 
 input RegisterInputDto {

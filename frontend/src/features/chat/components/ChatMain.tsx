@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef, useMemo, useLayoutEffect } from "react";
+import { useInView } from "react-intersection-observer";
 import { useGetMessages } from "../hooks/useGetMessages";
+import LogoSpinner from "@/src/components/common/LogoSpinner";
 import ChatLoading from "./ChatLoading";
 import ChatMessage from "./ChatMessage";
 import ChatTypingIndicator from "./ChatTypingIndicator";
@@ -11,7 +13,13 @@ import { useTypingStore } from "../stores/useTypingStore";
 import { Message, MessageGroup } from "../types/chat.types";
 
 export default function ChatMain() {
-  const { messages, isLoading } = useGetMessages();
+  const {
+    messages,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useGetMessages();
   const { typingUsers } = useTypingStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -19,14 +27,51 @@ export default function ChatMain() {
   useReceiveTyping();
 
   const typingList = useMemo(() => Object.values(typingUsers), [typingUsers]);
-  
+  const { ref: loadMoreRef, inView } = useInView();
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const previousScrollHeight = useRef<number>(0);
+  const previousScrollTop = useRef<number>(0);
+
+  useEffect(() => {
+    if (isFetchingNextPage && scrollContainerRef.current) {
+      previousScrollHeight.current = scrollContainerRef.current.scrollHeight;
+      previousScrollTop.current = scrollContainerRef.current.scrollTop;
+    }
+  }, [isFetchingNextPage]);
+
+  useLayoutEffect(() => {
+    if (
+      !isFetchingNextPage &&
+      previousScrollHeight.current > 0 &&
+      scrollContainerRef.current
+    ) {
+      const newScrollHeight = scrollContainerRef.current.scrollHeight;
+      const heightDifference = newScrollHeight - previousScrollHeight.current;
+
+      if (heightDifference > 0) {
+        scrollContainerRef.current.scrollTop =
+          previousScrollTop.current + heightDifference;
+      }
+      previousScrollHeight.current = 0;
+    }
+  }, [isFetchingNextPage, messages.length]);
+
+  useEffect(() => {
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, hasNextPage, fetchNextPage, isFetchingNextPage]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+  const lastMessageId =
+    messages.length > 0 ? messages[messages.length - 1].id : null;
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, typingList.length]);
+  }, [lastMessageId, typingList.length]);
 
   const messageGroups = useMemo(() => {
     return messages.reduce<MessageGroup[]>(
@@ -50,21 +95,36 @@ export default function ChatMain() {
   }, [messages]);
 
   return (
-    <div className="flex-1 flex flex-col gap-4 px-3 py-3 overflow-y-auto">
-      {isLoading ? (
+    <div
+      ref={scrollContainerRef}
+      className="flex-1 flex flex-col gap-4 px-3 py-3 overflow-y-auto"
+    >
+      {isLoading && messages.length === 0 ? (
         <ChatLoading />
       ) : (
-        messageGroups.map((group, index) => (
-          <ChatMessage
-            key={group.id}
-            isLastGroup={index === messageGroups.length - 1}
-            {...group}
-          />
-        ))
+        <>
+          {hasNextPage && (
+            <div ref={loadMoreRef} className="h-4 w-full flex-shrink-0" />
+          )}
+
+          {isFetchingNextPage && (
+            <div className="flex justify-center py-4 w-full">
+              <LogoSpinner size="sm" showText={true} />
+            </div>
+          )}
+
+          {messageGroups.map((group, index) => (
+            <ChatMessage
+              key={group.id}
+              isLastGroup={index === messageGroups.length - 1}
+              {...group}
+            />
+          ))}
+        </>
       )}
+
       <ChatTypingIndicator typingUsers={typingList} />
       <div ref={messagesEndRef} />
     </div>
   );
 }
-

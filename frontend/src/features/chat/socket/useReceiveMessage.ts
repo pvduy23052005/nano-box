@@ -16,7 +16,6 @@ export const useReceiveMessage = () => {
     if (!socket) return;
 
     const handleReceiveMessage = (newMessage: Message) => {
-
       if (newMessage.senderId === user?.id) return;
 
       appendMessageToCache(client.cache, GET_MESSAGE_QUERY, {
