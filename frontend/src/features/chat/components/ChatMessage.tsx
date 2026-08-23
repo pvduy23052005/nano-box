@@ -61,7 +61,7 @@ export default function ChatMessage({
         {!isMe && (
           <MessageAvatar>
             <Avatar>
-              <AvatarImage src={avatar} />
+              <AvatarImage src={avatar ? avatar : "/logo.svg"} />
               <AvatarFallback>user</AvatarFallback>
             </Avatar>
           </MessageAvatar>
@@ -71,12 +71,13 @@ export default function ChatMessage({
             {messages.map((msg) => {
               const cleanContent = DOMPurify.sanitize(msg.content);
 
-              const attachmentImages = (msg.attachments ?? []).filter((url) =>
-                url.startsWith("blob:") ||
-                url.startsWith("data:image/") ||
-                /\.(jpg|jpeg|png|gif|webp|avif|heic|heif|svg|bmp|ico|tiff|tif)(\?.*)?$/i.test(
-                  url,
-                ),
+              const attachmentImages = (msg.attachments ?? []).filter(
+                (url) =>
+                  url.startsWith("blob:") ||
+                  url.startsWith("data:image/") ||
+                  /\.(jpg|jpeg|png|gif|webp|avif|heic|heif|svg|bmp|ico|tiff|tif)(\?.*)?$/i.test(
+                    url,
+                  ),
               );
 
               return (

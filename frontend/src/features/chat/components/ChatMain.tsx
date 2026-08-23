@@ -11,6 +11,7 @@ import { useReceiveMessage } from "../socket/useReceiveMessage";
 import { useReceiveTyping } from "../socket/useReceiveTyping";
 import { useTypingStore } from "../stores/useTypingStore";
 import { Message, MessageGroup } from "../types/chat.types";
+import { useAuthStore } from "../../auth/store/useAuthStore";
 
 export default function ChatMain() {
   const {
@@ -22,7 +23,6 @@ export default function ChatMain() {
   } = useGetMessages();
   const { typingUsers } = useTypingStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
   useReceiveMessage();
   useReceiveTyping();
 
