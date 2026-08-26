@@ -6,6 +6,7 @@ import { IpasswordHasher } from '../user/applications/ports/password-hasher.port
 import { UserRepositoryAdapter } from '../user/applications/ports/user.port';
 import { ITokenGenerator } from './applications/ports/token-generator.port';
 import { LoginUseCase } from './applications/use-case/login.use-case';
+import { LoginGoogleUseCase } from './applications/use-case/login-google.use-case';
 import { JwtTokenGenerator } from './infrastructure/externals/jwt-token-generator.external';
 import { AuthResolver } from './presentation/graphql/auth.resolver';
 
@@ -40,6 +41,15 @@ import { AuthResolver } from './presentation/graphql/auth.resolver';
         passwordHasher: IpasswordHasher,
         tokenGenerator: ITokenGenerator,
       ) => new LoginUseCase(userRepository, passwordHasher, tokenGenerator),
+      inject: [UserRepositoryAdapter, IpasswordHasher, ITokenGenerator],
+    },
+    {
+      provide: LoginGoogleUseCase,
+      useFactory: (
+        userRepository: UserRepositoryAdapter,
+        passwordHasher: IpasswordHasher,
+        tokenGenerator: ITokenGenerator,
+      ) => new LoginGoogleUseCase(userRepository, passwordHasher, tokenGenerator),
       inject: [UserRepositoryAdapter, IpasswordHasher, ITokenGenerator],
     },
   ],
