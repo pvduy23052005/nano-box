@@ -10,7 +10,7 @@ export class UserRepository implements UserRepositoryAdapter {
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
-  ) { }
+  ) {}
 
   private toEntity(doc: UserDocument): UserEntity {
     return UserEntity.restore({

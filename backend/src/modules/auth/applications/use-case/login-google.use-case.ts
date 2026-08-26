@@ -32,7 +32,7 @@ export class LoginGoogleUseCase {
       });
     }
 
-    let user = await this.userRepository.findByEmail(payload.email || "");
+    let user = await this.userRepository.findByEmail(payload.email || '');
 
     if (!user) {
       const randomPassword = crypto.randomBytes(16).toString('hex');

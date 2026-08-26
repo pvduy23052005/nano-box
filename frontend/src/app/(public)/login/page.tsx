@@ -71,7 +71,7 @@ export default function LoginPage() {
     try {
       const result = await loginWithGoogle(id_token);
       if (result?.success) router.push("/");
-    } catch (error) {
+    } catch {
       toast.error("Đăng nhập với Google thất bại");
     }
   };

@@ -49,7 +49,8 @@ import { AuthResolver } from './presentation/graphql/auth.resolver';
         userRepository: UserRepositoryAdapter,
         passwordHasher: IpasswordHasher,
         tokenGenerator: ITokenGenerator,
-      ) => new LoginGoogleUseCase(userRepository, passwordHasher, tokenGenerator),
+      ) =>
+        new LoginGoogleUseCase(userRepository, passwordHasher, tokenGenerator),
       inject: [UserRepositoryAdapter, IpasswordHasher, ITokenGenerator],
     },
   ],
