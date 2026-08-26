@@ -54,6 +54,7 @@ export const GET_ME_QUERY = graphql(`
       id
       name
       email
+      avatar
     }
   }
 `);

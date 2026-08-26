@@ -17,7 +17,7 @@ type Documents = {
     "\n  mutation Register($input: RegisterInputDto!) {\n    register(input: $input) {\n      success\n      message\n      data {\n        id\n        name\n        email\n      }\n    }\n  }\n": typeof types.RegisterDocument,
     "\n  mutation Login($input: LoginInputDto!) {\n    login(input: $input) {\n      success\n      message\n      data {\n        accessToken\n        user {\n          id\n          name\n          email\n        }\n      }\n    }\n  }\n": typeof types.LoginDocument,
     "\n  mutation LoginGoogle($idToken: String!) {\n    loginGoogle(idToken: $idToken) {\n      success\n      message\n      data {\n        accessToken\n        user {\n          id\n          name\n          email\n        }\n      }\n    }\n  }\n": typeof types.LoginGoogleDocument,
-    "\n  query GetMe {\n    getMe {\n      id\n      name\n      email\n    }\n  }\n": typeof types.GetMeDocument,
+    "\n  query GetMe {\n    getMe {\n      id\n      name\n      email\n      avatar\n    }\n  }\n": typeof types.GetMeDocument,
     "\n  query GetMessages($cursor: String, $limit: Float) {\n    getMessages(cursor: $cursor, limit: $limit) {\n      items {\n        id\n        content\n        senderId\n        attachments\n      }\n      hasMore\n      nextCursor\n    }\n  }\n": typeof types.GetMessagesDocument,
     "\n  mutation SendMessage($input: MessageInput!) {\n    sendMessage(input: $input) {\n      id  \n      content\n      senderId\n      attachments\n    }\n  }\n": typeof types.SendMessageDocument,
 };
@@ -25,7 +25,7 @@ const documents: Documents = {
     "\n  mutation Register($input: RegisterInputDto!) {\n    register(input: $input) {\n      success\n      message\n      data {\n        id\n        name\n        email\n      }\n    }\n  }\n": types.RegisterDocument,
     "\n  mutation Login($input: LoginInputDto!) {\n    login(input: $input) {\n      success\n      message\n      data {\n        accessToken\n        user {\n          id\n          name\n          email\n        }\n      }\n    }\n  }\n": types.LoginDocument,
     "\n  mutation LoginGoogle($idToken: String!) {\n    loginGoogle(idToken: $idToken) {\n      success\n      message\n      data {\n        accessToken\n        user {\n          id\n          name\n          email\n        }\n      }\n    }\n  }\n": types.LoginGoogleDocument,
-    "\n  query GetMe {\n    getMe {\n      id\n      name\n      email\n    }\n  }\n": types.GetMeDocument,
+    "\n  query GetMe {\n    getMe {\n      id\n      name\n      email\n      avatar\n    }\n  }\n": types.GetMeDocument,
     "\n  query GetMessages($cursor: String, $limit: Float) {\n    getMessages(cursor: $cursor, limit: $limit) {\n      items {\n        id\n        content\n        senderId\n        attachments\n      }\n      hasMore\n      nextCursor\n    }\n  }\n": types.GetMessagesDocument,
     "\n  mutation SendMessage($input: MessageInput!) {\n    sendMessage(input: $input) {\n      id  \n      content\n      senderId\n      attachments\n    }\n  }\n": types.SendMessageDocument,
 };
@@ -59,7 +59,7 @@ export function graphql(source: "\n  mutation LoginGoogle($idToken: String!) {\n
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query GetMe {\n    getMe {\n      id\n      name\n      email\n    }\n  }\n"): (typeof documents)["\n  query GetMe {\n    getMe {\n      id\n      name\n      email\n    }\n  }\n"];
+export function graphql(source: "\n  query GetMe {\n    getMe {\n      id\n      name\n      email\n      avatar\n    }\n  }\n"): (typeof documents)["\n  query GetMe {\n    getMe {\n      id\n      name\n      email\n      avatar\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

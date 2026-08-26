@@ -26,6 +26,8 @@ export class LoginGoogleUseCase {
 
     const payload = ticket.getPayload();
 
+    console.log(payload);
+
     if (!payload || !payload.email) {
       throw new DomainValidationException({
         token: 'Không thể lấy thông tin email từ Google',
