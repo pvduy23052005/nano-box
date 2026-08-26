@@ -114,7 +114,7 @@ export default function LoginPage() {
                       control={control}
                       name="email"
                       render={({ field }) => (
-                        <InputGroup className="h-12">
+                        <InputGroup className="h-10">
                           <InputGroupAddon align="inline-start">
                             <MailIcon />
                           </InputGroupAddon>
@@ -137,7 +137,7 @@ export default function LoginPage() {
                       control={control}
                       name="password"
                       render={({ field }) => (
-                        <InputGroup className="h-12">
+                        <InputGroup className="h-10">
                           <InputGroupAddon align="inline-start">
                             <LockIcon />
                           </InputGroupAddon>

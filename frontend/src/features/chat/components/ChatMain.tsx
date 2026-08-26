@@ -23,6 +23,8 @@ export default function ChatMain() {
   } = useGetMessages();
   const { typingUsers } = useTypingStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuthStore();
+
   useReceiveMessage();
   useReceiveTyping();
 
@@ -117,6 +119,7 @@ export default function ChatMain() {
             <ChatMessage
               key={group.id}
               isLastGroup={index === messageGroups.length - 1}
+              avatar={user?.avatar || ""}
               {...group}
             />
           ))}

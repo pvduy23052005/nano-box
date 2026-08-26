@@ -7,7 +7,6 @@ import { SidebarTrigger } from "../ui/sidebar";
 export default function AppHeader() {
   const user = useAuthStore((state) => state.user);
 
-  console.log(user);
   return (
     <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background/80 px-2">
       <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground cursor-pointer" />
