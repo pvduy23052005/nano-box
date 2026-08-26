@@ -30,7 +30,7 @@ export class RegisterUseCase {
     const user = UserEntity.create({
       ...input,
       password: hashedPassword,
-      avatar: '',
+      avatar: '/login.png',
     });
 
     const savedUsser = await this.userRepository.save(user);
