@@ -64,4 +64,9 @@ export class UserRepository implements UserRepositoryAdapter {
     const user = await this.userModel.findById(id).lean().exec();
     return user ? this.toEntity(user) : null;
   }
+
+  async findAll(): Promise<UserEntity[]> {
+    const users = await this.userModel.find().lean().exec();
+    return users.map((user) => this.toEntity(user));
+  }
 }

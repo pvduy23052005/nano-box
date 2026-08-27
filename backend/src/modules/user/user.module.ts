@@ -11,6 +11,7 @@ import { IpasswordHasher } from './applications/ports/password-hasher.port';
 import { UserRepository } from './infrastructure/databases/user.repository';
 import { PasswordHasher } from './infrastructure/externals/password-hasher.external';
 import { GetMeUseCase } from './applications/use-case/get-me.use-case';
+import { GetUsersUseCase } from './applications/use-case/get-users.use-case';
 
 @Module({
   imports: [
@@ -38,6 +39,12 @@ import { GetMeUseCase } from './applications/use-case/get-me.use-case';
       provide: GetMeUseCase,
       useFactory: (userRepository: UserRepositoryAdapter) =>
         new GetMeUseCase(userRepository),
+      inject: [UserRepositoryAdapter],
+    },
+    {
+      provide: GetUsersUseCase,
+      useFactory: (userRepository: UserRepositoryAdapter) =>
+        new GetUsersUseCase(userRepository),
       inject: [UserRepositoryAdapter],
     },
   ],

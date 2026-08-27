@@ -47,6 +47,7 @@ type Mutation {
 type Query {
   getMe: UserProfilePayload!
   getMessages(cursor: String, limit: Float): MessagesPagePayload!
+  getUsers: [UserProfilePayload!]!
 }
 
 input RegisterInputDto {
