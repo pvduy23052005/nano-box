@@ -21,6 +21,9 @@ export class User {
 
   @Prop({ default: UserStatus.ACTIVE, enum: UserStatus })
   status: UserStatus;
+
+  @Prop({ default: '' })
+  avatar: string;
 }
 
 export type UserDocument = HydratedDocument<User>;

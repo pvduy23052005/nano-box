@@ -14,6 +14,7 @@ export class GetMeUseCase {
       id: user?.getId() || '',
       name: user.getName(),
       email: user.getEmail(),
+      avatar: user.getAvatar(),
     };
   }
 }

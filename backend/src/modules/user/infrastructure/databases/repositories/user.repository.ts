@@ -19,6 +19,7 @@ export class UserRepository implements UserRepositoryAdapter {
       email: doc.email,
       password: doc.password,
       status: doc.status,
+      avatar: doc.avatar || '',
     });
   }
 
@@ -28,6 +29,7 @@ export class UserRepository implements UserRepositoryAdapter {
       email: user.getEmail(),
       password: user.getPassword(),
       status: user.getStatus(),
+      avatar: user.getAvatar(),
     };
   }
 

@@ -31,12 +31,30 @@ export const LOGIN_MUTATION = graphql(`
   }
 `);
 
+export const LOGIN_GOOGLE_MUTATION = graphql(`
+  mutation LoginGoogle($idToken: String!) {
+    loginGoogle(idToken: $idToken) {
+      success
+      message
+      data {
+        accessToken
+        user {
+          id
+          name
+          email
+        }
+      }
+    }
+  }
+`);
+
 export const GET_ME_QUERY = graphql(`
   query GetMe {
     getMe {
       id
       name
       email
+      avatar
     }
   }
 `);

@@ -9,4 +9,5 @@ export interface UserProps {
   email: string;
   password: string;
   status?: UserStatus;
+  avatar: string;
 }

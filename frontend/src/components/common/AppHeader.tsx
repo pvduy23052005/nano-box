@@ -13,7 +13,7 @@ export default function AppHeader() {
 
       <div className="flex gap-2">
         <Avatar>
-          <AvatarImage src="/logo.png" alt="avatar" />
+          <AvatarImage src={user?.avatar || "/logo.png"} alt="avatar" />
           <AvatarFallback>{user?.name.slice(0, 2)}</AvatarFallback>
         </Avatar>
         <div className="hidden md:flex flex-col">

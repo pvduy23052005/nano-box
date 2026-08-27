@@ -7,6 +7,7 @@ export class UserEntity {
   private email: string;
   private password: string;
   private status: UserStatus;
+  private avatar: string;
 
   private constructor(props: UserProps) {
     this.id = props.id;
@@ -14,6 +15,7 @@ export class UserEntity {
     this.email = props.email;
     this.password = props.password;
     this.status = props.status ?? UserStatus.ACTIVE;
+    this.avatar = props.avatar;
   }
 
   public static create(props: Omit<UserProps, 'id' | 'status'>): UserEntity {
@@ -84,5 +86,9 @@ export class UserEntity {
   }
   public getStatus(): UserStatus {
     return this.status;
+  }
+
+  public getAvatar(): string {
+    return this.avatar;
   }
 }

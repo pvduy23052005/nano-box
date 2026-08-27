@@ -39,6 +39,7 @@ type MessagesPagePayload {
 
 type Mutation {
   login(input: LoginInputDto!): LoginPayload!
+  loginGoogle(idToken: String!): LoginPayload!
   register(input: RegisterInputDto!): RegisterPayload!
   sendMessage(input: MessageInput!): ChatPayload!
 }
@@ -68,6 +69,7 @@ type User {
 }
 
 type UserProfilePayload {
+  avatar: String!
   email: String!
   id: String!
   name: String!
