@@ -1,14 +1,14 @@
 import {
   User,
   UserSchema,
-} from './infrastructure/databases/schemas/user.schema';
+} from './infrastructure/databases/user.schema';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserResolver } from './presentation/graphql/user.resolver';
 import { RegisterUseCase } from './applications/use-case/register.use-case';
 import { UserRepositoryAdapter } from './applications/ports/user.port';
 import { IpasswordHasher } from './applications/ports/password-hasher.port';
-import { UserRepository } from './infrastructure/databases/repositories/user.repository';
+import { UserRepository } from './infrastructure/databases/user.repository';
 import { PasswordHasher } from './infrastructure/externals/password-hasher.external';
 import { GetMeUseCase } from './applications/use-case/get-me.use-case';
 
@@ -43,4 +43,4 @@ import { GetMeUseCase } from './applications/use-case/get-me.use-case';
   ],
   exports: [RegisterUseCase, UserRepositoryAdapter, IpasswordHasher],
 })
-export class UserModule {}
+export class UserModule { }

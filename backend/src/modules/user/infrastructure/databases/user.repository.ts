@@ -3,14 +3,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { UserEntity } from 'src/modules/user/domain/user.entity';
 import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
-import { User, UserDocument } from '../schemas/user.schema';
+import { User, UserDocument } from './user.schema';
 
 @Injectable()
 export class UserRepository implements UserRepositoryAdapter {
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
-  ) {}
+  ) { }
 
   private toEntity(doc: UserDocument): UserEntity {
     return UserEntity.restore({
