@@ -10,8 +10,8 @@ import { Button } from "../../../components/ui/button";
 import { MessageSquare, UserPlus } from "lucide-react";
 import { Typography } from "@/src/components/ui/typography";
 
-export default function UserCard() {
-  const { users, loading, error } = useUsers();
+export default function UserCard({ searchQuery = "" }: { searchQuery?: string }) {
+  const { users, loading, error } = useUsers(searchQuery);
 
   if (loading) {
     return (
@@ -31,8 +31,8 @@ export default function UserCard() {
 
   if (!users || users.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center text-muted-foreground">
-        Không có người dùng nào.
+      <div className="flex h-full mt-10 items-center justify-center text-muted-foreground">
+        Không tìm thấy người dùng nào phù hợp.
       </div>
     );
   }

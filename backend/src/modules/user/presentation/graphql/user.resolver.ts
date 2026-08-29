@@ -23,10 +23,10 @@ export class UserResolver {
     return await this.getMeUseCase.execute(userId);
   }
 
-  @Query(()=> [UserProfilePayload])
+  @Query(() => [UserProfilePayload])
   @UseGuards(AuthGuard)
-  async getUsers() {
-    return await this.getUsersUseCase.execute();
+  async getUsers(@Args('search', { nullable: true }) search?: string) {
+    return await this.getUsersUseCase.execute(search);
   }
 
   @Mutation(() => RegisterPayload)

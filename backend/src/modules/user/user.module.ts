@@ -1,7 +1,4 @@
-import {
-  User,
-  UserSchema,
-} from './infrastructure/databases/user.schema';
+import { User, UserSchema } from './infrastructure/databases/user.schema';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserResolver } from './presentation/graphql/user.resolver';
@@ -50,4 +47,4 @@ import { GetUsersUseCase } from './applications/use-case/get-users.use-case';
   ],
   exports: [RegisterUseCase, UserRepositoryAdapter, IpasswordHasher],
 })
-export class UserModule { }
+export class UserModule {}
