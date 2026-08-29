@@ -10,7 +10,7 @@ export class UserRepository implements UserRepositoryAdapter {
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
-  ) { }
+  ) {}
 
   private toEntity(doc: UserDocument): UserEntity {
     return UserEntity.restore({
@@ -63,5 +63,17 @@ export class UserRepository implements UserRepositoryAdapter {
   async findById(id: string): Promise<UserEntity | null> {
     const user = await this.userModel.findById(id).lean().exec();
     return user ? this.toEntity(user) : null;
+  }
+
+  async findAll(search?: string): Promise<UserEntity[]> {
+    const query: any = {};
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ];
+    }
+    const users = await this.userModel.find(query).lean().exec();
+    return users.map((user) => this.toEntity(user));
   }
 }

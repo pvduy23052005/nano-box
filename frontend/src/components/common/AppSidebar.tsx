@@ -44,8 +44,8 @@ const data = {
           icon: MessageSquare,
         },
         {
-          title: "Kênh nhóm",
-          url: "/channel",
+          title: "Người dùng",
+          url: "/users",
           icon: Users,
         },
       ],
