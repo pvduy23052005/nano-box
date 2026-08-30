@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, SchemaTypes, Types } from 'mongoose';
 import { Member, MemberSchema } from './member.schema';
-import { RoomType } from './room.type';
+import { RoomType } from '../domain/chat.enum';
 
 export type RoomDocument = HydratedDocument<Room>;
 
@@ -15,8 +15,8 @@ export class Room {
 
   @Prop({
     type: String,
-    enum: [RoomType.DIRECT, RoomType.GROUP],
-    default: RoomType.DIRECT,
+    enum: [RoomType.SINGLE, RoomType.GROUP],
+    default: RoomType.SINGLE,
     required: true,
     index: true,
   })

@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { SchemaTypes, Types } from 'mongoose';
-import { MemberRole, MemberStatus } from './room.type';
+import { MemberRole, MemberStatus } from '../domain/chat.enum';
 
 @Schema({
   _id: false,

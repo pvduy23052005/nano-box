@@ -1,10 +1,10 @@
 export enum RoomType {
-  DIRECT = 'DIRECT',
-  GROUP = 'GROUP',
+  SINGLE = 'single',
+  GROUP = 'group',
 }
 
 export enum MemberRole {
-  SUPER_ADMIN = 'supperAdmin',
+  SUPER_ADMIN = 'super_admin',
   ADMIN = 'admin',
   MEMBER = 'member',
 }
