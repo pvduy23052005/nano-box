@@ -73,6 +73,7 @@ export class ChatResolver {
       ).catch((err) => this.logger.warn(`Failed to delete temp files: ${err}`));
     }
 
+    // gateway
     const server = this.webSocketService.server;
     server.emit(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, message);
     return message;

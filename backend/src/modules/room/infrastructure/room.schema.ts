@@ -3,8 +3,6 @@ import { HydratedDocument, SchemaTypes, Types } from 'mongoose';
 import { Member, MemberSchema } from './member.schema';
 import { RoomType } from '../domain/chat.enum';
 
-export type RoomDocument = HydratedDocument<Room>;
-
 @Schema({
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
   collection: 'rooms',
@@ -35,6 +33,7 @@ export class Room {
   deleted: boolean;
 }
 
+export type RoomDocument = HydratedDocument<Room>;
 export const RoomSchema = SchemaFactory.createForClass(Room);
 
 RoomSchema.index({ 'members.user_id': 1, 'members.status': 1, updated_at: -1 });

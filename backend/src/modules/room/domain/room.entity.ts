@@ -3,7 +3,6 @@ import { RoomMember } from './member.object';
 import { RoomProps } from './room.type';
 import { randomUUID } from 'node:crypto';
 
-
 export class RoomEntity {
   private id: string;
   private title: string | null;
@@ -16,9 +15,13 @@ export class RoomEntity {
     this.id = data.id;
     this.title = data.title;
     this.type_room = data.typeRoom;
-    this.last_message_id = data.lastMessageid;
+    this.last_message_id = data.lastMessageId;
     this.avatar = data.avatar;
-    this.members = data.members;
+    this.members = data.members.map((member) =>
+      member instanceof RoomMember
+        ? member
+        : RoomMember.restore(member.userId, member.role, member.status),
+    );
   }
 
   public static createSingleRoom(myId: string, memberId: string): RoomEntity {
@@ -43,7 +46,7 @@ export class RoomEntity {
       id: randomUUID(),
       title: null,
       typeRoom: RoomType.SINGLE,
-      lastMessageid: null,
+      lastMessageId: null,
       avatar: null,
       members: members,
     });
@@ -54,7 +57,7 @@ export class RoomEntity {
       id: data.id,
       title: data.title,
       typeRoom: data.typeRoom,
-      lastMessageid: data.lastMessageid,
+      lastMessageId: data.lastMessageId,
       avatar: data.avatar,
       members: data.members,
     });
@@ -65,9 +68,13 @@ export class RoomEntity {
       id: this.id,
       title: this.title,
       typeRoom: this.type_room,
-      lastMessageid: this.last_message_id,
+      lastMessageId: this.last_message_id,
       avatar: this.avatar,
-      members: this.members,
+      members: this.members.map((member) => ({
+        userId: member.userId,
+        role: member.role,
+        status: member.status,
+      })),
     };
   }
 
@@ -86,7 +93,7 @@ export class RoomEntity {
   public getAvatar(): string | null {
     return this.avatar;
   }
-  public getMembers(): RoomMember[] {
-    return this.members;
+  public getMembers(): readonly RoomMember[] {
+    return Object.freeze([...this.members]);
   }
 }

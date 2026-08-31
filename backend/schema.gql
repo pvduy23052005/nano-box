@@ -10,6 +10,15 @@ type ChatPayload {
   senderId: String!
 }
 
+type CreateRoomNotFriendOutput {
+  avatar: String
+  id: String!
+  lastMessageId: String
+  members: [RoomMemberOutput!]
+  title: String
+  typeRoom: RoomType!
+}
+
 input LoginInputDto {
   email: String!
   password: String!
@@ -26,6 +35,18 @@ type LoginResult {
   user: User!
 }
 
+enum MemberRole {
+  ADMIN
+  MEMBER
+  SUPER_ADMIN
+}
+
+enum MemberStatus {
+  ACCEPTED
+  REFUSED
+  WAITING
+}
+
 input MessageInput {
   content: String
   tempKeys: [String!]
@@ -38,6 +59,7 @@ type MessagesPagePayload {
 }
 
 type Mutation {
+  createRoomChatNotFriend(otherUserId: String!): CreateRoomNotFriendOutput!
   login(input: LoginInputDto!): LoginPayload!
   loginGoogle(idToken: String!): LoginPayload!
   register(input: RegisterInputDto!): RegisterPayload!
@@ -61,6 +83,17 @@ type RegisterPayload {
   data: UserProfilePayload
   message: String!
   success: Boolean!
+}
+
+type RoomMemberOutput {
+  role: MemberRole!
+  status: MemberStatus!
+  userId: String!
+}
+
+enum RoomType {
+  GROUP
+  SINGLE
 }
 
 type User {

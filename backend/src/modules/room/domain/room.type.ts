@@ -1,12 +1,16 @@
-import { RoomType } from './chat.enum';
-import { RoomMember } from './member.object';
+import { MemberRole, MemberStatus, RoomType } from './chat.enum';
 
+export interface RoomMemberProps {
+  userId: string;
+  role: MemberRole;
+  status: MemberStatus;
+}
 
 export interface RoomProps {
   id: string;
   title: string | null;
   typeRoom: RoomType;
-  lastMessageid: string | null;
+  lastMessageId: string | null;
   avatar: string | null;
-  members: RoomMember[];
+  members: RoomMemberProps[];
 }

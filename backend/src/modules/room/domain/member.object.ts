@@ -1,14 +1,22 @@
-import { MemberRole, MemberStatus } from "./chat.enum";
+import { MemberRole, MemberStatus } from './chat.enum';
 
 export class RoomMember {
-  private user_id: string;
-  private role: MemberRole;
-  private status: MemberStatus;
+  private readonly _user_id: string;
+  private _role: MemberRole;
+  private _status: MemberStatus;
 
-  private constructor(user_id: string, role: MemberRole, status: MemberStatus) {
-    this.user_id = user_id;
-    this.role = role;
-    this.status = status;
+  private constructor(userId: string, role: MemberRole, status: MemberStatus) {
+    this._user_id = userId;
+    this._role = role;
+    this._status = status;
+  }
+
+  public static restore(
+    userId: string,
+    role: MemberRole,
+    status: MemberStatus,
+  ): RoomMember {
+    return new RoomMember(userId, role, status);
   }
 
   public static createWaitingMember(userId: string): RoomMember {
@@ -32,10 +40,20 @@ export class RoomMember {
   }
 
   public changeRole(newRole: MemberRole): void {
-    this.role = newRole;
+    this._role = newRole;
   }
 
   public changeStatus(newStatus: MemberStatus): void {
-    this.status = newStatus;
+    this._status = newStatus;
+  }
+
+  get userId(): string {
+    return this._user_id;
+  }
+  get role(): MemberRole {
+    return this._role;
+  }
+  get status(): MemberStatus {
+    return this._status;
   }
 }
