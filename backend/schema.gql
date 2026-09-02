@@ -88,6 +88,7 @@ type RegisterPayload {
 type RoomMemberOutput {
   role: MemberRole!
   status: MemberStatus!
+  user: UserProfilePayload
   userId: String!
 }
 

@@ -1,5 +1,6 @@
 import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { RoomType, MemberRole, MemberStatus } from '../../domain/chat.enum';
+import { UserProfilePayload } from '../../../user/presentation/dto/profile.payload';
 
 registerEnumType(RoomType, { name: 'RoomType' });
 registerEnumType(MemberRole, { name: 'MemberRole' });
@@ -15,6 +16,9 @@ export class RoomMemberOutput {
 
   @Field(() => MemberStatus)
   status: MemberStatus;
+
+  @Field(() => UserProfilePayload, { nullable: true })
+  user?: UserProfilePayload;
 }
 
 @ObjectType()

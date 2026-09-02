@@ -45,6 +45,11 @@ import { GetUsersUseCase } from './applications/use-case/get-users.use-case';
       inject: [UserRepositoryAdapter],
     },
   ],
-  exports: [RegisterUseCase, UserRepositoryAdapter, IpasswordHasher],
+  exports: [
+    RegisterUseCase,
+    UserRepositoryAdapter,
+    IpasswordHasher,
+    GetMeUseCase,
+  ],
 })
 export class UserModule {}
