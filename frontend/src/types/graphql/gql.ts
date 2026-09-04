@@ -21,6 +21,7 @@ type Documents = {
     "\n  query GetMessages($cursor: String, $limit: Float) {\n    getMessages(cursor: $cursor, limit: $limit) {\n      items {\n        id\n        content\n        senderId\n        attachments\n      }\n      hasMore\n      nextCursor\n    }\n  }\n": typeof types.GetMessagesDocument,
     "\n  mutation SendMessage($input: MessageInput!) {\n    sendMessage(input: $input) {\n      id  \n      content\n      senderId\n      attachments\n    }\n  }\n": typeof types.SendMessageDocument,
     "\n  query GetUsers($search: String) {\n    getUsers(search: $search) {\n      id\n      name\n      email\n      avatar\n    }\n  }\n": typeof types.GetUsersDocument,
+    "\n  mutation CreateRoomChatNotFriend($otherUserId: String!) {\n    createRoomChatNotFriend(otherUserId: $otherUserId) {\n      id\n      title\n      typeRoom\n      avatar\n      lastMessageId\n      members {\n        userId\n        role\n        status\n      }\n    }\n  }\n": typeof types.CreateRoomChatNotFriendDocument,
 };
 const documents: Documents = {
     "\n  mutation Register($input: RegisterInputDto!) {\n    register(input: $input) {\n      success\n      message\n      data {\n        id\n        name\n        email\n      }\n    }\n  }\n": types.RegisterDocument,
@@ -30,6 +31,7 @@ const documents: Documents = {
     "\n  query GetMessages($cursor: String, $limit: Float) {\n    getMessages(cursor: $cursor, limit: $limit) {\n      items {\n        id\n        content\n        senderId\n        attachments\n      }\n      hasMore\n      nextCursor\n    }\n  }\n": types.GetMessagesDocument,
     "\n  mutation SendMessage($input: MessageInput!) {\n    sendMessage(input: $input) {\n      id  \n      content\n      senderId\n      attachments\n    }\n  }\n": types.SendMessageDocument,
     "\n  query GetUsers($search: String) {\n    getUsers(search: $search) {\n      id\n      name\n      email\n      avatar\n    }\n  }\n": types.GetUsersDocument,
+    "\n  mutation CreateRoomChatNotFriend($otherUserId: String!) {\n    createRoomChatNotFriend(otherUserId: $otherUserId) {\n      id\n      title\n      typeRoom\n      avatar\n      lastMessageId\n      members {\n        userId\n        role\n        status\n      }\n    }\n  }\n": types.CreateRoomChatNotFriendDocument,
 };
 
 /**
@@ -74,6 +76,10 @@ export function graphql(source: "\n  mutation SendMessage($input: MessageInput!)
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query GetUsers($search: String) {\n    getUsers(search: $search) {\n      id\n      name\n      email\n      avatar\n    }\n  }\n"): (typeof documents)["\n  query GetUsers($search: String) {\n    getUsers(search: $search) {\n      id\n      name\n      email\n      avatar\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation CreateRoomChatNotFriend($otherUserId: String!) {\n    createRoomChatNotFriend(otherUserId: $otherUserId) {\n      id\n      title\n      typeRoom\n      avatar\n      lastMessageId\n      members {\n        userId\n        role\n        status\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation CreateRoomChatNotFriend($otherUserId: String!) {\n    createRoomChatNotFriend(otherUserId: $otherUserId) {\n      id\n      title\n      typeRoom\n      avatar\n      lastMessageId\n      members {\n        userId\n        role\n        status\n      }\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

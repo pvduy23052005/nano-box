@@ -4,7 +4,7 @@ import { RoomEntity } from '../domain/room.entity';
 import { Room, RoomDocument } from './room.schema';
 import { Model } from 'mongoose';
 import { RoomProps } from '../domain/room.type';
-import { MemberStatus } from '../domain/chat.enum';
+import { MemberStatus, RoomType } from '../domain/chat.enum';
 
 export class RoomRepository implements RoomRepositoryAdapter {
   constructor(
@@ -12,16 +12,44 @@ export class RoomRepository implements RoomRepositoryAdapter {
     private readonly roomModel: Model<RoomDocument>,
   ) {}
 
-  private toProps(doc: RoomDocument): RoomProps {
+  private toProps(doc: RoomDocument, currentUserId?: string): RoomProps {
+    let avatar = doc.avatar;
+    let title = doc.title;
+
+    if (doc.type_room === RoomType.SINGLE && currentUserId) {
+      const otherMember = doc.members.find((member) => {
+        const memberUserId =
+          (member.user_id as any)?._id?.toString() ||
+          member.user_id?.toString();
+        return memberUserId && memberUserId !== currentUserId;
+      });
+
+      if (otherMember) {
+        const otherUser = otherMember.user_id as any;
+        if (otherUser && typeof otherUser === 'object') {
+          if (!avatar && otherUser.avatar) {
+            avatar = otherUser.avatar;
+          }
+          if (!title && otherUser.name) {
+            title = otherUser.name;
+          }
+        }
+      }
+    }
+
     return {
       id: doc._id.toString(),
-      title: doc.title,
+      title: title,
       typeRoom: doc.type_room,
       lastMessageId: doc.last_message_id?.toString() || null,
-      avatar: doc.avatar,
+      avatar: avatar,
       members: doc.members.map((member) => {
+        const memberUserId =
+          (member.user_id as any)?._id?.toString() ||
+          member.user_id?.toString() ||
+          '';
         return {
-          userId: member.user_id.toString(),
+          userId: memberUserId,
           role: member.role,
           status: member.status,
         };
@@ -64,8 +92,10 @@ export class RoomRepository implements RoomRepositoryAdapter {
           },
         },
       })
+      .populate('members.user_id')
       .exec();
 
-    return rooms.map((room) => this.toProps(room));
+    return rooms.map((room) => this.toProps(room, userId));
   }
 }
+
