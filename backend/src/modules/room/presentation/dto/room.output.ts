@@ -22,7 +22,7 @@ export class RoomMemberOutput {
 }
 
 @ObjectType()
-export class CreateRoomNotFriendOutput {
+export class RoomOutput {
   @Field()
   id: string;
 

@@ -10,15 +10,6 @@ type ChatPayload {
   senderId: String!
 }
 
-type CreateRoomNotFriendOutput {
-  avatar: String
-  id: String!
-  lastMessageId: String
-  members: [RoomMemberOutput!]
-  title: String
-  typeRoom: RoomType!
-}
-
 input LoginInputDto {
   email: String!
   password: String!
@@ -59,7 +50,7 @@ type MessagesPagePayload {
 }
 
 type Mutation {
-  createRoomChatNotFriend(otherUserId: String!): CreateRoomNotFriendOutput!
+  createRoomChatNotFriend(otherUserId: String!): RoomOutput!
   login(input: LoginInputDto!): LoginPayload!
   loginGoogle(idToken: String!): LoginPayload!
   register(input: RegisterInputDto!): RegisterPayload!
@@ -69,6 +60,7 @@ type Mutation {
 type Query {
   getMe: UserProfilePayload!
   getMessages(cursor: String, limit: Float): MessagesPagePayload!
+  getRoomsByStatus(status: MemberStatus!): [RoomOutput!]!
   getUsers(search: String): [UserProfilePayload!]!
 }
 
@@ -90,6 +82,15 @@ type RoomMemberOutput {
   status: MemberStatus!
   user: UserProfilePayload
   userId: String!
+}
+
+type RoomOutput {
+  avatar: String
+  id: String!
+  lastMessageId: String
+  members: [RoomMemberOutput!]
+  title: String
+  typeRoom: RoomType!
 }
 
 enum RoomType {

@@ -8,6 +8,7 @@ import {
 import { RoomRepositoryAdapter } from './application/ports/room.ports';
 import { RoomRepository } from './infrastructure/room.repository';
 import { CreateSingleRoomUseCase } from './application/use-cases/create-single-room';
+import { GetRoomsByStatusUseCase } from './application/use-cases/get-rooms-by-status';
 import { UserModule } from '../user/user.module';
 
 @Module({
@@ -28,7 +29,13 @@ import { UserModule } from '../user/user.module';
         new CreateSingleRoomUseCase(roomRepository),
       inject: [RoomRepositoryAdapter],
     },
+    {
+      provide: GetRoomsByStatusUseCase,
+      useFactory: (roomRepository: RoomRepositoryAdapter) =>
+        new GetRoomsByStatusUseCase(roomRepository),
+      inject: [RoomRepositoryAdapter],
+    },
   ],
-  exports: [CreateSingleRoomUseCase],
+  exports: [CreateSingleRoomUseCase, GetRoomsByStatusUseCase],
 })
 export class RoomModule {}

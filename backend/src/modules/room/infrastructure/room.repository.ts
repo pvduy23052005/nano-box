@@ -4,6 +4,7 @@ import { RoomEntity } from '../domain/room.entity';
 import { Room, RoomDocument } from './room.schema';
 import { Model } from 'mongoose';
 import { RoomProps } from '../domain/room.type';
+import { MemberStatus } from '../domain/chat.enum';
 
 export class RoomRepository implements RoomRepositoryAdapter {
   constructor(
@@ -48,5 +49,23 @@ export class RoomRepository implements RoomRepositoryAdapter {
     const roomDoc = new this.roomModel(mongooseRoomData);
     const roomCreated = await roomDoc.save();
     return this.toProps(roomCreated);
+  }
+
+  async findRoomsByUserIdAndStatus(
+    userId: string,
+    status: MemberStatus,
+  ): Promise<RoomProps[]> {
+    const rooms = await this.roomModel
+      .find({
+        members: {
+          $elemMatch: {
+            user_id: userId,
+            status: status,
+          },
+        },
+      })
+      .exec();
+
+    return rooms.map((room) => this.toProps(room));
   }
 }
