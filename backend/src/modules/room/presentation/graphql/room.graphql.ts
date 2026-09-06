@@ -9,10 +9,7 @@ import {
 } from '@nestjs/graphql';
 import { CurrentUser } from 'src/common/customs/current-user.decorator';
 import { AuthGuard } from 'src/common/guards/auth.guard';
-import {
-  RoomOutput,
-  RoomMemberOutput,
-} from '../dto/room.output';
+import { RoomOutput, RoomMemberOutput } from '../dto/room.output';
 import { CreateSingleRoomUseCase } from '../../application/use-cases/create-single-room';
 import { GetRoomsByStatusUseCase } from '../../application/use-cases/get-rooms-by-status';
 import { GetMeUseCase } from '../../../../modules/user/applications/use-case/get-me.use-case';
@@ -32,10 +29,7 @@ export class RoomResolver {
     @CurrentUser('id') myId: string,
     @Args('status', { type: () => MemberStatus }) status: MemberStatus,
   ) {
-    const rooms = await this.getRoomsByStatusUseCase.execute(
-      myId,
-      status,
-    );
+    const rooms = await this.getRoomsByStatusUseCase.execute(myId, status);
 
     return rooms.map((result) => ({
       id: result.id,

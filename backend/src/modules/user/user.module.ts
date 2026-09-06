@@ -54,4 +54,3 @@ import { GetUsersUseCase } from './applications/use-case/get-users.use-case';
   ],
 })
 export class UserModule {}
-
