@@ -14,7 +14,7 @@ import type { AuthenticatedSocket } from './ws.type';
 
 @WebSocketGateway({
   cors: {
-    origin: ['http://localhost:3000'],
+    origin: true,
     credentials: true,
   },
 })

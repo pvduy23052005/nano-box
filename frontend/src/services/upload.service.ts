@@ -14,7 +14,15 @@ export interface TempUploadResponse {
   url: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
+const getApiUrl = (): string => {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  if (typeof window !== "undefined") {
+    return window.location.port === "3000" ? "http://localhost:5050" : "";
+  }
+  return "http://localhost:5050";
+};
 
 export async function uploadFile(
   file: File,
@@ -23,7 +31,7 @@ export async function uploadFile(
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch(`${API_URL}/upload?folder=${encodeURIComponent(folder)}`, {
+  const response = await fetch(`${getApiUrl()}/upload?folder=${encodeURIComponent(folder)}`, {
     method: "POST",
     body: formData,
     credentials: "include",
@@ -43,7 +51,7 @@ export async function uploadTempFile(
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch(`${API_URL}/upload/temp`, {
+  const response = await fetch(`${getApiUrl()}/upload/temp`, {
     method: "POST",
     body: formData,
     credentials: "include",
