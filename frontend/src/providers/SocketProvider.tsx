@@ -13,12 +13,19 @@ const SocketContext = createContext<SocketContextType>({
   isConnected: false,
 });
 
-const SOCKET_URL =
-  process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5050";
+const getSocketUrl = (): string => {
+  if (process.env.NEXT_PUBLIC_SOCKET_URL) {
+    return process.env.NEXT_PUBLIC_SOCKET_URL;
+  }
+  if (typeof window !== "undefined") {
+    return window.location.port === "3000" ? "http://localhost:5050" : "";
+  }
+  return "http://localhost:5050";
+};
 
 const socketInstance =
   typeof window !== "undefined"
-    ? io(SOCKET_URL, {
+    ? io(getSocketUrl() || undefined, {
         withCredentials: true,
         transports: ["websocket"],
         autoConnect: false,
