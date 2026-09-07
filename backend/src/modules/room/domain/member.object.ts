@@ -20,7 +20,7 @@ export class RoomMember {
   }
 
   public static createWaitingMember(userId: string): RoomMember {
-    return new RoomMember(userId, MemberRole.MEMBER, MemberStatus.WAITING);
+    return new RoomMember(userId, MemberRole.MEMBER, MemberStatus.WAITTING);
   }
 
   public static createMember(userId: string): RoomMember {

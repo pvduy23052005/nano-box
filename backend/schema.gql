@@ -35,7 +35,7 @@ enum MemberRole {
 enum MemberStatus {
   ACCEPTED
   REFUSED
-  WAITING
+  WAITTING
 }
 
 input MessageInput {

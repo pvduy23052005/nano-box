@@ -10,7 +10,7 @@ export enum MemberRole {
 }
 
 export enum MemberStatus {
-  WAITING = 'waiting',
+  WAITTING = 'waitting',
   ACCEPTED = 'accepted',
   REFUSED = 'refused',
 }

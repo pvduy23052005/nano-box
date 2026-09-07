@@ -25,9 +25,15 @@ export interface RawRoomInput {
   members: MemberItem[];
 }
 
-const getMemberUserId = (userId: Types.ObjectId | PopulatedUser): string => {
+const getMemberUserId = (
+  userId: Types.ObjectId | PopulatedUser | string,
+): string => {
+  if (!userId) return '';
   if (typeof userId === 'string') return userId;
-  if ('_id' in userId && userId._id) return userId._id.toString();
+  if (typeof userId === 'object') {
+    if ('_id' in userId && userId._id) return userId._id.toString();
+    return userId.toString();
+  }
   return '';
 };
 

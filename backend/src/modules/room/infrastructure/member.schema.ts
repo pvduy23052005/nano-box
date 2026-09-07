@@ -21,7 +21,7 @@ export class Member {
   @Prop({
     type: String,
     enum: MemberStatus,
-    default: MemberStatus.WAITING,
+    default: MemberStatus.WAITTING,
     required: true,
   })
   status: MemberStatus;

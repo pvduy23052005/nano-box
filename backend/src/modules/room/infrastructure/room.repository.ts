@@ -2,7 +2,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { RoomRepositoryAdapter } from '../application/ports/room.ports';
 import { RoomEntity } from '../domain/room.entity';
 import { Room, RoomDocument } from './room.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { RoomProps } from '../domain/room.type';
 import { MemberStatus } from '../domain/chat.enum';
 import { RoomMapper } from './room.mapper';
@@ -31,15 +31,20 @@ export class RoomRepository implements RoomRepositoryAdapter {
     userId: string,
     status: MemberStatus,
   ): Promise<RoomProps[]> {
+    const userObjectId = Types.ObjectId.isValid(userId)
+      ? new Types.ObjectId(userId)
+      : userId;
+
     const rooms = await this.roomModel
       .find({
         members: {
           $elemMatch: {
-            user_id: userId,
+            user_id: userObjectId,
             status: status,
           },
         },
       })
+      .sort({ updated_at: -1 })
       .populate(ROOM_POPULATE_OPTIONS)
       .lean()
       .exec();
