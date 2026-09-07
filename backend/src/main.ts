@@ -8,10 +8,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser());
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://yourproductiondomain.com'],
+    origin: true,
     credentials: true,
-    allowedHeaders: 'Content-Type, Authorization, Accept',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
   });
 
   app.useGlobalFilters(new GlobalGraphQLExceptionFilter());
@@ -25,6 +23,6 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(process.env.PORT ?? 5050);
+  await app.listen(process.env.PORT!);
 }
 void bootstrap();
