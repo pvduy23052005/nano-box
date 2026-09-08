@@ -9,4 +9,6 @@ export abstract class RoomRepositoryAdapter {
     userId: string,
     status: MemberStatus,
   ): Promise<RoomProps[]>;
+
+  abstract checkRoomExist(myId: string, userId: string): Promise<RoomProps | null>;
 }

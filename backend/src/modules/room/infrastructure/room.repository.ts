@@ -4,7 +4,7 @@ import { RoomEntity } from '../domain/room.entity';
 import { Room, RoomDocument } from './room.schema';
 import { Model, Types } from 'mongoose';
 import { RoomProps } from '../domain/room.type';
-import { MemberStatus } from '../domain/chat.enum';
+import { MemberStatus, RoomType } from '../domain/chat.enum';
 import { RoomMapper } from './room.mapper';
 
 const ROOM_POPULATE_OPTIONS = [
@@ -24,6 +24,7 @@ export class RoomRepository implements RoomRepositoryAdapter {
     const mongooseRoomData = RoomMapper.toPersistence(room);
     const roomDoc = new this.roomModel(mongooseRoomData);
     const roomCreated = await roomDoc.save();
+    await roomCreated.populate(ROOM_POPULATE_OPTIONS);
     return RoomMapper.toProps(roomCreated);
   }
 
@@ -50,5 +51,36 @@ export class RoomRepository implements RoomRepositoryAdapter {
       .exec();
 
     return rooms.map((room) => RoomMapper.toProps(room, userId));
+  }
+
+  async checkRoomExist(
+    myId: string,
+    userId: string,
+  ): Promise<RoomProps | null> {
+    const myObjectId = Types.ObjectId.isValid(myId)
+      ? new Types.ObjectId(myId)
+      : myId;
+    const userObjectId = Types.ObjectId.isValid(userId)
+      ? new Types.ObjectId(userId)
+      : userId;
+
+    const room = await this.roomModel
+      .findOne({
+        type_room: RoomType.SINGLE,
+        members: { $size: 2 },
+        $and: [
+          { 'members.user_id': myObjectId },
+          { 'members.user_id': userObjectId },
+        ],
+      })
+      .populate(ROOM_POPULATE_OPTIONS)
+      .lean()
+      .exec();
+
+    if (!room) {
+      return null;
+    }
+
+    return RoomMapper.toProps(room, myId);
   }
 }
