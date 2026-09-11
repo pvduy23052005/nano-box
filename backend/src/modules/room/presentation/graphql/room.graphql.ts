@@ -26,7 +26,7 @@ export class RoomResolver {
     private readonly getRoomsByStatusUseCase: GetRoomsByStatusUseCase,
     private readonly websocketService: WebsocketService,
     private readonly getMeUseCase: GetMeUseCase,
-  ) { }
+  ) {}
 
   @Query(() => [RoomOutput])
   async getRoomsByStatus(
@@ -71,7 +71,7 @@ export class RoomResolver {
       // fallback to result values
     }
 
-    const roomForOtherUser = {
+    const roomData = {
       id: result.id,
       title: senderName,
       typeRoom: result.typeRoom,
@@ -86,7 +86,7 @@ export class RoomResolver {
 
     this.websocketService.server
       .to(otherUserId)
-      .emit(ROOM_SOCKET_EVENTS.SERVER_SEND_ROOM, roomForOtherUser);
+      .emit(ROOM_SOCKET_EVENTS.SERVER_SEND_ROOM, roomData);
 
     return {
       id: result.id,

@@ -24,7 +24,11 @@ describe('CreateSingleRoomUseCase', () => {
     avatar: 'http://example.com/avatar.png',
     members: [
       { userId: myId, role: MemberRole.MEMBER, status: MemberStatus.ACCEPTED },
-      { userId: userId, role: MemberRole.MEMBER, status: MemberStatus.ACCEPTED },
+      {
+        userId: userId,
+        role: MemberRole.MEMBER,
+        status: MemberStatus.ACCEPTED,
+      },
     ],
   };
 
@@ -53,8 +57,16 @@ describe('CreateSingleRoomUseCase', () => {
       lastMessageId: null,
       avatar: null,
       members: [
-        { userId: myId, role: MemberRole.MEMBER, status: MemberStatus.ACCEPTED },
-        { userId: userId, role: MemberRole.MEMBER, status: MemberStatus.WAITTING },
+        {
+          userId: myId,
+          role: MemberRole.MEMBER,
+          status: MemberStatus.ACCEPTED,
+        },
+        {
+          userId: userId,
+          role: MemberRole.MEMBER,
+          status: MemberStatus.WAITTING,
+        },
       ],
     };
     roomRepository.save.mockResolvedValue(mockCreatedRoom);
