@@ -44,8 +44,9 @@ export default function UserList({ searchQuery = "" }: UserListProps) {
 
   const handleStartChat = async (userId: string) => {
     if (creatingUserId) return;
+    const targetUser = displayUsers.find((u) => u.id === userId);
     try {
-      await createRoomChatNotFriend(userId);
+      await createRoomChatNotFriend(targetUser || userId);
     } catch {}
   };
 
@@ -57,7 +58,7 @@ export default function UserList({ searchQuery = "" }: UserListProps) {
           user={user}
           isCreating={creatingUserId === user.id}
           onStartChat={handleStartChat}
-          onAddFriend={(id) => console.log("Kết bạn", id)}
+          onAddFriend={() => {}}
         />
       ))}
     </div>
