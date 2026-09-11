@@ -15,6 +15,8 @@ import { GetRoomsByStatusUseCase } from '../../application/use-cases/get-rooms-b
 import { GetMeUseCase } from '../../../../modules/user/applications/use-case/get-me.use-case';
 import { UserProfilePayload } from '../../../../modules/user/presentation/dto/profile.payload';
 import { MemberStatus } from '../../domain/chat.enum';
+import { WebsocketService } from 'src/infrastructure/websocket/ws.service';
+import { ROOM_SOCKET_EVENTS } from '../gateway/event.type';
 
 @Resolver()
 @UseGuards(AuthGuard)
@@ -22,7 +24,9 @@ export class RoomResolver {
   constructor(
     private readonly createSingleRoomUseCase: CreateSingleRoomUseCase,
     private readonly getRoomsByStatusUseCase: GetRoomsByStatusUseCase,
-  ) {}
+    private readonly websocketService: WebsocketService,
+    private readonly getMeUseCase: GetMeUseCase,
+  ) { }
 
   @Query(() => [RoomOutput])
   async getRoomsByStatus(
@@ -55,6 +59,35 @@ export class RoomResolver {
       otherUserId,
     );
 
+    let senderName = result.title;
+    let senderAvatar = result.avatar;
+    try {
+      const sender = await this.getMeUseCase.execute(myId);
+      if (sender) {
+        senderName = sender.name;
+        senderAvatar = sender.avatar;
+      }
+    } catch {
+      // fallback to result values
+    }
+
+    const roomForOtherUser = {
+      id: result.id,
+      title: senderName,
+      typeRoom: result.typeRoom,
+      lastMessageId: result.lastMessageId,
+      members: result.members.map((member) => ({
+        userId: member.userId,
+        role: member.role,
+        status: member.status,
+      })),
+      avatar: senderAvatar,
+    };
+
+    this.websocketService.server
+      .to(otherUserId)
+      .emit(ROOM_SOCKET_EVENTS.SERVER_SEND_ROOM, roomForOtherUser);
+
     return {
       id: result.id,
       title: result.title,
@@ -72,7 +105,7 @@ export class RoomResolver {
 
 @Resolver(() => RoomMemberOutput)
 export class RoomMemberResolver {
-  constructor(private readonly getMeUseCase: GetMeUseCase) {}
+  constructor(private readonly getMeUseCase: GetMeUseCase) { }
 
   @ResolveField(() => UserProfilePayload, { name: 'user', nullable: true })
   async getUser(@Parent() member: RoomMemberOutput) {

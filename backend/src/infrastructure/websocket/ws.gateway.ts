@@ -52,7 +52,11 @@ export class WebsocketGateway
     });
   }
 
-  handleConnection(_client: AuthenticatedSocket) {}
+  handleConnection(client: AuthenticatedSocket) {
+    if (client.data.userId) {
+      void client.join(client.data.userId);
+    }
+  }
 
   handleDisconnect(_client: AuthenticatedSocket) {}
 
