@@ -16,7 +16,7 @@ export const useSendMessage = () => {
     previewUrls?: string[],
     roomId?: string,
   ) => {
-    const targetRoomId = roomId || activeRoomId;
+    const targetRoomId = (roomId || activeRoomId)?.trim();
     if (!user || !targetRoomId) return;
 
     const optimisticId = `temp-${Date.now()}`;
@@ -29,7 +29,7 @@ export const useSendMessage = () => {
       attachments: previewUrls ?? [],
       readBy: [],
     };
-    appendMessageToCache(client.cache, GET_MESSAGE_QUERY, optimisticMsg);
+    appendMessageToCache(client.cache, GET_MESSAGE_QUERY, optimisticMsg, undefined, targetRoomId);
 
     (async () => {
       try {
@@ -50,9 +50,11 @@ export const useSendMessage = () => {
               GET_MESSAGE_QUERY,
               {
                 ...data.sendMessage,
+                roomId: data.sendMessage.roomId || targetRoomId,
                 isMe: data.sendMessage.senderId === user.id,
               },
               optimisticId,
+              targetRoomId,
             );
           },
         });

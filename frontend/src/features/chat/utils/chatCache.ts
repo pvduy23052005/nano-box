@@ -19,13 +19,14 @@ export const appendMessageToCache = (
 ): void => {
   const normalizedMessage: Message = { ...newMessage, isMe: newMessage.isMe ?? false };
   const targetRoomId = roomId ?? newMessage.roomId ?? null;
+  if (!targetRoomId) return;
 
   cache.updateQuery<GetMessagesData>(
     {
       query,
       variables: {
         limit: PAGINATION_LIMIT,
-        ...(targetRoomId ? { roomId: targetRoomId } : {}),
+        roomId: targetRoomId,
       },
     },
     (existing) => {

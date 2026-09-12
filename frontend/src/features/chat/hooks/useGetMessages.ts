@@ -12,7 +12,7 @@ export const useGetMessages = () => {
   const { data, loading, fetchMore } = useQuery(GET_MESSAGE_QUERY, {
     variables: {
       limit: PAGINATION_LIMIT,
-      roomId: activeRoomId,
+      roomId: activeRoomId!,
     },
     skip: !activeRoomId,
   });
@@ -22,6 +22,7 @@ export const useGetMessages = () => {
     const items = data?.getMessages?.items || [];
     return items.map((message) => ({
       ...message,
+      roomId: message.roomId || activeRoomId,
       isMe: message.senderId === user?.id,
     }));
   }, [data?.getMessages?.items, user?.id, activeRoomId]);

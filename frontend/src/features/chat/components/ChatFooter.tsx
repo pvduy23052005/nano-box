@@ -13,7 +13,7 @@ import { Button } from "@/src/components/ui/button";
 import ChatEmojiPicker from "./ChatEmojiPicker";
 import ChatImagePreview, { PendingImage, UploadStatus } from "./ChatImagePreview";
 import { uploadTempFile } from "@/src/services/upload.service";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   AtSign,
   FileText,
@@ -104,6 +104,7 @@ export default function ChatFooter() {
   };
 
   const editor = useEditor({
+    editable: Boolean(activeRoomId),
     extensions: [
       StarterKit,
       UnderlineExtension,
@@ -114,7 +115,9 @@ export default function ChatFooter() {
         },
       }),
       Placeholder.configure({
-        placeholder: "Nhập tin nhắn...",
+        placeholder: activeRoomId
+          ? "Nhập tin nhắn..."
+          : "Chọn một cuộc trò chuyện để bắt đầu",
       }),
     ],
     editorProps: {
@@ -125,6 +128,7 @@ export default function ChatFooter() {
       handleKeyDown: (view, event) => {
         if (event.key === "Enter" && !event.shiftKey) {
           event.preventDefault();
+          if (!activeRoomId) return true;
           const textContent = view.state.doc.textContent.trim();
           if (
             !textContent &&
@@ -160,6 +164,7 @@ export default function ChatFooter() {
       },
     },
     onUpdate: ({ editor: currentEditor }) => {
+      if (!activeRoomId) return;
       const text = currentEditor.getText().trim();
       if (text) {
         sendTyping();
@@ -169,6 +174,12 @@ export default function ChatFooter() {
     },
     immediatelyRender: false,
   });
+
+  useEffect(() => {
+    if (editor) {
+      editor.setEditable(Boolean(activeRoomId));
+    }
+  }, [activeRoomId, editor]);
 
   const handleSend = () => {
     if (!editor || !activeRoomId) return;
@@ -196,7 +207,7 @@ export default function ChatFooter() {
     editor.commands.clearContent();
     setImages([]);
 
-    sendMessage(htmlContent, tempKeysPromise, previewUrls);
+    sendMessage(htmlContent, tempKeysPromise, previewUrls, activeRoomId);
   };
 
   const handleEmojiSelect = (emoji: string) => {
@@ -341,7 +352,7 @@ export default function ChatFooter() {
 
         <div className="flex items-center justify-between p-2">
           <div className="flex items-center gap-1">
-            <ChatEmojiPicker onSelect={handleEmojiSelect} />
+            <ChatEmojiPicker onSelect={handleEmojiSelect} disabled={!activeRoomId} />
 
             <input
               ref={fileInputRef}
@@ -349,6 +360,7 @@ export default function ChatFooter() {
               accept="image/*"
               multiple
               className="hidden"
+              disabled={!activeRoomId}
               onChange={handleFileInputChange}
             />
 
@@ -356,6 +368,7 @@ export default function ChatFooter() {
               variant="ghost"
               size="icon"
               type="button"
+              disabled={!activeRoomId}
               className="size-10 text-muted-foreground hover:text-foreground"
               onClick={() => fileInputRef.current?.click()}
               title="Chọn ảnh"
@@ -367,6 +380,7 @@ export default function ChatFooter() {
               variant="ghost"
               size="icon"
               type="button"
+              disabled={!activeRoomId}
               className="size-10 text-muted-foreground hover:text-foreground"
             >
               <AtSign className="size-5" />
@@ -376,6 +390,7 @@ export default function ChatFooter() {
               variant="ghost"
               size="icon"
               type="button"
+              disabled={!activeRoomId}
               className="size-10 text-muted-foreground hover:text-foreground"
             >
               <FileText className="size-5" />
@@ -387,7 +402,8 @@ export default function ChatFooter() {
             variant="ghost"
             size="icon"
             type="button"
-            className="size-10 text-primary hover:text-primary/80"
+            disabled={!activeRoomId}
+            className="size-10 text-primary hover:text-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleSend}
           >
             <SendHorizontal className="size-5" />

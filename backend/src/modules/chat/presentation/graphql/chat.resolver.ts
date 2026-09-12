@@ -21,7 +21,7 @@ export class ChatResolver {
     private readonly sendMessageUseCase: SendMessageUseCase,
     private readonly webSocketService: WebsocketService,
     private readonly uploadService: UploadService,
-  ) { }
+  ) {}
 
   @Query(() => MessagesPagePayload)
   async getMessages(
