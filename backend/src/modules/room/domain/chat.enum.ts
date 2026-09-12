@@ -1,16 +1,16 @@
 export enum RoomType {
-  SINGLE = 'single',
-  GROUP = 'group',
+  SINGLE = 'SINGLE',
+  GROUP = 'GROUP',
 }
 
 export enum MemberRole {
-  SUPER_ADMIN = 'super_admin',
-  ADMIN = 'admin',
-  MEMBER = 'member',
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  ADMIN = 'ADMIN',
+  MEMBER = 'MEMBER',
 }
 
 export enum MemberStatus {
-  WAITTING = 'waitting',
-  ACCEPTED = 'accepted',
-  REFUSED = 'refused',
+  WAITTING = 'WAITTING',
+  ACCEPTED = 'ACCEPTED',
+  REFUSED = 'REFUSED',
 }

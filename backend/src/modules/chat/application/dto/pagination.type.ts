@@ -1,7 +1,7 @@
 export interface CursorPagination {
   cursor?: string;
   limit?: number;
-  roomId?: string;
+  roomId: string;
 }
 
 export interface PaginationResult<T> {

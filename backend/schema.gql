@@ -7,7 +7,7 @@ type ChatPayload {
   content: String!
   id: String!
   readBy: [String!]
-  roomId: String
+  roomId: String!
   senderId: String!
 }
 
@@ -61,7 +61,7 @@ type Mutation {
 
 type Query {
   getMe: UserProfilePayload!
-  getMessages(cursor: String, limit: Float, roomId: String): MessagesPagePayload!
+  getMessages(cursor: String, limit: Float, roomId: String!): MessagesPagePayload!
   getRoomsByStatus(status: MemberStatus!): [RoomOutput!]!
   getUsers(search: String): [UserProfilePayload!]!
 }

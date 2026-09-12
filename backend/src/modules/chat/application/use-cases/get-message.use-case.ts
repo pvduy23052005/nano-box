@@ -6,7 +6,7 @@ export class GetMessagesUseCase {
   constructor(private readonly messageRepository: MessageRepositoryAdapter) {}
 
   async execute(
-    roomId?: string,
+    roomId: string,
     cursor?: string,
     limit?: number,
   ): Promise<PaginationResult<MessageType>> {

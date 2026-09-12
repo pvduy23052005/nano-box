@@ -5,7 +5,6 @@ import { IsOptional, IsString } from 'class-validator';
 export class MessageInput {
   @Field(() => String)
   @IsString()
-  @IsOptional()
   roomId: string;
 
   @Field({ nullable: true })

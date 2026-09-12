@@ -6,16 +6,16 @@ import { randomUUID } from 'node:crypto';
 export class RoomEntity {
   private id: string;
   private title: string | null;
-  private type_room: RoomType;
-  private last_message_id: string | null;
+  private typeRoom: RoomType;
+  private lastMessageId: string | null;
   private avatar: string | null;
   private members: RoomMember[];
 
   private constructor(data: RoomProps) {
     this.id = data.id;
     this.title = data.title;
-    this.type_room = data.typeRoom;
-    this.last_message_id = data.lastMessageId;
+    this.typeRoom = data.typeRoom;
+    this.lastMessageId = data.lastMessageId;
     this.avatar = data.avatar;
     this.members = data.members.map((member) =>
       member instanceof RoomMember
@@ -67,8 +67,8 @@ export class RoomEntity {
     return {
       id: this.id,
       title: this.title,
-      typeRoom: this.type_room,
-      lastMessageId: this.last_message_id,
+      typeRoom: this.typeRoom,
+      lastMessageId: this.lastMessageId,
       avatar: this.avatar,
       members: this.members.map((member) => ({
         userId: member.userId,
@@ -85,10 +85,10 @@ export class RoomEntity {
     return this.title;
   }
   public getTypeRoom(): RoomType {
-    return this.type_room;
+    return this.typeRoom;
   }
   public getLastMessageId(): string | null {
-    return this.last_message_id;
+    return this.lastMessageId;
   }
   public getAvatar(): string | null {
     return this.avatar;

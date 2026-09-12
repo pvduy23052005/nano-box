@@ -21,11 +21,11 @@ export class ChatResolver {
     private readonly sendMessageUseCase: SendMessageUseCase,
     private readonly webSocketService: WebsocketService,
     private readonly uploadService: UploadService,
-  ) {}
+  ) { }
 
   @Query(() => MessagesPagePayload)
   async getMessages(
-    @Args('roomId', { nullable: true }) roomId?: string,
+    @Args('roomId') roomId: string,
     @Args('cursor', { nullable: true }) cursor?: string,
     @Args('limit', { nullable: true }) limit?: number,
   ): Promise<MessagesPagePayload> {
