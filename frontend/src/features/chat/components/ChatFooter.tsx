@@ -8,6 +8,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 
 import { useSendMessage } from "../hooks/useSendMessage";
 import { useSendTyping } from "../hooks/useSendTyping";
+import { useRoomStore } from "../../room/stores/useRoomStore";
 import { Button } from "@/src/components/ui/button";
 import ChatEmojiPicker from "./ChatEmojiPicker";
 import ChatImagePreview, { PendingImage, UploadStatus } from "./ChatImagePreview";
@@ -31,6 +32,7 @@ import {
 export default function ChatFooter() {
   const { sendMessage } = useSendMessage();
   const { sendTyping, stopTyping } = useSendTyping();
+  const { activeRoomId } = useRoomStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [images, setImages] = useState<PendingImage[]>([]);
   const uploadPromisesRef = useRef(
@@ -169,7 +171,7 @@ export default function ChatFooter() {
   });
 
   const handleSend = () => {
-    if (!editor) return;
+    if (!editor || !activeRoomId) return;
     const textContent = editor.getText().trim();
     const pendingImages = images.filter((img) => img.status !== UploadStatus.ERROR);
 

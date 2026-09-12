@@ -7,6 +7,7 @@ const makeMockRoomRepository = (): jest.Mocked<RoomRepositoryAdapter> => ({
   save: jest.fn(),
   findRoomsByUserIdAndStatus: jest.fn(),
   checkRoomExist: jest.fn(),
+  findById: jest.fn(),
 });
 
 describe('CreateSingleRoomUseCase', () => {

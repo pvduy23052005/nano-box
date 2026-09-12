@@ -14,4 +14,9 @@ export abstract class RoomRepositoryAdapter {
     myId: string,
     userId: string,
   ): Promise<RoomProps | null>;
+
+  abstract findById(
+    roomId: string,
+    currentUserId?: string,
+  ): Promise<RoomProps | null>;
 }

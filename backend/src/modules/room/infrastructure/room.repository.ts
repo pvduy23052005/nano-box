@@ -83,4 +83,25 @@ export class RoomRepository implements RoomRepositoryAdapter {
 
     return RoomMapper.toProps(room, myId);
   }
+
+  async findById(
+    roomId: string,
+    currentUserId?: string,
+  ): Promise<RoomProps | null> {
+    if (!Types.ObjectId.isValid(roomId)) {
+      return null;
+    }
+
+    const room = await this.roomModel
+      .findById(roomId)
+      .populate(ROOM_POPULATE_OPTIONS)
+      .lean()
+      .exec();
+
+    if (!room) {
+      return null;
+    }
+
+    return RoomMapper.toProps(room, currentUserId);
+  }
 }

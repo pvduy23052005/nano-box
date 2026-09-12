@@ -30,9 +30,9 @@ const getMemberUserId = (
 ): string => {
   if (!userId) return '';
   if (typeof userId === 'string') return userId;
-  if (typeof userId === 'object') {
-    if ('_id' in userId && userId._id) return userId._id.toString();
-    return userId.toString();
+  if (userId instanceof Types.ObjectId) return userId.toString();
+  if (typeof userId === 'object' && '_id' in userId && userId._id) {
+    return userId._id.toString();
   }
   return '';
 };

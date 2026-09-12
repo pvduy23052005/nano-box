@@ -36,6 +36,10 @@ import { UserModule } from '../user/user.module';
       inject: [RoomRepositoryAdapter],
     },
   ],
-  exports: [CreateSingleRoomUseCase, GetRoomsByStatusUseCase],
+  exports: [
+    CreateSingleRoomUseCase,
+    GetRoomsByStatusUseCase,
+    RoomRepositoryAdapter,
+  ],
 })
 export class RoomModule {}

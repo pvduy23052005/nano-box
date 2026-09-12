@@ -105,7 +105,7 @@ export class RoomResolver {
 
 @Resolver(() => RoomMemberOutput)
 export class RoomMemberResolver {
-  constructor(private readonly getMeUseCase: GetMeUseCase) { }
+  constructor(private readonly getMeUseCase: GetMeUseCase) {}
 
   @ResolveField(() => UserProfilePayload, { name: 'user', nullable: true })
   async getUser(@Parent() member: RoomMemberOutput) {

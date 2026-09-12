@@ -1,12 +1,13 @@
 import { graphql } from "@/src/types/graphql";
 
 export const GET_MESSAGE_QUERY = graphql(`
-  query GetMessages($cursor: String, $limit: Float) {
-    getMessages(cursor: $cursor, limit: $limit) {
+  query GetMessages($cursor: String, $limit: Float, $roomId: String) {
+    getMessages(cursor: $cursor, limit: $limit, roomId: $roomId) {
       items {
         id
         content
         senderId
+        roomId
         attachments
       }
       hasMore
@@ -21,6 +22,7 @@ export const SEND_MESSAGE_MUTATION = graphql(`
       id  
       content
       senderId
+      roomId
       attachments
     }
   }

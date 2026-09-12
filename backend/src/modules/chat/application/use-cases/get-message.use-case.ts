@@ -6,10 +6,15 @@ export class GetMessagesUseCase {
   constructor(private readonly messageRepository: MessageRepositoryAdapter) {}
 
   async execute(
+    roomId?: string,
     cursor?: string,
     limit?: number,
   ): Promise<PaginationResult<MessageType>> {
-    const messages = await this.messageRepository.findAll({ cursor, limit });
+    const messages = await this.messageRepository.findAll({
+      roomId,
+      cursor,
+      limit,
+    });
     return messages;
   }
 }

@@ -1,10 +1,12 @@
 import { useMutation, useApolloClient } from "@apollo/client/react";
 import { SEND_MESSAGE_MUTATION, GET_MESSAGE_QUERY } from "../services/mutation";
 import { useAuthStore } from "../../auth/store/useAuthStore";
+import { useRoomStore } from "../../room/stores/useRoomStore";
 import { appendMessageToCache } from "../utils/chatCache";
 
 export const useSendMessage = () => {
   const { user } = useAuthStore();
+  const { activeRoomId } = useRoomStore();
   const client = useApolloClient();
   const [sendMessageMutation] = useMutation(SEND_MESSAGE_MUTATION);
 
@@ -12,8 +14,10 @@ export const useSendMessage = () => {
     content: string,
     tempKeysPromise: Promise<string[]>,
     previewUrls?: string[],
+    roomId?: string,
   ) => {
-    if (!user) return;
+    const targetRoomId = roomId || activeRoomId;
+    if (!user || !targetRoomId) return;
 
     const optimisticId = `temp-${Date.now()}`;
 
@@ -21,6 +25,7 @@ export const useSendMessage = () => {
       id: optimisticId,
       content,
       senderId: user.id,
+      roomId: targetRoomId,
       attachments: previewUrls ?? [],
       readBy: [],
     };
@@ -34,6 +39,7 @@ export const useSendMessage = () => {
           variables: {
             input: {
               content,
+              roomId: targetRoomId,
               ...(tempKeys.length ? { tempKeys } : {}),
             },
           },

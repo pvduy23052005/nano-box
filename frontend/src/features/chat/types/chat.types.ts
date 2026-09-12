@@ -2,6 +2,7 @@ export interface Message {
   id: string;
   content: string;
   senderId: string;
+  roomId?: string | null;
   avatar?: string;
   isMe: boolean;
   attachments?: string[] | null;
