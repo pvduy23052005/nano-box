@@ -12,6 +12,9 @@ export class Message {
   @Prop({ required: true, trim: true, index: true })
   senderId: string;
 
+  @Prop({ required: true, index: true })
+  room_id: string;
+
   @Prop({ trim: true })
   content: string;
 

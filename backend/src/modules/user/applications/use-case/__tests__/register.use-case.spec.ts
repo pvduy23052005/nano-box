@@ -9,6 +9,7 @@ const makeMockUserRepository = (): jest.Mocked<UserRepositoryAdapter> => ({
   findByEmail: jest.fn(),
   findById: jest.fn(),
   save: jest.fn(),
+  findAll: jest.fn(),
 });
 
 const makeMockPasswordHasher = (): jest.Mocked<IpasswordHasher> => ({
@@ -23,6 +24,7 @@ const makePersistedUser = () =>
     email: 'test@example.com',
     password: 'hashed_password',
     status: UserStatus.ACTIVE,
+    avatar: 'http://example.com/avatar.png',
   });
 
 describe('RegisterUseCase', () => {

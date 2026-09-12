@@ -10,3 +10,21 @@ export const GET_USERS_QUERY = graphql(`
     }
   }
 `);
+
+export const CREATE_ROOM_CHAT_NOT_FRIEND_MUTATION = graphql(`
+  mutation CreateRoomChatNotFriend($otherUserId: String!) {
+    createRoomChatNotFriend(otherUserId: $otherUserId) {
+      id
+      title
+      typeRoom
+      avatar
+      lastMessageId
+      members {
+        userId
+        role
+        status
+      }
+    }
+  }
+`);
+

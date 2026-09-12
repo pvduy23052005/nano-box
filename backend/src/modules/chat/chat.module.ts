@@ -11,11 +11,14 @@ import { ChatResolver } from './presentation/graphql/chat.resolver';
 import { GetMessagesUseCase } from './application/use-cases/get-message.use-case';
 import { ChatGateway } from './presentation/gateway/chat.gateway';
 import { UploadModule } from 'src/infrastructure/upload/upload.module';
+import { RoomModule } from '../room/room.module';
+import { RoomRepositoryAdapter } from '../room/application/ports/room.ports';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Message.name, schema: MessageSchema }]),
     UploadModule,
+    RoomModule,
   ],
   providers: [
     ChatResolver,
@@ -26,9 +29,11 @@ import { UploadModule } from 'src/infrastructure/upload/upload.module';
     },
     {
       provide: SendMessageUseCase,
-      useFactory: (messageRepository: MessageRepositoryAdapter) =>
-        new SendMessageUseCase(messageRepository),
-      inject: [MessageRepositoryAdapter],
+      useFactory: (
+        messageRepository: MessageRepositoryAdapter,
+        roomRepository: RoomRepositoryAdapter,
+      ) => new SendMessageUseCase(messageRepository, roomRepository),
+      inject: [MessageRepositoryAdapter, RoomRepositoryAdapter],
     },
     {
       provide: GetMessagesUseCase,

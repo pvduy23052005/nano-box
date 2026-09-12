@@ -7,6 +7,7 @@ type ChatPayload {
   content: String!
   id: String!
   readBy: [String!]
+  roomId: String!
   senderId: String!
 }
 
@@ -26,8 +27,21 @@ type LoginResult {
   user: User!
 }
 
+enum MemberRole {
+  ADMIN
+  MEMBER
+  SUPER_ADMIN
+}
+
+enum MemberStatus {
+  ACCEPTED
+  REFUSED
+  WAITTING
+}
+
 input MessageInput {
   content: String
+  roomId: String!
   tempKeys: [String!]
 }
 
@@ -38,6 +52,7 @@ type MessagesPagePayload {
 }
 
 type Mutation {
+  createRoomChatNotFriend(otherUserId: String!): RoomOutput!
   login(input: LoginInputDto!): LoginPayload!
   loginGoogle(idToken: String!): LoginPayload!
   register(input: RegisterInputDto!): RegisterPayload!
@@ -46,7 +61,8 @@ type Mutation {
 
 type Query {
   getMe: UserProfilePayload!
-  getMessages(cursor: String, limit: Float): MessagesPagePayload!
+  getMessages(cursor: String, limit: Float, roomId: String!): MessagesPagePayload!
+  getRoomsByStatus(status: MemberStatus!): [RoomOutput!]!
   getUsers(search: String): [UserProfilePayload!]!
 }
 
@@ -61,6 +77,27 @@ type RegisterPayload {
   data: UserProfilePayload
   message: String!
   success: Boolean!
+}
+
+type RoomMemberOutput {
+  role: MemberRole!
+  status: MemberStatus!
+  user: UserProfilePayload
+  userId: String!
+}
+
+type RoomOutput {
+  avatar: String
+  id: String!
+  lastMessageId: String
+  members: [RoomMemberOutput!]
+  title: String
+  typeRoom: RoomType!
+}
+
+enum RoomType {
+  GROUP
+  SINGLE
 }
 
 type User {

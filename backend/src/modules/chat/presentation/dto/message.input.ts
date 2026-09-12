@@ -3,6 +3,10 @@ import { IsOptional, IsString } from 'class-validator';
 
 @InputType()
 export class MessageInput {
+  @Field(() => String)
+  @IsString()
+  roomId: string;
+
   @Field({ nullable: true })
   @IsString()
   @IsOptional()

@@ -25,16 +25,18 @@ export class ChatResolver {
 
   @Query(() => MessagesPagePayload)
   async getMessages(
+    @Args('roomId') roomId: string,
     @Args('cursor', { nullable: true }) cursor?: string,
     @Args('limit', { nullable: true }) limit?: number,
   ): Promise<MessagesPagePayload> {
-    const result = await this.getMessagesUseCase.execute(cursor, limit);
+    const result = await this.getMessagesUseCase.execute(roomId, cursor, limit);
 
     return {
       items: result.items.map((msg) => ({
         id: msg.id as string,
         content: msg.content,
         senderId: msg.senderId,
+        roomId: msg.roomId,
         attachments: msg.attachments || [],
         readBy: msg.readBy || [],
       })),
@@ -61,9 +63,10 @@ export class ChatResolver {
       tempKeysToDelete.push(...input.tempKeys);
     }
 
-    const message = await this.sendMessageUseCase.execute({
+    const { message, memberIds } = await this.sendMessageUseCase.execute({
       content: input.content,
       senderId: userId,
+      roomId: input.roomId,
       attachments,
     });
 
@@ -74,7 +77,12 @@ export class ChatResolver {
     }
 
     const server = this.webSocketService.server;
-    server.emit(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, message);
+    if (server && memberIds.length) {
+      server
+        .to([...memberIds, input.roomId])
+        .emit(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, message);
+    }
+
     return message;
   }
 }

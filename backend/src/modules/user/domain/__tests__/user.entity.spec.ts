@@ -11,6 +11,7 @@ const makeRestoredUser = (
     email: 'test@example.com',
     password: 'hashed_password',
     status: UserStatus.ACTIVE,
+    avatar: 'http://example.com/avatar.png',
     ...overrides,
   });
 
@@ -21,6 +22,7 @@ describe('UserEntity', () => {
         name: 'Nguyen Van A',
         email: 'test@example.com',
         password: 'hashed_password',
+        avatar: 'http://example.com/avatar.png',
       });
 
       expect(user.getStatus()).toBe(UserStatus.ACTIVE);
@@ -31,6 +33,7 @@ describe('UserEntity', () => {
         name: 'Nguyen Van A',
         email: 'test@example.com',
         password: 'hashed_password',
+        avatar: 'http://example.com/avatar.png',
       });
 
       expect(user.getId()).toBeUndefined();
@@ -41,6 +44,7 @@ describe('UserEntity', () => {
         name: 'Nguyen Van A',
         email: 'test@example.com',
         password: 'hashed_password',
+        avatar: 'http://example.com/avatar.png',
       });
 
       expect(user.getName()).toBe('Nguyen Van A');
@@ -56,6 +60,7 @@ describe('UserEntity', () => {
           name: '   ',
           email: 'invalid-email',
           password: '123',
+          avatar: 'http://example.com/avatar.png',
         });
       } catch (error) {
         validationError = error as DomainValidationException;

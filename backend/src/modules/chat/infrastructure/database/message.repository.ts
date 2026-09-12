@@ -1,3 +1,7 @@
+import {
+  CursorPagination,
+  PaginationResult,
+} from '../../application/dto/pagination.type';
 import { Injectable } from '@nestjs/common';
 import { MessageRepositoryAdapter } from '../../application/ports/message.port';
 import { MessageEntity } from '../../domain/message.entity';
@@ -5,10 +9,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Message, MessageDocument } from './message.schema';
 import { Model, Types } from 'mongoose';
 import { MessageType } from '../../domain/message.type';
-import {
-  CursorPagination,
-  PaginationResult,
-} from '../../application/dto/pagination.type';
 
 @Injectable()
 export class MesageRepository implements MessageRepositoryAdapter {
@@ -22,6 +22,7 @@ export class MesageRepository implements MessageRepositoryAdapter {
       content: message.getContent(),
       attachments: message.getAttachments(),
       senderId: message.getSenderId(),
+      room_id: message.getRoomId(),
       readBy: message.getReadBy(),
     };
   }
@@ -30,6 +31,7 @@ export class MesageRepository implements MessageRepositoryAdapter {
     return {
       id: document._id.toString() || '',
       senderId: document.senderId.toString(),
+      roomId: document.room_id?.toString() || '',
       content: document.content || '',
       attachments: document.attachments,
       readBy: document.readBy,
@@ -46,10 +48,14 @@ export class MesageRepository implements MessageRepositoryAdapter {
   async findAll({
     cursor,
     limit = 10,
+    roomId,
   }: CursorPagination): Promise<PaginationResult<MessageType>> {
     const safeLimit = Math.min(Math.max(Number(limit || 10), 1), 10);
 
     const filterQuery: Record<string, unknown> = {};
+    if (roomId) {
+      filterQuery.room_id = roomId;
+    }
     if (cursor && Types.ObjectId.isValid(cursor)) {
       filterQuery._id = { $lt: new Types.ObjectId(cursor) };
     }

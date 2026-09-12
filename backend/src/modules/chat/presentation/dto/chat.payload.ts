@@ -11,6 +11,9 @@ export class ChatPayload {
   @Field(() => String)
   senderId: string;
 
+  @Field(() => String)
+  roomId: string;
+
   @Field(() => [String], { nullable: true })
   attachments: string[];
 

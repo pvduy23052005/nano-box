@@ -14,11 +14,22 @@ export const appendMessageToCache = (
   cache: ApolloCache,
   query: DocumentNode,
   newMessage: Omit<Message, "isMe"> & { isMe?: boolean },
-  tempId?: string
+  tempId?: string,
+  roomId?: string | null,
 ): void => {
   const normalizedMessage: Message = { ...newMessage, isMe: newMessage.isMe ?? false };
+  const targetRoomId = roomId ?? newMessage.roomId ?? null;
+  if (!targetRoomId) return;
 
-  cache.updateQuery<GetMessagesData>({ query, variables: { limit: PAGINATION_LIMIT } }, (existing) => {
+  cache.updateQuery<GetMessagesData>(
+    {
+      query,
+      variables: {
+        limit: PAGINATION_LIMIT,
+        roomId: targetRoomId,
+      },
+    },
+    (existing) => {
     if (!existing?.getMessages) {
       return {
         getMessages: {

@@ -6,7 +6,7 @@ import {
   InputGroupInput,
 } from "@/src/components/ui/input-group";
 import { useState } from "react";
-import UserCard from "../../../features/user/components/UserCard";
+import UserList from "../../../features/user/components/UserList";
 import { Button } from "../../../components/ui/button";
 import { Filter, Search } from "lucide-react";
 import { useDebounce } from "../../../hooks/useDebounce";
@@ -39,7 +39,7 @@ export default function UsersPage() {
           </Button>
         </div>
 
-        <UserCard searchQuery={debouncedSearchQuery} />
+        <UserList searchQuery={debouncedSearchQuery} />
       </main>
     </div>
   );  
