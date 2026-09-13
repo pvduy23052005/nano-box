@@ -85,8 +85,8 @@ export class RoomResolver {
     };
 
     this.websocketService.server
-      .to(otherUserId)
-      .emit(ROOM_SOCKET_EVENTS.SERVER_SEND_ROOM, roomData);
+      ?.to(otherUserId)
+      ?.emit(ROOM_SOCKET_EVENTS.SERVER_SEND_ROOM, roomData);
 
     return {
       id: result.id,
