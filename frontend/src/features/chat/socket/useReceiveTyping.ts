@@ -15,19 +15,22 @@ export const useReceiveTyping = () => {
     if (!socket) return;
 
     const handleReceiveTyping = (payload: TypingPayload) => {
-      if (!payload.userId || payload.userId === user?.id) return;
+      if (!payload.userId || payload.userId === user?.id || !payload.roomId)
+        return;
 
-      if (timeoutsRef.current[payload.userId]) {
-        clearTimeout(timeoutsRef.current[payload.userId]);
-        delete timeoutsRef.current[payload.userId];
+      const timerKey = `${payload.roomId}:${payload.userId}`;
+
+      if (timeoutsRef.current[timerKey]) {
+        clearTimeout(timeoutsRef.current[timerKey]);
+        delete timeoutsRef.current[timerKey];
       }
 
-      setTyping(payload.userId, payload.isTyping, payload.name);
+      setTyping(payload.roomId, payload.userId, payload.isTyping, payload.name);
 
       if (payload.isTyping) {
-        timeoutsRef.current[payload.userId] = setTimeout(() => {
-          setTyping(payload.userId, false);
-          delete timeoutsRef.current[payload.userId];
+        timeoutsRef.current[timerKey] = setTimeout(() => {
+          setTyping(payload.roomId, payload.userId, false);
+          delete timeoutsRef.current[timerKey];
         }, 3500);
       }
     };

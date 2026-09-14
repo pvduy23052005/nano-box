@@ -31,7 +31,8 @@ export interface GetMessagesResponse {
 export const PAGINATION_LIMIT = 10;
 
 export type TypingPayload = {
+  roomId: string;
   userId: string;
-  name: string;
+  name?: string;
   isTyping: boolean;
 };

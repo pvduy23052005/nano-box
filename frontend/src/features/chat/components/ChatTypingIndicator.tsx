@@ -1,5 +1,13 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
-import { Message, MessageAvatar, MessageContent } from "@/src/components/ui/message";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/src/components/ui/avatar";
+import {
+  Message,
+  MessageAvatar,
+  MessageContent,
+} from "@/src/components/ui/message";
 import { Typography } from "@/src/components/ui/typography";
 import { TypingUser } from "../stores/useTypingStore";
 
@@ -7,11 +15,13 @@ interface ChatTypingIndicatorProps {
   typingUsers: TypingUser[];
 }
 
-export default function ChatTypingIndicator({ typingUsers }: ChatTypingIndicatorProps) {
+export default function ChatTypingIndicator({
+  typingUsers,
+}: ChatTypingIndicatorProps) {
   if (!typingUsers.length) return null;
 
   const names = typingUsers
-    .map((u) => u.name)
+    .map((user) => user.nameTyping)
     .filter(Boolean)
     .join(", ");
 
@@ -27,7 +37,7 @@ export default function ChatTypingIndicator({ typingUsers }: ChatTypingIndicator
         <Avatar className="size-8">
           <AvatarImage src="/avatar.png" />
           <AvatarFallback className="text-xs">
-            {typingUsers[0]?.name?.[0]?.toUpperCase() || "U"}
+            {typingUsers[0]?.nameTyping?.[0]?.toUpperCase() || "U"}
           </AvatarFallback>
         </Avatar>
       </MessageAvatar>

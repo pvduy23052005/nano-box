@@ -10,6 +10,7 @@ import ChatTypingIndicator from "./ChatTypingIndicator";
 import { useReceiveMessage } from "../socket/useReceiveMessage";
 import { useReceiveTyping } from "../socket/useReceiveTyping";
 import { useTypingStore } from "../stores/useTypingStore";
+import { useRoomStore } from "../../room/stores/useRoomStore";
 import { Message, MessageGroup } from "../types/chat.types";
 
 export default function ChatMain() {
@@ -20,13 +21,17 @@ export default function ChatMain() {
     hasNextPage,
     isFetchingNextPage,
   } = useGetMessages();
-  const { typingUsers } = useTypingStore();
+  const { activeRoomId } = useRoomStore();
+  const typingByRoom = useTypingStore((state) => state.typingByRoom);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useReceiveMessage();
   useReceiveTyping();
 
-  const typingList = useMemo(() => Object.values(typingUsers), [typingUsers]);
+  const typingList = useMemo(() => {
+    if (!activeRoomId || !typingByRoom[activeRoomId]) return [];
+    return Object.values(typingByRoom[activeRoomId]);
+  }, [activeRoomId, typingByRoom]);
   const { ref: loadMoreRef, inView } = useInView();
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
