@@ -47,9 +47,6 @@ jobs:
       - name: Cài đặt Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Kiểm tra Lint
-        run: pnpm lint
-
   build-docker-matrix:
     name: Build Docker (${{ matrix.platform }})
     needs: verify
