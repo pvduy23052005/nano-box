@@ -1,7 +1,8 @@
 import { Types } from 'mongoose';
 import { RoomEntity } from '../domain/room.entity';
-import { RoomProps } from '../domain/room.type';
+import { LastMessageProps, RoomProps } from '../domain/room.type';
 import { RoomType, MemberRole, MemberStatus } from '../domain/chat.enum';
+import { LastMessageOutput, RoomOutput } from '../presentation/dto/room.output';
 
 export interface PopulatedUser {
   _id: Types.ObjectId;
@@ -16,11 +17,18 @@ export interface MemberItem {
   joined_at?: Date;
 }
 
+export interface PopulatedMessage {
+  _id: Types.ObjectId | string;
+  content?: string | null;
+  created_at?: Date | null;
+  senderId?: string | null;
+}
+
 export interface RawRoomInput {
   _id: Types.ObjectId | string;
   title: string | null;
   type_room: RoomType;
-  last_message_id: Types.ObjectId | null;
+  last_message_id: Types.ObjectId | PopulatedMessage | string | null;
   avatar: string | null;
   members: MemberItem[];
 }
@@ -70,13 +78,32 @@ export class RoomMapper {
       }
     }
 
+    let lastMessageId: RoomProps['lastMessageId'] = null;
+
+    if (rawRoom.last_message_id) {
+      if (typeof rawRoom.last_message_id === 'string') {
+        lastMessageId = rawRoom.last_message_id;
+      } else if (rawRoom.last_message_id instanceof Types.ObjectId) {
+        lastMessageId = rawRoom.last_message_id.toString();
+      } else if (
+        typeof rawRoom.last_message_id === 'object' &&
+        '_id' in rawRoom.last_message_id
+      ) {
+        const msg = rawRoom.last_message_id as PopulatedMessage;
+        lastMessageId = {
+          id: msg._id.toString(),
+          content: msg.content ?? null,
+          createdAt: msg.created_at ? new Date(msg.created_at) : null,
+          senderId: msg.senderId ?? null,
+        };
+      }
+    }
+
     return {
       id: rawRoom._id.toString(),
       title,
       typeRoom,
-      lastMessageId: rawRoom.last_message_id
-        ? rawRoom.last_message_id.toString()
-        : null,
+      lastMessageId,
       avatar,
       members: (rawRoom.members || []).map((member) => ({
         userId: getMemberUserId(member.user_id),
@@ -88,16 +115,60 @@ export class RoomMapper {
 
   public static toPersistence(room: RoomEntity) {
     const roomData = room.toObject();
+    const lastMessageId =
+      typeof roomData.lastMessageId === 'object' &&
+      roomData.lastMessageId !== null
+        ? roomData.lastMessageId.id
+        : roomData.lastMessageId;
+
     return {
       title: roomData.title,
       type_room: roomData.typeRoom,
-      last_message_id: roomData.lastMessageId,
+      last_message_id: lastMessageId,
       avatar: roomData.avatar,
       members: roomData.members.map((member) => ({
         user_id: member.userId,
         role: member.role,
         status: member.status,
       })),
+    };
+  }
+
+  public static formatLastMessage(
+    lastMessageId: string | null | LastMessageProps | undefined,
+  ): LastMessageOutput | null {
+    if (!lastMessageId) return null;
+    if (typeof lastMessageId === 'object') {
+      return {
+        id: lastMessageId.id,
+        content: lastMessageId.content,
+        createdAt: lastMessageId.createdAt,
+        senderId: lastMessageId.senderId,
+      };
+    }
+    return {
+      id: lastMessageId,
+      content: null,
+      createdAt: null,
+      senderId: null,
+    };
+  }
+
+  public static toOutput(
+    room: RoomProps,
+    overrides?: { title?: string | null; avatar?: string | null },
+  ): RoomOutput {
+    return {
+      id: room.id,
+      title: overrides?.title !== undefined ? overrides.title : room.title,
+      typeRoom: room.typeRoom,
+      lastMessageId: RoomMapper.formatLastMessage(room.lastMessageId),
+      members: room.members.map((member) => ({
+        userId: member.userId,
+        role: member.role,
+        status: member.status,
+      })),
+      avatar: overrides?.avatar !== undefined ? overrides.avatar : room.avatar,
     };
   }
 }

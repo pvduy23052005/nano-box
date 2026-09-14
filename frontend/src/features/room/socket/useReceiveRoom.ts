@@ -16,7 +16,12 @@ export interface ReceiveRoomPayload {
   id: string;
   title: string | null;
   typeRoom: RoomType;
-  lastMessageId?: string | null;
+  lastMessageId?: {
+    id?: string | null;
+    content?: string | null;
+    senderId?: string | null;
+    createdAt?: unknown;
+  } | null;
   members: ReceiveRoomMember[];
   avatar?: string | null;
 }

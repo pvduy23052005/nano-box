@@ -15,7 +15,7 @@ export class ChatGateway {
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly roomRepository: RoomRepositoryAdapter) { }
+  constructor(private readonly roomRepository: RoomRepositoryAdapter) {}
 
   @SubscribeMessage(eventType.CHAT_SOCKET_EVENTS.CLIENT_SEND_TYPING)
   async handleTyping(
@@ -28,7 +28,9 @@ export class ChatGateway {
     const room = await this.roomRepository.findById(payload.roomId);
     if (!room) return;
 
-    const isMember = room.members?.some((member) => member.userId === userIdTyping);
+    const isMember = room.members?.some(
+      (member) => member.userId === userIdTyping,
+    );
     if (!isMember) return;
 
     const recipientUserIds = room.members

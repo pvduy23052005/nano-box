@@ -2,11 +2,18 @@ import { ApolloCache } from "@apollo/client";
 import { GET_ROOMS_BY_STATUS_QUERY } from "./room.mutation";
 import { MemberStatus, RoomType, GetRoomsByStatusQuery } from "@/src/types/graphql/graphql";
 
+export type LastMessageCacheItem = {
+  id?: string | null;
+  content?: string | null;
+  senderId?: string | null;
+  createdAt?: unknown;
+} | null;
+
 export interface CachedRoomItem {
   id: string;
   title: string | null;
   typeRoom: RoomType;
-  lastMessageId?: string | null;
+  lastMessageId?: LastMessageCacheItem;
   avatar?: string | null;
 }
 
@@ -20,7 +27,14 @@ export const appendRoomToCache = (
     id: newRoom.id,
     title: newRoom.title ?? null,
     typeRoom: newRoom.typeRoom,
-    lastMessageId: newRoom.lastMessageId ?? null,
+    lastMessageId: newRoom.lastMessageId
+      ? {
+          id: newRoom.lastMessageId.id ?? null,
+          content: newRoom.lastMessageId.content ?? null,
+          senderId: newRoom.lastMessageId.senderId ?? null,
+          createdAt: newRoom.lastMessageId.createdAt ?? null,
+        }
+      : null,
     avatar: newRoom.avatar ?? null,
   };
 

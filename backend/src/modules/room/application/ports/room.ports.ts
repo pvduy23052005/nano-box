@@ -19,4 +19,9 @@ export abstract class RoomRepositoryAdapter {
     roomId: string,
     currentUserId?: string,
   ): Promise<RoomProps | null>;
+
+  abstract updateLastMessageId(
+    roomId: string,
+    messageId: string,
+  ): Promise<void>;
 }

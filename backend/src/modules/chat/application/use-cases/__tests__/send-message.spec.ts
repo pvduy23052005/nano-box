@@ -24,6 +24,7 @@ describe('SendMessageUseCase', () => {
       findRoomsByUserIdAndStatus: jest.fn(),
       checkRoomExist: jest.fn(),
       findById: jest.fn(),
+      updateLastMessageId: jest.fn(),
     };
 
     sendMessageUseCase = new SendMessageUseCase(
@@ -117,5 +118,9 @@ describe('SendMessageUseCase', () => {
       memberIds: ['user-1', 'user-2'],
     });
     expect(messageRepository.save).toHaveBeenCalledTimes(1);
+    expect(roomRepository.updateLastMessageId).toHaveBeenCalledWith(
+      'room-1',
+      'msg-1',
+    );
   });
 });

@@ -1,13 +1,13 @@
 import { RoomType } from './chat.enum';
 import { RoomMember } from './member.object';
-import { RoomProps } from './room.type';
+import { LastMessageProps, RoomProps } from './room.type';
 import { randomUUID } from 'node:crypto';
 
 export class RoomEntity {
   private id: string;
   private title: string | null;
   private typeRoom: RoomType;
-  private lastMessageId: string | null;
+  private lastMessageId: string | null | LastMessageProps;
   private avatar: string | null;
   private members: RoomMember[];
 
@@ -87,7 +87,7 @@ export class RoomEntity {
   public getTypeRoom(): RoomType {
     return this.typeRoom;
   }
-  public getLastMessageId(): string | null {
+  public getLastMessageId(): RoomProps['lastMessageId'] {
     return this.lastMessageId;
   }
   public getAvatar(): string | null {
