@@ -120,13 +120,15 @@ jobs:
 
       - name: Gộp các image thành Multi-Arch Manifest
         if: github.event_name != 'pull_request'
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
         run: |
           IMAGE_NAME="ghcr.io/${{ github.repository }}-backend"
-          TAGS_ARGS=""
-          for tag in ${{ steps.meta.outputs.tags }}; do
-            TAGS_ARGS="$TAGS_ARGS -t $tag"
-          done
+          TAGS_ARGS=()
+          while IFS= read -r tag; do
+            [ -n "$tag" ] && TAGS_ARGS+=(-t "$tag")
+          done <<< "$TAGS"
           
-          docker buildx imagetools create $TAGS_ARGS \
-            ${IMAGE_NAME}:${{ github.sha }}-amd64 \
-            ${IMAGE_NAME}:${{ github.sha }}-arm64
+          docker buildx imagetools create "${TAGS_ARGS[@]}" \
+            "${IMAGE_NAME}:${{ github.sha }}-amd64" \
+            "${IMAGE_NAME}:${{ github.sha }}-arm64"
