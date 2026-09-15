@@ -3,6 +3,7 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@/src/components/ui/avatar";
 import { Typography } from "@/src/components/ui/typography";
 import { cn } from "@/src/lib/utils";
+import DOMPurify from "isomorphic-dompurify";
 import { ChatRoom } from "../stores/useRoomStore";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 
@@ -12,8 +13,10 @@ interface RoomCardProps {
   onClick?: () => void;
 }
 
-const stripHtml = (html: string) => {
-  return html.replace(/<[^>]*>?/gm, "").trim();
+const cleanHtmlText = (html: string) => {
+  return DOMPurify.sanitize(html, { ALLOWED_TAGS: [] })
+    .replace(/&nbsp;/g, " ")
+    .trim();
 };
 
 export default function RoomCard({
@@ -42,7 +45,7 @@ export default function RoomCard({
       return "Tin nhắn mới nhất";
     }
 
-    const rawContent = lastMessage.content ? stripHtml(lastMessage.content) : "";
+    const rawContent = lastMessage.content ? cleanHtmlText(lastMessage.content) : "";
     const displayContent = rawContent || "Tin nhắn mới nhất";
 
     return isMe ? `Bạn: ${displayContent}` : displayContent;

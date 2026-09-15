@@ -87,7 +87,7 @@ export class RoomEntity {
   public getTypeRoom(): RoomType {
     return this.typeRoom;
   }
-  public getLastMessageId(): RoomProps['lastMessageId'] {
+  public getLastMessageId(): LastMessageProps | null | string {
     return this.lastMessageId;
   }
   public getAvatar(): string | null {
@@ -95,5 +95,5 @@ export class RoomEntity {
   }
   public getMembers(): readonly RoomMember[] {
     return Object.freeze([...this.members]);
-  }
+  } 
 }
