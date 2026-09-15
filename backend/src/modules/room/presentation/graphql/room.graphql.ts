@@ -17,6 +17,7 @@ import { UserProfilePayload } from '../../../../modules/user/presentation/dto/pr
 import { MemberStatus } from '../../domain/chat.enum';
 import { WebsocketService } from 'src/infrastructure/websocket/ws.service';
 import { ROOM_SOCKET_EVENTS } from '../gateway/event.type';
+import { RoomMapper } from '../../infrastructure/room.mapper';
 
 @Resolver()
 @UseGuards(AuthGuard)
@@ -35,18 +36,7 @@ export class RoomResolver {
   ) {
     const rooms = await this.getRoomsByStatusUseCase.execute(myId, status);
 
-    return rooms.map((result) => ({
-      id: result.id,
-      title: result.title,
-      typeRoom: result.typeRoom,
-      lastMessageId: result.lastMessageId,
-      members: result.members.map((member) => ({
-        userId: member.userId,
-        role: member.role,
-        status: member.status,
-      })),
-      avatar: result.avatar,
-    }));
+    return rooms.map((result) => RoomMapper.toOutput(result));
   }
 
   @Mutation(() => RoomOutput)
@@ -71,35 +61,16 @@ export class RoomResolver {
       // fallback to result values
     }
 
-    const roomData = {
-      id: result.id,
+    const roomData = RoomMapper.toOutput(result, {
       title: senderName,
-      typeRoom: result.typeRoom,
-      lastMessageId: result.lastMessageId,
-      members: result.members.map((member) => ({
-        userId: member.userId,
-        role: member.role,
-        status: member.status,
-      })),
       avatar: senderAvatar,
-    };
+    });
 
     this.websocketService.server
-      .to(otherUserId)
-      .emit(ROOM_SOCKET_EVENTS.SERVER_SEND_ROOM, roomData);
+      ?.to(otherUserId)
+      ?.emit(ROOM_SOCKET_EVENTS.SERVER_SEND_ROOM, roomData);
 
-    return {
-      id: result.id,
-      title: result.title,
-      typeRoom: result.typeRoom,
-      lastMessageId: result.lastMessageId,
-      members: result.members.map((member) => ({
-        userId: member.userId,
-        role: member.role,
-        status: member.status,
-      })),
-      avatar: result.avatar,
-    };
+    return RoomMapper.toOutput(result);
   }
 }
 

@@ -12,6 +12,10 @@ const ROOM_POPULATE_OPTIONS = [
     path: 'members.user_id',
     select: 'name avatar',
   },
+  {
+    path: 'last_message_id',
+    select: 'content created_at senderId',
+  },
 ];
 
 export class RoomRepository implements RoomRepositoryAdapter {
@@ -103,5 +107,15 @@ export class RoomRepository implements RoomRepositoryAdapter {
     }
 
     return RoomMapper.toProps(room, currentUserId);
+  }
+
+  async updateLastMessageId(roomId: string, messageId: string): Promise<void> {
+    if (!Types.ObjectId.isValid(roomId) || !Types.ObjectId.isValid(messageId)) {
+      return;
+    }
+
+    await this.roomModel.findByIdAndUpdate(roomId, {
+      last_message_id: new Types.ObjectId(messageId),
+    });
   }
 }

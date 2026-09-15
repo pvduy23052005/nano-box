@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CREATE_ROOM_CHAT_NOT_FRIEND_MUTATION } from "../mutations/user.mutation";
 import { useRoomStore } from "../../room/stores/useRoomStore";
-import { MemberRole, MemberStatus, RoomType } from "../../room/room.type";
+import { MemberRole, MemberStatus, RoomType } from "../../room/types/room.type";
 import { appendRoomToCache } from "../../room/room.cache";
 
 export interface CreateRoomTargetUser {

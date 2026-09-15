@@ -30,9 +30,9 @@ import {
 } from "lucide-react";
 
 export default function ChatFooter() {
-  const { sendMessage } = useSendMessage();
-  const { sendTyping, stopTyping } = useSendTyping();
   const { activeRoomId } = useRoomStore();
+  const { sendMessage } = useSendMessage();
+  const { sendTyping, stopTyping } = useSendTyping(activeRoomId ?? undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [images, setImages] = useState<PendingImage[]>([]);
   const uploadPromisesRef = useRef(

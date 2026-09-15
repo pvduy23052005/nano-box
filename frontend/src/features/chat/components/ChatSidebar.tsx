@@ -15,8 +15,9 @@ import { useEffect, useState } from "react";
 import RoomFriend from "../../room/components/RoomFriend";
 import RoomStranger from "../../room/components/RoomStranger";
 import { useGetRooms } from "../../room/hooks/useGetRooms";
+import { useReceiveRoom } from "../../room/socket/useReceiveRoom";
 import { useRoomStore, ChatRoom } from "../../room/stores/useRoomStore";
-import { MemberStatus } from "../../room/room.type";
+import { MemberStatus } from "../../room/types/room.type";
 import { Search } from "lucide-react";
 
 export enum RoomTypeSearch {
@@ -40,6 +41,8 @@ export default function ChatSidebar() {
     loading: loadingStrangers,
     error: errorStrangers,
   } = useGetRooms(MemberStatus.WAITTING);
+
+  useReceiveRoom();
 
   const { activeRoomId, setActiveRoom } = useRoomStore();
 

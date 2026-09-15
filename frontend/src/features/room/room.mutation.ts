@@ -6,7 +6,12 @@ export const GET_ROOMS_BY_STATUS_QUERY = graphql(`
       id
       title
       typeRoom
-      lastMessageId
+      lastMessageId{
+        id
+        content
+        senderId
+        createdAt
+      }
       avatar
     }
   }

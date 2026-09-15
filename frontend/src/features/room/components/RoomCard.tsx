@@ -1,19 +1,23 @@
 "use client";
 
-import {
-  Avatar,
-  AvatarImage,
-  AvatarFallback,
-} from "@/src/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/src/components/ui/avatar";
 import { Typography } from "@/src/components/ui/typography";
 import { cn } from "@/src/lib/utils";
+import DOMPurify from "isomorphic-dompurify";
 import { ChatRoom } from "../stores/useRoomStore";
+import { useAuthStore } from "../../auth/store/useAuthStore";
 
 interface RoomCardProps {
   room: ChatRoom;
   isSelected?: boolean;
   onClick?: () => void;
 }
+
+const cleanHtmlText = (html: string) => {
+  return DOMPurify.sanitize(html, { ALLOWED_TAGS: [] })
+    .replace(/&nbsp;/g, " ")
+    .trim();
+};
 
 export default function RoomCard({
   room,
@@ -22,6 +26,30 @@ export default function RoomCard({
 }: RoomCardProps) {
   const displayName = room.title || "Cuộc trò chuyện";
   const initials = displayName.slice(0, 2).toUpperCase();
+  const user = useAuthStore((state) => state.user);
+
+  const lastMessage =
+    typeof room.lastMessageId === "object" && room.lastMessageId !== null
+      ? room.lastMessageId
+      : null;
+
+  const isMe =
+    !!user?.id && !!lastMessage?.senderId && lastMessage.senderId === user.id;
+
+  const getPreviewText = () => {
+    if (!room.lastMessageId) {
+      return "Bắt đầu cuộc trò chuyện";
+    }
+
+    if (!lastMessage) {
+      return "Tin nhắn mới nhất";
+    }
+
+    const rawContent = lastMessage.content ? cleanHtmlText(lastMessage.content) : "";
+    const displayContent = rawContent || "Tin nhắn mới nhất";
+
+    return isMe ? `Bạn: ${displayContent}` : displayContent;
+  };
 
   return (
     <div
@@ -48,7 +76,7 @@ export default function RoomCard({
           variant="caption"
           className="truncate text-muted-foreground text-xs"
         >
-          {room.lastMessageId ? "Tin nhắn mới nhất" : "Bắt đầu cuộc trò chuyện"}
+          {getPreviewText()}
         </Typography>
       </div>
     </div>

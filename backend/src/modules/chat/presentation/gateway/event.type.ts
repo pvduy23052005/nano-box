@@ -5,7 +5,8 @@ export const CHAT_SOCKET_EVENTS = {
 };
 
 export type TypingPayload = {
-  userId: string;
-  name: string;
+  roomId: string;
+  userId?: string;
+  name?: string;
   isTyping: boolean;
 };

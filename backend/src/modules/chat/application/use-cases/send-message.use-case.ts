@@ -35,6 +35,13 @@ export class SendMessageUseCase {
     const newMessage = MessageEntity.create(messageData);
     const savedMessage = await this.messageRepository.save(newMessage);
 
+    if (savedMessage.id) {
+      await this.roomRepository.updateLastMessageId(
+        messageData.roomId,
+        savedMessage.id,
+      );
+    }
+
     const memberIds = room.members.map((member) => member.userId);
 
     return {

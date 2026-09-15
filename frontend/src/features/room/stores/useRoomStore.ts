@@ -4,7 +4,12 @@ export interface ChatRoom {
   id: string;
   title: string | null;
   typeRoom: string;
-  lastMessageId: string | null;
+  lastMessageId?: {
+    id?: string | null;
+    content?: string | null;
+    senderId?: string | null;
+    createdAt?: unknown;
+  } | string | null;
   avatar: string | null;
 }
 

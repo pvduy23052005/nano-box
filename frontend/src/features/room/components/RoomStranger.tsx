@@ -1,27 +1,19 @@
 "use client";
 
 import RoomList from "./RoomList";
-import { useGetRooms } from "../hooks/useGetRooms";
-import { MemberStatus } from "../room.type";
 import { ChatRoom } from "../stores/useRoomStore";
 
 interface RoomStrangerProps {
-  rooms?: ChatRoom[];
-  isLoading?: boolean;
-  error?: boolean;
+  rooms: ChatRoom[];
+  isLoading: boolean;
+  error: boolean;
 }
 
 export default function RoomStranger({
-  rooms: propRooms,
-  isLoading: propIsLoading,
-  error: propError,
+  rooms,
+  isLoading,
+  error,
 }: RoomStrangerProps) {
-  const queryResult = useGetRooms(MemberStatus.WAITTING);
-
-  const rooms = propRooms ?? (queryResult.rooms as ChatRoom[]);
-  const isLoading = propIsLoading ?? queryResult.loading;
-  const error = propError ?? !!queryResult.error;
-
   return (
     <RoomList
       rooms={rooms}
@@ -31,5 +23,3 @@ export default function RoomStranger({
     />
   );
 }
-
-export { RoomStranger };

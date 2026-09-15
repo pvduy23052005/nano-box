@@ -2,6 +2,10 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Room, RoomSchema } from './infrastructure/room.schema';
 import {
+  Message,
+  MessageSchema,
+} from '../chat/infrastructure/database/message.schema';
+import {
   RoomResolver,
   RoomMemberResolver,
 } from './presentation/graphql/room.graphql';
@@ -13,7 +17,10 @@ import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Room.name, schema: RoomSchema }]),
+    MongooseModule.forFeature([
+      { name: Room.name, schema: RoomSchema },
+      { name: Message.name, schema: MessageSchema },
+    ]),
     UserModule,
   ],
   providers: [

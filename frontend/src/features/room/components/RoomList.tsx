@@ -23,7 +23,7 @@ export default function RoomList({
 
   return (
     <>
-      {isLoading ? (
+      {isLoading && rooms.length === 0 ? (
         <RoomSkeleton />
       ) : error ? (
         <RoomError />
@@ -42,5 +42,3 @@ export default function RoomList({
     </>
   );
 }
-
-export { RoomList };

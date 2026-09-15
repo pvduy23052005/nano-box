@@ -6,6 +6,7 @@ import { useAuthStore } from "../../auth/store/useAuthStore";
 import { Message } from "../types/chat.types";
 import { CHAT_SOCKET_EVENTS } from "../types/event.types";
 import { appendMessageToCache } from "../utils/chatCache";
+import { updateRoomLastMessageInCache } from "../../room/room.cache";
 
 export const useReceiveMessage = () => {
   const client = useApolloClient();
@@ -22,6 +23,15 @@ export const useReceiveMessage = () => {
         ...newMessage,
         isMe: newMessage.senderId === user?.id,
       });
+
+      if (newMessage.roomId) {
+        updateRoomLastMessageInCache(client.cache, newMessage.roomId, {
+          id: newMessage.id,
+          content: newMessage.content,
+          senderId: newMessage.senderId,
+          createdAt: newMessage.createdAt || new Date().toISOString(),
+        });
+      }
     };
 
     socket.on(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, handleReceiveMessage);

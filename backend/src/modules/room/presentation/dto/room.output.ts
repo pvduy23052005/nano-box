@@ -22,18 +22,33 @@ export class RoomMemberOutput {
 }
 
 @ObjectType()
+export class LastMessageOutput {
+  @Field(() => String, { nullable: true })
+  id?: string | null;
+
+  @Field(() => String, { nullable: true })
+  content?: string | null;
+
+  @Field(() => Date, { nullable: true })
+  createdAt?: Date | null;
+
+  @Field(() => String, { nullable: true })
+  senderId?: string | null;
+}
+
+@ObjectType()
 export class RoomOutput {
   @Field()
   id: string;
 
-  @Field({ nullable: true })
-  title: string;
+  @Field(() => String, { nullable: true })
+  title?: string | null;
 
   @Field(() => RoomType)
   typeRoom: RoomType;
 
-  @Field(() => String, { nullable: true })
-  lastMessageId: string | null;
+  @Field(() => LastMessageOutput, { nullable: true })
+  lastMessageId?: LastMessageOutput | null;
 
   @Field(() => [RoomMemberOutput], { nullable: true })
   members: RoomMemberOutput[];
