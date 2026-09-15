@@ -2,7 +2,8 @@ import { useEffect } from "react";
 import { useApolloClient } from "@apollo/client/react";
 import { useSocket } from "@/src/providers/SocketProvider";
 import { useAuthStore } from "../../auth/store/useAuthStore";
-import { MemberStatus, RoomType } from "@/src/types/graphql/graphql";
+import { RoomType } from "@/src/types/graphql/graphql";
+import { MemberStatus } from "../types/room.type";
 import { appendRoomToCache } from "../room.cache";
 import { ROOM_SOCKET_EVENTS } from "../types/event.types";
 
@@ -38,7 +39,7 @@ export const useReceiveRoom = () => {
       if (!roomData?.id) return;
 
       const myMember = roomData.members?.find((members) => members.userId === user?.id);
-      const status: MemberStatus = (myMember?.status as MemberStatus) || "WAITTING";
+      const status: MemberStatus = (myMember?.status as MemberStatus) || MemberStatus.WAITTING;
 
       appendRoomToCache(
         client.cache,

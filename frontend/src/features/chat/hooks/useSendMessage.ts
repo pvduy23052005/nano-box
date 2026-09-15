@@ -3,6 +3,7 @@ import { SEND_MESSAGE_MUTATION, GET_MESSAGE_QUERY } from "../services/mutation";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { useRoomStore } from "../../room/stores/useRoomStore";
 import { appendMessageToCache } from "../utils/chatCache";
+import { updateRoomLastMessageInCache } from "../../room/room.cache";
 
 export const useSendMessage = () => {
   const { user } = useAuthStore();
@@ -31,6 +32,13 @@ export const useSendMessage = () => {
     };
     appendMessageToCache(client.cache, GET_MESSAGE_QUERY, optimisticMsg, undefined, targetRoomId);
 
+    updateRoomLastMessageInCache(client.cache, targetRoomId, {
+      id: optimisticId,
+      content,
+      senderId: user.id,
+      createdAt: new Date().toISOString(),
+    });
+
     (async () => {
       try {
         const tempKeys = await tempKeysPromise;
@@ -56,6 +64,13 @@ export const useSendMessage = () => {
               optimisticId,
               targetRoomId,
             );
+
+            updateRoomLastMessageInCache(cache, targetRoomId, {
+              id: data.sendMessage.id,
+              content: data.sendMessage.content,
+              senderId: data.sendMessage.senderId,
+              createdAt: new Date().toISOString(),
+            });
           },
         });
       } catch { }

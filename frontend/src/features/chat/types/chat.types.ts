@@ -7,6 +7,7 @@ export interface Message {
   isMe: boolean;
   attachments?: string[] | null;
   readBy?: string[] | null;
+  createdAt?: string | Date;
 }
 
 export interface MessageGroup {

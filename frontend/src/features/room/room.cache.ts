@@ -1,6 +1,7 @@
 import { ApolloCache } from "@apollo/client";
 import { GET_ROOMS_BY_STATUS_QUERY } from "./room.mutation";
-import { MemberStatus, RoomType, GetRoomsByStatusQuery } from "@/src/types/graphql/graphql";
+import { RoomType, GetRoomsByStatusQuery } from "@/src/types/graphql/graphql";
+import { MemberStatus } from "./types/room.type";
 
 export type LastMessageCacheItem = {
   id?: string | null;
@@ -20,7 +21,7 @@ export interface CachedRoomItem {
 export const appendRoomToCache = (
   cache: ApolloCache,
   newRoom: CachedRoomItem,
-  status: MemberStatus = "ACCEPTED",
+  status: MemberStatus = MemberStatus.ACCEPTED,
   tempId?: string,
 ): void => {
   const normalizedRoom = {
@@ -29,11 +30,11 @@ export const appendRoomToCache = (
     typeRoom: newRoom.typeRoom,
     lastMessageId: newRoom.lastMessageId
       ? {
-          id: newRoom.lastMessageId.id ?? null,
-          content: newRoom.lastMessageId.content ?? null,
-          senderId: newRoom.lastMessageId.senderId ?? null,
-          createdAt: newRoom.lastMessageId.createdAt ?? null,
-        }
+        id: newRoom.lastMessageId.id ?? null,
+        content: newRoom.lastMessageId.content ?? null,
+        senderId: newRoom.lastMessageId.senderId ?? null,
+        createdAt: newRoom.lastMessageId.createdAt ?? null,
+      }
       : null,
     avatar: newRoom.avatar ?? null,
   };
@@ -61,3 +62,58 @@ export const appendRoomToCache = (
     },
   );
 };
+
+export const updateRoomLastMessageInCache = (
+  cache: ApolloCache,
+  roomId: string,
+  lastMessage: LastMessageCacheItem,
+  preferredStatus?: MemberStatus,
+): void => {
+  const statusesToTry: MemberStatus[] = preferredStatus
+    ? [
+        preferredStatus,
+        preferredStatus === MemberStatus.ACCEPTED
+          ? MemberStatus.WAITTING
+          : MemberStatus.ACCEPTED,
+      ]
+    : [MemberStatus.ACCEPTED, MemberStatus.WAITTING];
+
+  for (const status of statusesToTry) {
+    let found = false;
+
+    cache.updateQuery<GetRoomsByStatusQuery>(
+      { query: GET_ROOMS_BY_STATUS_QUERY, variables: { status } },
+      (existing) => {
+        if (!existing?.getRoomsByStatus) return existing;
+
+        const currentRooms = existing.getRoomsByStatus;
+        const targetRoom = currentRooms.find((room) => room.id === roomId);
+
+        if (!targetRoom) return existing;
+
+        found = true;
+
+        const updatedRoom = {
+          ...targetRoom,
+          lastMessageId: lastMessage
+            ? {
+              id: lastMessage.id ?? null,
+              content: lastMessage.content ?? null,
+              senderId: lastMessage.senderId ?? null,
+              createdAt: lastMessage.createdAt ?? null,
+            }
+            : null,
+        };
+
+        const otherRooms = currentRooms.filter((room) => room.id !== roomId);
+
+        return {
+          getRoomsByStatus: [updatedRoom, ...otherRooms],
+        };
+      },
+    );
+
+    if (found) break;
+  }
+};
+
