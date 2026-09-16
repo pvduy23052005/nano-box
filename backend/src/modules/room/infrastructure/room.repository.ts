@@ -118,4 +118,44 @@ export class RoomRepository implements RoomRepositoryAdapter {
       last_message_id: new Types.ObjectId(messageId),
     });
   }
+
+  async updateMemberLastReadMessage(
+    roomId: string,
+    userId: string,
+    messageId: string,
+  ): Promise<boolean> {
+    if (
+      !Types.ObjectId.isValid(roomId) ||
+      !Types.ObjectId.isValid(userId) ||
+      !Types.ObjectId.isValid(messageId)
+    ) {
+      return false;
+    }
+
+    const rId = new Types.ObjectId(roomId);
+    const uId = new Types.ObjectId(userId);
+    const mId = new Types.ObjectId(messageId);
+
+    const result = await this.roomModel.updateOne(
+      {
+        _id: rId,
+        members: {
+          $elemMatch: {
+            user_id: uId,
+            $or: [
+              { last_read_message_id: null },
+              { last_read_message_id: { $lt: mId } },
+            ],
+          },
+        },
+      },
+      {
+        $set: {
+          'members.$.last_read_message_id': mId,
+        },
+      },
+    );
+
+    return result.modifiedCount > 0;
+  }
 }

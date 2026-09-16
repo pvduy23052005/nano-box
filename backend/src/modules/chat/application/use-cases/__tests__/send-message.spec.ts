@@ -25,6 +25,7 @@ describe('SendMessageUseCase', () => {
       checkRoomExist: jest.fn(),
       findById: jest.fn(),
       updateLastMessageId: jest.fn(),
+      updateMemberLastReadMessage: jest.fn(),
     };
 
     sendMessageUseCase = new SendMessageUseCase(

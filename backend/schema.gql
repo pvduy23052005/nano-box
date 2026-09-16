@@ -69,6 +69,7 @@ type Mutation {
   loginGoogle(idToken: String!): LoginPayload!
   register(input: RegisterInputDto!): RegisterPayload!
   sendMessage(input: MessageInput!): ChatPayload!
+  updateMemberLastReadMessage(messageId: String!, roomId: String!): Boolean!
 }
 
 type Query {

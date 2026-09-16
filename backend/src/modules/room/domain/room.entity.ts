@@ -95,5 +95,5 @@ export class RoomEntity {
   }
   public getMembers(): readonly RoomMember[] {
     return Object.freeze([...this.members]);
-  } 
+  }
 }
