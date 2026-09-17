@@ -1,13 +1,24 @@
 name: Continuous Deployment (CD)
 
 on:
-  push:
+  workflow_run:
+    workflows:
+      - "Backend CI (Build, Test & Docker Push)"
+      - "Frontend CI (Build, Test & Docker Push)"
+    types:
+      - completed
     branches:
       - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
 
 jobs:
   deploy:
     name: Deploy to Self-Hosted VM
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: self-hosted
 
     steps:
@@ -19,12 +30,18 @@ jobs:
       - name: Recreate containers with new images
         run: |
           cd ~/nano-box
-          docker compose up -d
+          docker compose up -d --remove-orphans
 
       - name: Refresh Nginx reverse proxy
         run: |
-          docker restart nano-nginx
+          cd ~/nano-box
+          docker compose exec -T nginx nginx -s reload || docker compose restart nginx
 
       - name: Clean up unused dangling images
         run: |
           docker image prune -f
+
+      - name: Kiểm tra trạng thái containers
+        run: |
+          cd ~/nano-box
+          docker compose ps
