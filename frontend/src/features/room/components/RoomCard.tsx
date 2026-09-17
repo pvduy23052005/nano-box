@@ -78,18 +78,28 @@ export default function RoomCard({
     <div
       onClick={onClick}
       className={cn(
-        "flex items-center gap-3 rounded-lg cursor-pointer p-2 transition-colors",
+        "relative flex items-center justify-center sm:justify-start gap-3 rounded-lg cursor-pointer p-1 sm:p-2 transition-colors",
         isSelected
           ? "bg-accent text-accent-foreground font-medium"
           : "hover:bg-muted/60",
       )}
     >
-      <Avatar className="size-10 shrink-0">
-        <AvatarImage src={room.avatar || ""} alt={displayName} />
-        <AvatarFallback>{initials}</AvatarFallback>
-      </Avatar>
+      <div className="relative shrink-0 flex flex-col items-center gap-1 w-14 sm:w-auto">
+        <div className="relative">
+          <Avatar className="size-10">
+            <AvatarImage src={room.avatar || ""} alt={displayName} />
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+          {isUnread && (
+            <span className="sm:hidden absolute top-0 right-0 size-2.5 rounded-full bg-primary ring-2 ring-background" />
+          )}
+        </div>
+        <span className="sm:hidden text-[11px] leading-tight text-center truncate w-full text-muted-foreground font-normal">
+          {displayName}
+        </span>
+      </div>
 
-      <div className="flex flex-col flex-1 min-w-0">
+      <div className="hidden sm:flex flex-col flex-1 min-w-0">
         <div className="flex items-center justify-between gap-1">
           <Typography
             variant="small"

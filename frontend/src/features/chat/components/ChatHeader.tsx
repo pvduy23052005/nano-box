@@ -13,7 +13,7 @@ export default function ChatHeader() {
 
   if (!activeRoom) {
     return (
-      <header className="h-12 flex border-b items-center gap-2 p-2 px-4">
+      <header className="hidden sm:flex h-12 border-b items-center gap-2 p-2 px-4">
         <Typography variant="small" className="text-muted-foreground text-xs">
           Chọn một cuộc trò chuyện để bắt đầu
         </Typography>
@@ -25,7 +25,7 @@ export default function ChatHeader() {
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
-    <header className="h-12 flex border-b items-center gap-2 p-2">
+    <header className="hidden sm:flex h-12 border-b items-center gap-2 p-2">
       <Avatar className="size-8">
         <AvatarImage src={activeRoom.avatar || ""} alt={displayName} />
         <AvatarFallback>{initials}</AvatarFallback>

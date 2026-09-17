@@ -140,7 +140,7 @@ export default function ChatMain() {
   return (
     <div
       ref={scrollContainerRef}
-      className="flex-1 flex flex-col gap-4 px-3 py-3 overflow-y-auto"
+      className="flex-1 min-h-0 flex flex-col gap-4 px-3 py-3 overflow-y-auto"
     >
       {isLoading && messages.length === 0 ? (
         <ChatLoading />
