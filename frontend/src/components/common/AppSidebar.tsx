@@ -101,6 +101,7 @@ export default function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     size="lg"
+                    tooltip={item.title}
                     isActive={pathname === item.url}
                     render={<Link href={item.url} />}
                   >
@@ -122,7 +123,8 @@ export default function AppSidebar() {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       size="sm"
-                      className="h-8"
+                      className="h-8 cursor-pointer"
+                      tooltip={item.title}
                       isActive={
                         item.url === "/"
                           ? pathname === "/"
