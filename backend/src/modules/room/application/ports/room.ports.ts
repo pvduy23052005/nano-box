@@ -24,4 +24,10 @@ export abstract class RoomRepositoryAdapter {
     roomId: string,
     messageId: string,
   ): Promise<void>;
+
+  abstract updateMemberLastReadMessage(
+    roomId: string,
+    userId: string,
+    messageId: string,
+  ): Promise<boolean>;
 }

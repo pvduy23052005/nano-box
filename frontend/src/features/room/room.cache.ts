@@ -16,6 +16,10 @@ export interface CachedRoomItem {
   typeRoom: RoomType;
   lastMessageId?: LastMessageCacheItem;
   avatar?: string | null;
+  members?: Array<{
+    userId: string;
+    lastReadMessageId?: string | null;
+  }> | null;
 }
 
 export const appendRoomToCache = (
@@ -37,6 +41,12 @@ export const appendRoomToCache = (
       }
       : null,
     avatar: newRoom.avatar ?? null,
+    members: newRoom.members
+      ? newRoom.members.map((m) => ({
+          userId: m.userId,
+          lastReadMessageId: m.lastReadMessageId ?? null,
+        }))
+      : null,
   };
 
   cache.updateQuery<GetRoomsByStatusQuery>(

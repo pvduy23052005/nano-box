@@ -13,6 +13,7 @@ import { RoomRepositoryAdapter } from './application/ports/room.ports';
 import { RoomRepository } from './infrastructure/room.repository';
 import { CreateSingleRoomUseCase } from './application/use-cases/create-single-room';
 import { GetRoomsByStatusUseCase } from './application/use-cases/get-rooms-by-status';
+import { UpdateMemberLastReadMessageUseCase } from './application/use-cases/update-member-last-read-message';
 import { UserModule } from '../user/user.module';
 
 @Module({
@@ -42,10 +43,17 @@ import { UserModule } from '../user/user.module';
         new GetRoomsByStatusUseCase(roomRepository),
       inject: [RoomRepositoryAdapter],
     },
+    {
+      provide: UpdateMemberLastReadMessageUseCase,
+      useFactory: (roomRepository: RoomRepositoryAdapter) =>
+        new UpdateMemberLastReadMessageUseCase(roomRepository),
+      inject: [RoomRepositoryAdapter],
+    },
   ],
   exports: [
     CreateSingleRoomUseCase,
     GetRoomsByStatusUseCase,
+    UpdateMemberLastReadMessageUseCase,
     RoomRepositoryAdapter,
   ],
 })

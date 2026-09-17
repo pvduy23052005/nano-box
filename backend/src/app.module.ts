@@ -5,12 +5,12 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ApolloDriverConfig } from '@nestjs/apollo';
 import { graphqlConfig } from './configs/graphql.config';
 import { MongooseConfig } from './configs/database.config';
-import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { WebsocketModule } from './infrastructure/websocket/ws.module';
 import { UploadModule } from './infrastructure/upload/upload.module';
 import { RoomModule } from './modules/room/room.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [

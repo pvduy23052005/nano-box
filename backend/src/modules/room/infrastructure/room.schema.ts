@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, SchemaTypes, Types } from 'mongoose';
-import { Member, MemberSchema } from './member.schema';
 import { RoomType } from '../domain/chat.enum';
+import { RoomMember, RoomMemberSchema } from './member.schema';
 
 @Schema({
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
@@ -26,8 +26,8 @@ export class Room {
   @Prop({ type: String, default: null })
   avatar: string | null;
 
-  @Prop({ type: [MemberSchema], default: [] })
-  members: Member[];
+  @Prop({ type: [RoomMemberSchema], default: [] })
+  members: RoomMember[];
 
   @Prop({ type: Boolean, default: false, index: true })
   deleted: boolean;

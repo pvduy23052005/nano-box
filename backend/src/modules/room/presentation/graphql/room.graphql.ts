@@ -12,6 +12,7 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
 import { RoomOutput, RoomMemberOutput } from '../dto/room.output';
 import { CreateSingleRoomUseCase } from '../../application/use-cases/create-single-room';
 import { GetRoomsByStatusUseCase } from '../../application/use-cases/get-rooms-by-status';
+import { UpdateMemberLastReadMessageUseCase } from '../../application/use-cases/update-member-last-read-message';
 import { GetMeUseCase } from '../../../../modules/user/applications/use-case/get-me.use-case';
 import { UserProfilePayload } from '../../../../modules/user/presentation/dto/profile.payload';
 import { MemberStatus } from '../../domain/chat.enum';
@@ -25,6 +26,7 @@ export class RoomResolver {
   constructor(
     private readonly createSingleRoomUseCase: CreateSingleRoomUseCase,
     private readonly getRoomsByStatusUseCase: GetRoomsByStatusUseCase,
+    private readonly updateMemberLastReadMessageUseCase: UpdateMemberLastReadMessageUseCase,
     private readonly websocketService: WebsocketService,
     private readonly getMeUseCase: GetMeUseCase,
   ) {}
@@ -71,6 +73,32 @@ export class RoomResolver {
       ?.emit(ROOM_SOCKET_EVENTS.SERVER_SEND_ROOM, roomData);
 
     return RoomMapper.toOutput(result);
+  }
+
+  @Mutation(() => Boolean)
+  async updateMemberLastReadMessage(
+    @CurrentUser('id') myId: string,
+    @Args('roomId') roomId: string,
+    @Args('messageId') messageId: string,
+  ): Promise<boolean> {
+    const { isSuccess, memberIds } =
+      await this.updateMemberLastReadMessageUseCase.execute(
+        roomId,
+        myId,
+        messageId,
+      );
+
+    if (isSuccess && memberIds.length > 0) {
+      this.websocketService.server
+        ?.to([...memberIds, roomId])
+        ?.emit(ROOM_SOCKET_EVENTS.USER_READ_MESSAGE, {
+          roomId,
+          userId: myId,
+          messageId,
+        });
+    }
+
+    return isSuccess;
   }
 }
 

@@ -6,7 +6,7 @@ import { MemberRole, MemberStatus } from '../domain/chat.enum';
   _id: false,
   timestamps: { createdAt: 'joined_at', updatedAt: false },
 })
-export class Member {
+export class RoomMember {
   @Prop({ type: SchemaTypes.ObjectId, ref: 'User', required: true })
   user_id: Types.ObjectId;
 
@@ -26,8 +26,11 @@ export class Member {
   })
   status: MemberStatus;
 
+  @Prop({ type: SchemaTypes.ObjectId, ref: 'Message', default: null })
+  last_read_message_id: Types.ObjectId | null;
+
   @Prop({ type: Date, default: Date.now })
   joined_at: Date;
 }
 
-export const MemberSchema = SchemaFactory.createForClass(Member);
+export const RoomMemberSchema = SchemaFactory.createForClass(RoomMember);

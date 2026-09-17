@@ -73,6 +73,7 @@ export const useCreateRoomChatNotFriend = () => {
               typeRoom: newRoom.typeRoom,
               lastMessageId: newRoom.lastMessageId,
               avatar: newRoom.avatar,
+              members: newRoom.members,
             },
             MemberStatus.ACCEPTED,
             tempRoomId,
