@@ -7,7 +7,7 @@ export interface UpdateMemberLastReadOuput {
 }
 
 export class UpdateMemberLastReadMessageUseCase {
-  constructor(private readonly roomRepository: RoomRepositoryAdapter) { }
+  constructor(private readonly roomRepository: RoomRepositoryAdapter) {}
 
   async execute(
     roomId: string,
