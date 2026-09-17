@@ -33,10 +33,12 @@ export default function ChatTypingIndicator({
 
   return (
     <Message align="start" className="animate-in fade-in duration-200">
-      <MessageAvatar>
-        <Avatar className="size-8">
-          <AvatarImage src="/avatar.png" />
-          <AvatarFallback className="text-xs">
+      <MessageAvatar className="min-w-0 bg-transparent mb-1">
+        <Avatar className="size-6">
+          <AvatarImage
+            src={typingUsers[0]?.avatarTyping || "/images/default-avatar.webp"}
+          />
+          <AvatarFallback className="text-[10px]">
             {typingUsers[0]?.nameTyping?.[0]?.toUpperCase() || "U"}
           </AvatarFallback>
         </Avatar>

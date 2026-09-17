@@ -25,7 +25,13 @@ export const useReceiveTyping = () => {
         delete timeoutsRef.current[timerKey];
       }
 
-      setTyping(payload.roomId, payload.userId, payload.isTyping, payload.name);
+      setTyping(
+        payload.roomId,
+        payload.userId,
+        payload.isTyping,
+        payload.name,
+        payload.avatar,
+      );
 
       if (payload.isTyping) {
         timeoutsRef.current[timerKey] = setTimeout(() => {
