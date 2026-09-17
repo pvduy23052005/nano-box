@@ -30,40 +30,35 @@ export const appendMessageToCache = (
       },
     },
     (existing) => {
-    if (!existing?.getMessages) {
+      if (!existing?.getMessages) {
+        return existing;
+      }
+
+      const currentItems = existing.getMessages.items || [];
+
+      if (tempId) {
+        const isTempExist = currentItems.some((message: Message) => message.id === tempId);
+        if (isTempExist) {
+          return {
+            getMessages: {
+              ...existing.getMessages,
+              items: currentItems.map((message: Message) =>
+                message.id === tempId ? normalizedMessage : message,
+              ),
+            },
+          };
+        }
+      }
+
+      const isExist = currentItems.some((message) => message.id === newMessage.id);
+      if (isExist) return existing;
+
       return {
         getMessages: {
-          items: [normalizedMessage],
-          hasMore: false,
-          nextCursor: null,
+          ...existing.getMessages,
+          items: [...currentItems, normalizedMessage],
         },
       };
-    }
-
-    const currentItems = existing.getMessages.items || [];
-
-    if (tempId) {
-      const isTempExist = currentItems.some((msg: Message) => msg.id === tempId);
-      if (isTempExist) {
-        return {
-          getMessages: {
-            ...existing.getMessages,
-            items: currentItems.map((msg: Message) =>
-              msg.id === tempId ? normalizedMessage : msg
-            ),
-          },
-        };
-      }
-    }
-
-    const isExist = currentItems.some((msg) => msg.id === newMessage.id);
-    if (isExist) return existing;
-
-    return {
-      getMessages: {
-        ...existing.getMessages,
-        items: [...currentItems, normalizedMessage],
-      },
-    };
-  });
+    },
+  );
 };
