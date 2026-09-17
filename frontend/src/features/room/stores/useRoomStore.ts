@@ -10,6 +10,10 @@ export interface ChatRoom {
     senderId?: string | null;
     createdAt?: unknown;
   } | string | null;
+  members?: Array<{
+    userId: string;
+    lastReadMessageId?: string | null;
+  }> | null;
   avatar: string | null;
 }
 

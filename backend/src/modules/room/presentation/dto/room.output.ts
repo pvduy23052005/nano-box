@@ -17,6 +17,9 @@ export class RoomMemberOutput {
   @Field(() => MemberStatus)
   status: MemberStatus;
 
+  @Field(() => String, { nullable: true })
+  lastReadMessageId?: string | null;
+
   @Field(() => UserProfilePayload, { nullable: true })
   user?: UserProfilePayload;
 }

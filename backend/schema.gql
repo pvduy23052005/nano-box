@@ -93,6 +93,7 @@ type RegisterPayload {
 }
 
 type RoomMemberOutput {
+  lastReadMessageId: String
   role: MemberRole!
   status: MemberStatus!
   user: UserProfilePayload

@@ -13,6 +13,16 @@ export const GET_ROOMS_BY_STATUS_QUERY = graphql(`
         createdAt
       }
       avatar
+      members {
+        userId
+        lastReadMessageId
+      }
     }
+  }
+`);
+
+export const UPDATE_MEMBER_LAST_READ_MESSAGE_MUTATION = graphql(`
+  mutation UpdateMemberLastReadMessage($roomId: String!, $messageId: String!) {
+    updateMemberLastReadMessage(roomId: $roomId, messageId: $messageId)
   }
 `);

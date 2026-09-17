@@ -29,7 +29,7 @@ export class RoomResolver {
     private readonly updateMemberLastReadMessageUseCase: UpdateMemberLastReadMessageUseCase,
     private readonly websocketService: WebsocketService,
     private readonly getMeUseCase: GetMeUseCase,
-  ) {}
+  ) { }
 
   @Query(() => [RoomOutput])
   async getRoomsByStatus(
@@ -81,17 +81,30 @@ export class RoomResolver {
     @Args('roomId') roomId: string,
     @Args('messageId') messageId: string,
   ): Promise<boolean> {
-    return await this.updateMemberLastReadMessageUseCase.execute(
-      roomId,
-      myId,
-      messageId,
-    );
+    const { isSuccess, memberIds } =
+      await this.updateMemberLastReadMessageUseCase.execute(
+        roomId,
+        myId,
+        messageId,
+      );
+
+    if (isSuccess && memberIds.length > 0) {
+      this.websocketService.server
+        ?.to([...memberIds, roomId])
+        ?.emit(ROOM_SOCKET_EVENTS.USER_READ_MESSAGE, {
+          roomId,
+          userId: myId,
+          messageId,
+        });
+    }
+
+    return isSuccess;
   }
 }
 
 @Resolver(() => RoomMemberOutput)
 export class RoomMemberResolver {
-  constructor(private readonly getMeUseCase: GetMeUseCase) {}
+  constructor(private readonly getMeUseCase: GetMeUseCase) { }
 
   @ResolveField(() => UserProfilePayload, { name: 'user', nullable: true })
   async getUser(@Parent() member: RoomMemberOutput) {

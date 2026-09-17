@@ -14,6 +14,7 @@ export interface MemberItem {
   user_id: PopulatedUser;
   role: MemberRole;
   status: MemberStatus;
+  last_read_message_id?: Types.ObjectId | string | null;
   joined_at?: Date;
 }
 
@@ -89,12 +90,12 @@ export class RoomMapper {
         typeof rawRoom.last_message_id === 'object' &&
         '_id' in rawRoom.last_message_id
       ) {
-        const msg = rawRoom.last_message_id as PopulatedMessage;
+        const message = rawRoom.last_message_id;
         lastMessageId = {
-          id: msg._id.toString(),
-          content: msg.content ?? null,
-          createdAt: msg.created_at ? new Date(msg.created_at) : null,
-          senderId: msg.senderId ?? null,
+          id: message._id.toString(),
+          content: message.content ?? null,
+          createdAt: message.created_at ? new Date(message.created_at) : null,
+          senderId: message.senderId ?? null,
         };
       }
     }
@@ -109,6 +110,9 @@ export class RoomMapper {
         userId: getMemberUserId(member.user_id),
         role: member.role,
         status: member.status,
+        lastReadMessageId: member.last_read_message_id
+          ? member.last_read_message_id.toString()
+          : null,
       })),
     };
   }
@@ -167,6 +171,7 @@ export class RoomMapper {
         userId: member.userId,
         role: member.role,
         status: member.status,
+        lastReadMessageId: member.lastReadMessageId ?? null,
       })),
       avatar: overrides?.avatar !== undefined ? overrides.avatar : room.avatar,
     };

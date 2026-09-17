@@ -49,6 +49,7 @@ export const useReceiveRoom = () => {
           typeRoom: roomData.typeRoom,
           lastMessageId: roomData.lastMessageId,
           avatar: roomData.avatar,
+          members: roomData.members,
         },
         status,
       );

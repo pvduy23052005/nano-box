@@ -12,7 +12,6 @@ import {
   AvatarImage,
 } from "@/src/components/ui/avatar";
 import { BubbleGroup, Bubble, BubbleContent } from "@/src/components/ui/bubble";
-import { Typography } from "@/src/components/ui/typography";
 import DOMPurify from "isomorphic-dompurify";
 import { MessageGroup } from "../types/chat.types";
 import Lightbox from "yet-another-react-lightbox";
@@ -20,10 +19,12 @@ import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import Fullscreen from "yet-another-react-lightbox/plugins/fullscreen";
 import Download from "yet-another-react-lightbox/plugins/download";
 import "yet-another-react-lightbox/styles.css";
+import { CheckCheck } from "lucide-react";
 import Image from "next/image";
 
 export interface ChatMessageGroupProps extends MessageGroup {
   isLastGroup?: boolean;
+  isSeen?: boolean;
 }
 
 export default function ChatMessage({
@@ -31,6 +32,7 @@ export default function ChatMessage({
   avatar,
   messages,
   isLastGroup,
+  isSeen,
 }: ChatMessageGroupProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number>(-1);
   const [lightboxSlides, setLightboxSlides] = useState<{ src: string }[]>([]);
@@ -38,6 +40,12 @@ export default function ChatMessage({
   const lastMessage = messages[messages.length - 1];
   const isSending = lastMessage?.id?.startsWith("temp-");
   const showStatus = isMe && (isSending || isLastGroup);
+
+  const getStatusText = () => {
+    if (isSending) return "Đang gửi...";
+    if (isSeen) return "Đã xem";
+    return "Đã gửi";
+  };
 
   const handleContentClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
@@ -122,9 +130,12 @@ export default function ChatMessage({
             })}
           </BubbleGroup>
           {showStatus && (
-            <Typography variant="caption" className="text-right">
-              {isSending ? "Đang gửi..." : "Đã gửi"}
-            </Typography>
+            <div className="flex items-center justify-end gap-1 mt-0.5 text-xs text-muted-foreground">
+              <span>{getStatusText()}</span>
+              {isSeen && (
+                <CheckCheck className="size-3.5 text-primary shrink-0" />
+              )}
+            </div>
           )}
         </MessageContent>
       </Message>

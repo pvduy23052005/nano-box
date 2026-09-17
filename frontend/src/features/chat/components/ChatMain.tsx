@@ -9,8 +9,12 @@ import ChatMessage from "./ChatMessage";
 import ChatTypingIndicator from "./ChatTypingIndicator";
 import { useReceiveMessage } from "../socket/useReceiveMessage";
 import { useReceiveTyping } from "../socket/useReceiveTyping";
+import { useReceiveMessageRead } from "../socket/useReceiveMessageRead";
+import { useMarkAsRead } from "../hooks/useMarkAsRead";
 import { useTypingStore } from "../stores/useTypingStore";
+import { useReadReceiptStore } from "../stores/useReadReceiptStore";
 import { useRoomStore } from "../../room/stores/useRoomStore";
+import { useAuthStore } from "../../auth/store/useAuthStore";
 import { Message, MessageGroup } from "../types/chat.types";
 
 export default function ChatMain() {
@@ -22,11 +26,20 @@ export default function ChatMain() {
     isFetchingNextPage,
   } = useGetMessages();
   const { activeRoomId } = useRoomStore();
+  const currentUserId = useAuthStore((state) => state.user?.id);
   const typingByRoom = useTypingStore((state) => state.typingByRoom);
+
+  const otherMemberMaxReadMessageId = useReadReceiptStore((state) =>
+    activeRoomId
+      ? state.getOtherMembersMaxReadMessageId(activeRoomId, currentUserId)
+      : null,
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useReceiveMessage();
   useReceiveTyping();
+  useReceiveMessageRead();
+  useMarkAsRead(activeRoomId, messages);
 
   const typingList = useMemo(() => {
     if (!activeRoomId || !typingByRoom[activeRoomId]) return [];
@@ -79,14 +92,24 @@ export default function ChatMain() {
   }, [lastMessageId, typingList.length]);
 
   const messageGroups = useMemo(() => {
+    const seenMessageIds = new Set<string>();
+
     return messages.reduce<MessageGroup[]>(
-      (groups: MessageGroup[], message: Message) => {
+      (groups: MessageGroup[], message: Message, index: number) => {
+        if (message.id) {
+          if (seenMessageIds.has(message.id)) {
+            return groups;
+          }
+          seenMessageIds.add(message.id);
+        }
+
         const lastGroup = groups[groups.length - 1];
         if (lastGroup && lastGroup.senderId === message.senderId) {
           lastGroup.messages.push(message);
         } else {
+          const groupId = `group-${message.senderId}-${message.createdAt}-${index}`;
           groups.push({
-            id: message.id,
+            id: groupId,
             isMe: message.isMe,
             senderId: message.senderId,
             avatar: message.avatar,
@@ -118,13 +141,24 @@ export default function ChatMain() {
             </div>
           )}
 
-          {messageGroups.map((group, index) => (
-            <ChatMessage
-              key={group.id}
-              isLastGroup={index === messageGroups.length - 1}
-              {...group}
-            />
-          ))}
+          {messageGroups.map((group, index) => {
+            const isLastGroup = index === messageGroups.length - 1;
+            const lastGroupMessage = group.messages[group.messages.length - 1];
+            const isSeen =
+              group.isMe &&
+              !lastGroupMessage?.id?.startsWith("temp-") &&
+              !!otherMemberMaxReadMessageId &&
+              lastGroupMessage.id <= otherMemberMaxReadMessageId;
+
+            return (
+              <ChatMessage
+                key={group.id}
+                isLastGroup={isLastGroup}
+                isSeen={isSeen}
+                {...group}
+              />
+            );
+          })}
         </>
       )}
 

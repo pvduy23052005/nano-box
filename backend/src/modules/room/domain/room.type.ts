@@ -4,6 +4,7 @@ export interface RoomMemberProps {
   userId: string;
   role: MemberRole;
   status: MemberStatus;
+  lastReadMessageId?: string | null;
 }
 
 export interface LastMessageProps {

@@ -80,7 +80,8 @@ describe('UpdateMemberLastReadMessageUseCase', () => {
       userId,
       messageId,
     );
-    expect(result).toBe(true);
+    expect(result.isSuccess).toBe(true);
+    expect(result.memberIds).toEqual([userId]);
   });
 
   it('should return false if roomRepository returns false', async () => {
@@ -89,6 +90,6 @@ describe('UpdateMemberLastReadMessageUseCase', () => {
 
     const result = await useCase.execute(roomId, userId, messageId);
 
-    expect(result).toBe(false);
+    expect(result.isSuccess).toBe(false);
   });
 });
