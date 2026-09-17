@@ -8,5 +8,6 @@ export type TypingPayload = {
   roomId: string;
   userId?: string;
   name?: string;
+  avatar?: string;
   isTyping: boolean;
 };

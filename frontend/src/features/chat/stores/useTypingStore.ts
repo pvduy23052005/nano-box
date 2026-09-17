@@ -3,6 +3,7 @@ import { create } from "zustand";
 export interface TypingUser {
   userIdTyping: string;
   nameTyping?: string;
+  avatarTyping?: string;
 }
 
 interface TypingState {
@@ -12,6 +13,7 @@ interface TypingState {
     userIdTyping: string,
     isTyping: boolean,
     nameTyping?: string,
+    avatarTyping?: string,
   ) => void;
   clearRoomTyping: (roomId: string) => void;
   clearAllTyping: () => void;
@@ -19,11 +21,11 @@ interface TypingState {
 
 export const useTypingStore = create<TypingState>((set) => ({
   typingByRoom: {},
-  setTyping: (roomId, userIdTyping, isTyping, nameTyping) =>
+  setTyping: (roomId, userIdTyping, isTyping, nameTyping, avatarTyping) =>
     set((state) => {
       const roomTyping = { ...(state.typingByRoom[roomId] || {}) };
       if (isTyping) {
-        roomTyping[userIdTyping] = { userIdTyping, nameTyping };
+        roomTyping[userIdTyping] = { userIdTyping, nameTyping, avatarTyping };
       } else {
         delete roomTyping[userIdTyping];
       }

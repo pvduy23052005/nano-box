@@ -13,6 +13,7 @@ export const useSendTyping = (roomId?: string, timeout = 2000) => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const currentRoomIdRef = useRef<string | null>(targetRoomId ?? null);
   const user = useAuthStore((state) => state.user);
+  const userAvatar = user?.avatar || "/images/default-avatar.webp";
 
   useEffect(() => {
     if (
@@ -24,6 +25,7 @@ export const useSendTyping = (roomId?: string, timeout = 2000) => {
         roomId: currentRoomIdRef.current,
         isTyping: false,
         name: user?.name,
+        avatar: userAvatar,
       });
       isTypingRef.current = false;
       if (timerRef.current) {
@@ -32,7 +34,7 @@ export const useSendTyping = (roomId?: string, timeout = 2000) => {
       }
     }
     currentRoomIdRef.current = targetRoomId ?? null;
-  }, [targetRoomId, socket, user?.name]);
+  }, [targetRoomId, socket, user?.name, userAvatar]);
 
   const stopTyping = useCallback(
     (overrideRoomId?: string) => {
@@ -47,10 +49,11 @@ export const useSendTyping = (roomId?: string, timeout = 2000) => {
           roomId: room,
           isTyping: false,
           name: user?.name,
+          avatar: userAvatar,
         });
       }
     },
-    [socket, user?.name],
+    [socket, user?.name, userAvatar],
   );
 
   const sendTyping = useCallback(
@@ -64,6 +67,7 @@ export const useSendTyping = (roomId?: string, timeout = 2000) => {
           roomId: room,
           isTyping: true,
           name: user?.name,
+          avatar: userAvatar,
         });
       }
 
@@ -77,11 +81,12 @@ export const useSendTyping = (roomId?: string, timeout = 2000) => {
           roomId: room,
           isTyping: false,
           name: user?.name,
+          avatar: userAvatar,
         });
         timerRef.current = null;
       }, timeout);
     },
-    [socket, timeout, user?.name],
+    [socket, timeout, user?.name, userAvatar],
   );
 
   useEffect(() => {
@@ -94,11 +99,12 @@ export const useSendTyping = (roomId?: string, timeout = 2000) => {
           roomId: currentRoomIdRef.current,
           isTyping: false,
           name: user?.name,
+          avatar: userAvatar,
         });
         isTypingRef.current = false;
       }
     };
-  }, [socket, user?.name]);
+  }, [socket, user?.name, userAvatar]);
 
   return {
     sendTyping,

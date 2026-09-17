@@ -11,10 +11,10 @@ export default function ChatPage() {
 
   return (
 
-    <div className="flex w-full h-full min-w-0 overflow-hidden">
+    <div className="flex flex-col sm:flex-row w-full h-full min-w-0 overflow-hidden bg-background">
       <ChatSidebar />
 
-      <div className="flex-1 flex flex-col h-full min-w-0">
+      <div className="flex-1 flex flex-col min-h-0 min-w-0 bg-card">
         <ChatHeader />
         <ChatMain />
         <ChatFooter />

@@ -53,33 +53,35 @@ export default function ChatSidebar() {
   }, [friendRooms, activeRoomId, setActiveRoom]);
 
   return (
-    <aside className="w-64 md:w-80 border-r flex flex-col h-full bg-background shrink-0">
+    <aside className="w-full sm:w-64 md:w-80 border-b sm:border-b-0 sm:border-r flex flex-col h-auto max-h-[130px] sm:max-h-none sm:h-full bg-background shrink-0">
       <Tabs
         value={activeTab}
         onValueChange={(val) => setActiveTab(val as RoomTypeSearch)}
-        className="w-full flex-1 flex flex-col min-h-0"
+        className="w-full flex flex-col min-h-0"
       >
-        <div className="p-2 border-b flex flex-col gap-2">
-          <InputGroup className="h-7">
-            <InputGroupAddon>
-              <Search className="size-3.5" />
-            </InputGroupAddon>
-            <InputGroupInput
-              className="h-6 py-0 text-xs"
-              placeholder="Tìm kiếm cuộc trò truyện..."
-            />
-          </InputGroup>
+        <div className="p-1.5 sm:p-2 border-b flex flex-col gap-2">
+          <div className="hidden sm:block">
+            <InputGroup className="h-7">
+              <InputGroupAddon>
+                <Search className="size-3.5" />
+              </InputGroupAddon>
+              <InputGroupInput
+                className="h-6 py-0 text-xs"
+                placeholder="Tìm kiếm cuộc trò truyện..."
+              />
+            </InputGroup>
+          </div>
 
           <TabsList variant="line" className="grid w-full grid-cols-2">
             <TabsTrigger
               value={RoomTypeSearch.FRIEND}
-              className="text-xs py-1.5 font-medium"
+              className="text-xs py-1 sm:py-1.5 font-medium cursor-pointer"
             >
               Bạn bè
             </TabsTrigger>
             <TabsTrigger
               value={RoomTypeSearch.STRANGER}
-              className="text-xs py-1.5 font-medium"
+              className="text-xs py-1 sm:py-1.5 font-medium cursor-pointer"
             >
               Người lạ
             </TabsTrigger>
@@ -88,7 +90,7 @@ export default function ChatSidebar() {
 
         <TabsContent
           value={RoomTypeSearch.FRIEND}
-          className="w-full flex flex-col gap-1 p-2 overflow-y-auto flex-1 mt-0"
+          className="w-full flex flex-row sm:flex-col gap-2 sm:gap-1 p-2 overflow-x-auto sm:overflow-y-auto flex-1 mt-0 scrollbar-none"
         >
           <RoomFriend
             rooms={friendRooms as ChatRoom[]}
@@ -99,7 +101,7 @@ export default function ChatSidebar() {
 
         <TabsContent
           value={RoomTypeSearch.STRANGER}
-          className="w-full flex flex-col gap-1 p-2 overflow-y-auto flex-1 mt-0"
+          className="w-full flex flex-row sm:flex-col gap-2 sm:gap-1 p-2 overflow-x-auto sm:overflow-y-auto flex-1 mt-0 scrollbar-none"
         >
           <RoomStranger
             rooms={strangerRooms as ChatRoom[]}

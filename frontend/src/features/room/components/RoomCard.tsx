@@ -11,6 +11,7 @@ import DOMPurify from "isomorphic-dompurify";
 import { ChatRoom } from "../stores/useRoomStore";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { useReadReceiptStore } from "@/src/features/chat/stores/useReadReceiptStore";
+import { formatMessageTime } from "@/src/utils/formatTime";
 
 interface RoomCardProps {
   room: ChatRoom;
@@ -71,22 +72,34 @@ export default function RoomCard({
     return isMe ? `Bạn: ${displayContent}` : displayContent;
   };
 
+  const timeText = formatMessageTime(lastMessage?.createdAt);
+
   return (
     <div
       onClick={onClick}
       className={cn(
-        "flex items-center gap-3 rounded-lg cursor-pointer p-2 transition-colors",
+        "relative flex items-center justify-center sm:justify-start gap-3 rounded-lg cursor-pointer p-1 sm:p-2 transition-colors",
         isSelected
           ? "bg-accent text-accent-foreground font-medium"
           : "hover:bg-muted/60",
       )}
     >
-      <Avatar className="size-10 shrink-0">
-        <AvatarImage src={room.avatar || ""} alt={displayName} />
-        <AvatarFallback>{initials}</AvatarFallback>
-      </Avatar>
+      <div className="relative shrink-0 flex flex-col items-center gap-1 w-14 sm:w-auto">
+        <div className="relative">
+          <Avatar className="size-10">
+            <AvatarImage src={room.avatar || ""} alt={displayName} />
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+          {isUnread && (
+            <span className="sm:hidden absolute top-0 right-0 size-2.5 rounded-full bg-primary ring-2 ring-background" />
+          )}
+        </div>
+        <span className="sm:hidden text-[11px] leading-tight text-center truncate w-full text-muted-foreground font-normal">
+          {displayName}
+        </span>
+      </div>
 
-      <div className="flex flex-col flex-1 min-w-0">
+      <div className="hidden sm:flex flex-col flex-1 min-w-0">
         <div className="flex items-center justify-between gap-1">
           <Typography
             variant="small"
@@ -97,18 +110,33 @@ export default function RoomCard({
           >
             {displayName}
           </Typography>
-        </div>
-        <Typography
-          variant="caption"
-          className={cn(
-            "truncate text-xs",
-            isUnread
-              ? "font-semibold text-foreground"
-              : "text-muted-foreground",
+          {timeText && (
+            <span
+              className={cn(
+                "text-[11px] shrink-0",
+                isUnread ? "font-medium text-primary" : "text-muted-foreground",
+              )}
+            >
+              {timeText}
+            </span>
           )}
-        >
-          {getPreviewText()}
-        </Typography>
+        </div>
+        <div className="flex items-center justify-between gap-1">
+          <Typography
+            variant="caption"
+            className={cn(
+              "truncate text-xs",
+              isUnread
+                ? "font-semibold text-foreground"
+                : "text-muted-foreground",
+            )}
+          >
+            {getPreviewText()}
+          </Typography>
+          {isUnread && (
+            <span className="size-2 rounded-full bg-primary shrink-0" />
+          )}
+        </div>
       </div>
     </div>
   );
