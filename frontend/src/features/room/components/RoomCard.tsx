@@ -11,6 +11,7 @@ import DOMPurify from "isomorphic-dompurify";
 import { ChatRoom } from "../stores/useRoomStore";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { useReadReceiptStore } from "@/src/features/chat/stores/useReadReceiptStore";
+import { formatMessageTime } from "@/src/utils/formatTime";
 
 interface RoomCardProps {
   room: ChatRoom;
@@ -71,6 +72,8 @@ export default function RoomCard({
     return isMe ? `Bạn: ${displayContent}` : displayContent;
   };
 
+  const timeText = formatMessageTime(lastMessage?.createdAt);
+
   return (
     <div
       onClick={onClick}
@@ -97,18 +100,33 @@ export default function RoomCard({
           >
             {displayName}
           </Typography>
-        </div>
-        <Typography
-          variant="caption"
-          className={cn(
-            "truncate text-xs",
-            isUnread
-              ? "font-semibold text-foreground"
-              : "text-muted-foreground",
+          {timeText && (
+            <span
+              className={cn(
+                "text-[11px] shrink-0",
+                isUnread ? "font-medium text-primary" : "text-muted-foreground",
+              )}
+            >
+              {timeText}
+            </span>
           )}
-        >
-          {getPreviewText()}
-        </Typography>
+        </div>
+        <div className="flex items-center justify-between gap-1">
+          <Typography
+            variant="caption"
+            className={cn(
+              "truncate text-xs",
+              isUnread
+                ? "font-semibold text-foreground"
+                : "text-muted-foreground",
+            )}
+          >
+            {getPreviewText()}
+          </Typography>
+          {isUnread && (
+            <span className="size-2 rounded-full bg-primary shrink-0" />
+          )}
+        </div>
       </div>
     </div>
   );

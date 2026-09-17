@@ -38,6 +38,7 @@ export class RoomResolver {
   ) {
     const rooms = await this.getRoomsByStatusUseCase.execute(myId, status);
 
+    console.log(rooms)
     return rooms.map((result) => RoomMapper.toOutput(result));
   }
 

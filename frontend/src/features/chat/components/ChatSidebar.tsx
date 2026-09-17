@@ -73,13 +73,13 @@ export default function ChatSidebar() {
           <TabsList variant="line" className="grid w-full grid-cols-2">
             <TabsTrigger
               value={RoomTypeSearch.FRIEND}
-              className="text-xs py-1.5 font-medium"
+              className="text-xs py-1.5 font-medium cursor-pointer"
             >
               Bạn bè
             </TabsTrigger>
             <TabsTrigger
               value={RoomTypeSearch.STRANGER}
-              className="text-xs py-1.5 font-medium"
+              className="text-xs py-1.5 font-medium cursor-pointer"
             >
               Người lạ
             </TabsTrigger>
