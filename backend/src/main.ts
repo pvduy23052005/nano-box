@@ -10,20 +10,24 @@ async function bootstrap() {
 
   const allowedOrigins = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',')
-        .map((origin) => origin.trim())
+        .map((origin) => origin.trim().replace(/\/+$/, ''))
         .filter(Boolean)
-    : ['http://localhost:3000'];
+    : ['http://localhost:3000', 'https://localhost', 'http://localhost'];
 
   app.enableCors({
     origin: (
-      origin: string,
+      origin: string | undefined,
       callback: (error: Error | null, allow?: boolean) => void,
     ) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Chặn bởi chính sách CORS'));
+      if (!origin) {
+        return callback(null, true);
       }
+      const normalizedOrigin = origin.trim().replace(/\/+$/, '');
+      if (allowedOrigins.includes(normalizedOrigin)) {
+        return callback(null, true);
+      }
+      console.warn(`[CORS Blocked] Origin "${origin}" không nằm trong ALLOWED_ORIGINS:`, allowedOrigins);
+      return callback(null, false);
     },
     credentials: true,
   });
