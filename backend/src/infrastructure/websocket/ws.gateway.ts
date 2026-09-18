@@ -17,14 +17,18 @@ import type { AuthenticatedSocket } from './ws.type';
     origin: (origin, callback) => {
       const allowedOrigins = process.env.ALLOWED_ORIGINS
         ? process.env.ALLOWED_ORIGINS.split(',')
-            .map((o) => o.trim())
+            .map((o) => o.trim().replace(/\/+$/, ''))
             .filter(Boolean)
-        : ['http://localhost:3000'];
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Chặn bởi chính sách CORS'));
+        : ['http://localhost:3000', 'https://localhost', 'http://localhost'];
+
+      if (!origin) {
+        return callback(null, true);
       }
+      const normalizedOrigin = origin.trim().replace(/\/+$/, '');
+      if (allowedOrigins.includes(normalizedOrigin)) {
+        return callback(null, true);
+      }
+      return callback(null, false);
     },
     credentials: true,
   },
