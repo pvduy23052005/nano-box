@@ -14,7 +14,18 @@ import type { AuthenticatedSocket } from './ws.type';
 
 @WebSocketGateway({
   cors: {
-    origin: true,
+    origin: (origin, callback) => {
+      const allowedOrigins = process.env.ALLOWED_ORIGINS
+        ? process.env.ALLOWED_ORIGINS.split(',')
+            .map((o) => o.trim())
+            .filter(Boolean)
+        : ['http://localhost:3000'];
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Chặn bởi chính sách CORS'));
+      }
+    },
     credentials: true,
   },
 })

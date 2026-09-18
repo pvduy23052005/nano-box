@@ -11,7 +11,7 @@ import { Model, Types } from 'mongoose';
 import { MessageType } from '../../domain/message.type';
 
 @Injectable()
-export class MesageRepository implements MessageRepositoryAdapter {
+export class MessageRepository implements MessageRepositoryAdapter {
   constructor(
     @InjectModel(Message.name)
     private readonly messageModel: Model<MessageDocument>,

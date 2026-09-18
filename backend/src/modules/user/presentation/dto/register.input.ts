@@ -8,7 +8,7 @@ export class RegisterInputDto {
   name: string;
 
   @Field()
-  @IsNotEmpty({ message: 'Email không` được để trống' })
+  @IsNotEmpty({ message: 'Email không được để trống' })
   @IsEmail({}, { message: 'Email không đúng định dạng' })
   email: string;
 

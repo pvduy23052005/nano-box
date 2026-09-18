@@ -15,10 +15,13 @@ import {
   detectFileCategory,
   resolveMimeType,
   MAX_FILE_SIZE,
+  ALLOWED_UPLOAD_FOLDERS,
+  UploadFolder,
 } from './constants/upload.constant';
 
 @Injectable()
 export class UploadService {
+  private static readonly TEMP_KEY_REGEX = /^temp\/[a-z0-9-]+(\.[a-z0-9]+)?$/i;
   private readonly logger = new Logger(UploadService.name);
   private readonly awsClient: AwsClient;
   private readonly accountId: string;
@@ -55,10 +58,16 @@ export class UploadService {
 
   async uploadFile(
     file: Express.Multer.File,
-    folder: string = 'uploads',
+    folder: string = UploadFolder.UPLOADS,
   ): Promise<UploadResponseDto> {
     if (!file?.buffer) {
       throw new BadRequestException('Vui lòng chọn file hợp lệ để tải lên');
+    }
+
+    if (!ALLOWED_UPLOAD_FOLDERS.includes(folder)) {
+      throw new BadRequestException(
+        `Thư mục không hợp lệ. Chỉ cho phép: ${ALLOWED_UPLOAD_FOLDERS.join(', ')}`,
+      );
     }
 
     if (file.size > MAX_FILE_SIZE) {
@@ -70,14 +79,12 @@ export class UploadService {
 
     const originalName = file.originalname || 'file';
     const ext = path.extname(originalName).toLowerCase();
-    const cleanFolder = folder.replace(/^\/+|\/+$/g, '');
+    const cleanFolder = folder;
     const category = detectFileCategory(file.mimetype, originalName);
     const mimeType = resolveMimeType(originalName, file.mimetype);
 
     const shortId = `${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}`;
-    const key = cleanFolder
-      ? `${cleanFolder}/${shortId}${ext}`
-      : `${shortId}${ext}`;
+    const key = `${cleanFolder}/${shortId}${ext}`;
 
     const endpointUrl = `${this.r2Endpoint}/${key}`;
 
@@ -120,14 +127,41 @@ export class UploadService {
   async uploadToTemp(
     file: Express.Multer.File,
   ): Promise<TempUploadResponseDto> {
-    const result = await this.uploadFile(file, 'temp');
+    const result = await this.uploadFile(file, UploadFolder.TEMP);
     return {
       tempKey: result.key,
       url: result.url,
     };
   }
 
+  async validateTempKey(tempKey: string): Promise<boolean> {
+    if (!tempKey || !UploadService.TEMP_KEY_REGEX.test(tempKey)) {
+      return false;
+    }
+
+    try {
+      const response = await this.awsClient.fetch(
+        `${this.r2Endpoint}/${tempKey}`,
+        {
+          method: 'HEAD',
+        },
+      );
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
+
   async copyTempToUploads(tempKey: string): Promise<string> {
+    if (!tempKey || !UploadService.TEMP_KEY_REGEX.test(tempKey)) {
+      throw new BadRequestException('Định dạng tempKey không hợp lệ');
+    }
+
+    const exists = await this.validateTempKey(tempKey);
+    if (!exists) {
+      throw new BadRequestException('File tạm không tồn tại hoặc đã hết hạn');
+    }
+
     const filename = tempKey.replace(/^temp\//, '');
     const destKey = `uploads/${filename}`;
     const destUrl = `${this.r2Endpoint}/${destKey}`;
@@ -161,6 +195,10 @@ export class UploadService {
   }
 
   async deleteTempFile(tempKey: string): Promise<void> {
+    if (!tempKey || !UploadService.TEMP_KEY_REGEX.test(tempKey)) {
+      return;
+    }
+
     const deleteUrl = `${this.r2Endpoint}/${tempKey}`;
 
     try {
