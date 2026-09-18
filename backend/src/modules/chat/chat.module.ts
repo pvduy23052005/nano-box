@@ -4,7 +4,7 @@ import {
 } from './infrastructure/database/message.schema';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { MesageRepository } from './infrastructure/database/message.repository';
+import { MessageRepository } from './infrastructure/database/message.repository';
 import { MessageRepositoryAdapter } from './application/ports/message.port';
 import { SendMessageUseCase } from './application/use-cases/send-message.use-case';
 import { ChatResolver } from './presentation/graphql/chat.resolver';
@@ -25,7 +25,7 @@ import { RoomRepositoryAdapter } from '../room/application/ports/room.ports';
     ChatGateway,
     {
       provide: MessageRepositoryAdapter,
-      useClass: MesageRepository,
+      useClass: MessageRepository,
     },
     {
       provide: SendMessageUseCase,

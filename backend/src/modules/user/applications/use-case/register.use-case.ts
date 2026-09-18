@@ -33,7 +33,7 @@ export class RegisterUseCase {
       avatar: '/login.png',
     });
 
-    const savedUsser = await this.userRepository.save(user);
-    return savedUsser;
+    const savedUser = await this.userRepository.save(user);
+    return savedUser;
   }
 }
