@@ -80,7 +80,7 @@ export default function UserCard({
           ) : (
             <MessageSquare className="size-3.5 mr-1.5" />
           )}
-          Nhắn tin
+          <span className="md:hidden lg:block">Nhắn tin</span>
         </Button>
       </div>
     </div>

@@ -29,7 +29,7 @@ export class RoomResolver {
     private readonly updateMemberLastReadMessageUseCase: UpdateMemberLastReadMessageUseCase,
     private readonly websocketService: WebsocketService,
     private readonly getMeUseCase: GetMeUseCase,
-  ) { }
+  ) {}
 
   @Query(() => [RoomOutput])
   async getRoomsByStatus(
@@ -104,7 +104,7 @@ export class RoomResolver {
 
 @Resolver(() => RoomMemberOutput)
 export class RoomMemberResolver {
-  constructor(private readonly getMeUseCase: GetMeUseCase) { }
+  constructor(private readonly getMeUseCase: GetMeUseCase) {}
 
   @ResolveField(() => UserProfilePayload, { name: 'user', nullable: true })
   async getUser(@Parent() member: RoomMemberOutput) {

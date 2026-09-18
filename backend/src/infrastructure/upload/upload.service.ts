@@ -21,8 +21,7 @@ import {
 
 @Injectable()
 export class UploadService {
-  private static readonly TEMP_KEY_REGEX =
-    /^temp\/[a-z0-9-]+(\.[a-z0-9]+)?$/i;
+  private static readonly TEMP_KEY_REGEX = /^temp\/[a-z0-9-]+(\.[a-z0-9]+)?$/i;
   private readonly logger = new Logger(UploadService.name);
   private readonly awsClient: AwsClient;
   private readonly accountId: string;

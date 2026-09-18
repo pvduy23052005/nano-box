@@ -16,7 +16,9 @@ import type { AuthenticatedSocket } from './ws.type';
   cors: {
     origin: (origin, callback) => {
       const allowedOrigins = process.env.ALLOWED_ORIGINS
-        ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean)
+        ? process.env.ALLOWED_ORIGINS.split(',')
+            .map((o) => o.trim())
+            .filter(Boolean)
         : ['http://localhost:3000'];
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
@@ -28,14 +30,15 @@ import type { AuthenticatedSocket } from './ws.type';
   },
 })
 export class WebsocketGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
   constructor(
     private readonly websocketService: WebsocketService,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   afterInit(server: Server) {
     this.websocketService.server = server;
@@ -66,7 +69,7 @@ export class WebsocketGateway
     }
   }
 
-  handleDisconnect(_client: AuthenticatedSocket) { }
+  handleDisconnect(_client: AuthenticatedSocket) {}
 
   private extractToken(client: AuthenticatedSocket | Socket): string | null {
     const authHeader = client.handshake?.headers?.authorization;

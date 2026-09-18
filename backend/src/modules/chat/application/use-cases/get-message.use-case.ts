@@ -8,7 +8,7 @@ export class GetMessagesUseCase {
   constructor(
     private readonly messageRepository: MessageRepositoryAdapter,
     private readonly roomRepository: RoomRepositoryAdapter,
-  ) { }
+  ) {}
 
   async execute(
     roomId: string,
@@ -22,12 +22,11 @@ export class GetMessagesUseCase {
     if (!room) {
       errors.roomId = 'Phòng chat không tồn tại';
     } else {
-      const isMember = room.members?.some(
-        (member) => member.userId === userId,
-      );
+      const isMember = room.members?.some((member) => member.userId === userId);
 
       if (!isMember) {
-        errors.permission = 'Bạn không có quyền truy cập tin nhắn của phòng chat này';
+        errors.permission =
+          'Bạn không có quyền truy cập tin nhắn của phòng chat này';
       }
     }
 
@@ -40,6 +39,6 @@ export class GetMessagesUseCase {
       cursor,
       limit,
     });
-     return messages;
+    return messages;
   }
 }

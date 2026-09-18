@@ -78,27 +78,33 @@ export default function RoomCard({
     <div
       onClick={onClick}
       className={cn(
-        "relative flex items-center justify-center sm:justify-start gap-3 rounded-md cursor-pointer p-1 sm:p-2 transition-all",
+        "relative flex items-center bg-card justify-center sm:justify-start gap-3 cursor-pointer p-2 sm:p-2.5 transition-all duration-200",
         isSelected
-          ? "bg-primary/10 text-primary font-medium shadow-sm ring-1 ring-primary/25"
-          : "bg-card shadow-xs hover:bg-muted/60 hover:shadow-sm text-foreground",
+          ? "text-foreground border-t-5 sm:border-l-5 sm:border-t-0 border-primary border-b border-b-muted/50"
+          : "hover:bg-primary/5 text-foreground border-b border-muted/50",
       )}
     >
-      <div className="relative shrink-0 flex flex-col items-center gap-1 w-14 sm:w-auto">
+      <div className="relative shrink-0 flex flex-col items-center gap-1.5 w-14 sm:w-auto">
         <div className="relative">
-          <Avatar className="size-10">
-            <AvatarImage src={room.avatar || ""} alt={displayName} />
-            <AvatarFallback>{initials}</AvatarFallback>
+          <Avatar className="size-11 rounded-full after:hidden">
+            <AvatarImage
+              src={room.avatar || ""}
+              alt={displayName}
+              className="rounded-full object-cover"
+            />
+            <AvatarFallback className="rounded-full bg-emerald-50 text-emerald-700 text-sm font-semibold">
+              {initials}
+            </AvatarFallback>
           </Avatar>
           {isUnread && (
-            <span className="sm:hidden absolute top-0 right-0 size-2.5 rounded-full bg-primary ring-2 ring-background" />
+            <span className="absolute bottom-0 right-0 size-3 rounded-full bg-slate-400 ring-2 ring-card" />
           )}
         </div>
         <span
           className={cn(
             "sm:hidden text-[11px] leading-tight text-center truncate w-full",
             isSelected
-              ? "text-primary font-semibold"
+              ? "text-foreground font-semibold"
               : "text-muted-foreground font-normal",
           )}
         >
@@ -110,35 +116,23 @@ export default function RoomCard({
         <div className="flex items-center justify-between gap-1">
           <Typography
             variant="small"
-            className={cn(
-              "truncate",
-              isSelected
-                ? "font-semibold text-primary"
-                : isUnread
-                  ? "font-bold text-foreground"
-                  : "font-medium text-foreground",
-            )}
+            className={cn("truncate font-semibold text-[13px] text-foreground")}
           >
             {displayName}
           </Typography>
           {timeText && (
-            <span
-              className={cn(
-                "text-[11px] shrink-0",
-                isUnread ? "font-medium text-primary" : "text-muted-foreground",
-              )}
-            >
+            <span className="text-[11px] shrink-0 text-muted-foreground/80 font-normal">
               {timeText}
             </span>
           )}
         </div>
-        <div className="flex items-center justify-between gap-1">
+        <div className="flex items-center justify-between gap-1 mt-0.5">
           <Typography
             variant="caption"
             className={cn(
               "truncate text-xs",
               isUnread
-                ? "font-semibold text-foreground"
+                ? "font-medium text-foreground"
                 : "text-muted-foreground",
             )}
           >

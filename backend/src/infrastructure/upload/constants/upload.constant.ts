@@ -6,7 +6,8 @@ export enum UploadFolder {
   AVATARS = 'avatars',
 }
 
-export const ALLOWED_UPLOAD_FOLDERS: readonly string[] = Object.values(UploadFolder);
+export const ALLOWED_UPLOAD_FOLDERS: readonly string[] =
+  Object.values(UploadFolder);
 
 export const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 
