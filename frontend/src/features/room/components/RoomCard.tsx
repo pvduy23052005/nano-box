@@ -78,10 +78,10 @@ export default function RoomCard({
     <div
       onClick={onClick}
       className={cn(
-        "relative flex items-center justify-center sm:justify-start gap-3 rounded-lg cursor-pointer p-1 sm:p-2 transition-colors",
+        "relative flex items-center justify-center sm:justify-start gap-3 rounded-md cursor-pointer p-1 sm:p-2 transition-all",
         isSelected
-          ? "bg-accent text-accent-foreground font-medium"
-          : "hover:bg-muted/60",
+          ? "bg-primary/10 text-primary font-medium shadow-sm ring-1 ring-primary/25"
+          : "bg-card shadow-xs hover:bg-muted/60 hover:shadow-sm text-foreground",
       )}
     >
       <div className="relative shrink-0 flex flex-col items-center gap-1 w-14 sm:w-auto">
@@ -94,7 +94,14 @@ export default function RoomCard({
             <span className="sm:hidden absolute top-0 right-0 size-2.5 rounded-full bg-primary ring-2 ring-background" />
           )}
         </div>
-        <span className="sm:hidden text-[11px] leading-tight text-center truncate w-full text-muted-foreground font-normal">
+        <span
+          className={cn(
+            "sm:hidden text-[11px] leading-tight text-center truncate w-full",
+            isSelected
+              ? "text-primary font-semibold"
+              : "text-muted-foreground font-normal",
+          )}
+        >
           {displayName}
         </span>
       </div>
@@ -105,7 +112,11 @@ export default function RoomCard({
             variant="small"
             className={cn(
               "truncate",
-              isUnread ? "font-bold text-foreground" : "font-medium",
+              isSelected
+                ? "font-semibold text-primary"
+                : isUnread
+                  ? "font-bold text-foreground"
+                  : "font-medium text-foreground",
             )}
           >
             {displayName}

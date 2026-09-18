@@ -51,7 +51,7 @@ export default function UserList({ searchQuery = "" }: UserListProps) {
   };
 
   return (
-    <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
       {displayUsers.map((user) => (
         <UserCard
           key={user.id}

@@ -26,10 +26,16 @@ export class ChatResolver {
   @Query(() => MessagesPagePayload)
   async getMessages(
     @Args('roomId') roomId: string,
+    @CurrentUser('id') userId: string,
     @Args('cursor', { nullable: true }) cursor?: string,
     @Args('limit', { nullable: true }) limit?: number,
   ): Promise<MessagesPagePayload> {
-    const result = await this.getMessagesUseCase.execute(roomId, cursor, limit);
+    const result = await this.getMessagesUseCase.execute(
+      roomId,
+      userId,
+      cursor,
+      limit,
+    );
 
     return {
       items: result.items.map((msg) => ({

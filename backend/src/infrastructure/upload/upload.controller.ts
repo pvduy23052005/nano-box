@@ -13,6 +13,10 @@ import { UploadService } from './upload.service';
 import { UploadResponseDto } from './dto/upload-response.dto';
 import { TempUploadResponseDto } from './dto/temp-upload-response.dto';
 import { AuthGuard } from 'src/common/guards/auth.guard';
+import {
+  UploadFolder,
+  ALLOWED_UPLOAD_FOLDERS,
+} from './constants/upload.constant';
 
 @Controller('upload')
 @UseGuards(AuthGuard)
@@ -34,7 +38,15 @@ export class UploadController {
         'Vui lòng cung cấp file trong trường "file"',
       );
     }
-    return this.uploadService.uploadFile(file, folder || 'uploads');
+
+    const targetFolder = folder || UploadFolder.UPLOADS;
+    if (!ALLOWED_UPLOAD_FOLDERS.includes(targetFolder)) {
+      throw new BadRequestException(
+        `Thư mục không hợp lệ. Chỉ cho phép: ${ALLOWED_UPLOAD_FOLDERS.join(', ')}`,
+      );
+    }
+
+    return this.uploadService.uploadFile(file, targetFolder);
   }
 
   @Post('temp')

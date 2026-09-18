@@ -37,9 +37,11 @@ import { RoomRepositoryAdapter } from '../room/application/ports/room.ports';
     },
     {
       provide: GetMessagesUseCase,
-      useFactory: (messageRepository: MessageRepositoryAdapter) =>
-        new GetMessagesUseCase(messageRepository),
-      inject: [MessageRepositoryAdapter],
+      useFactory: (
+        messageRepository: MessageRepositoryAdapter,
+        roomRepository: RoomRepositoryAdapter,
+      ) => new GetMessagesUseCase(messageRepository, roomRepository),
+      inject: [MessageRepositoryAdapter, RoomRepositoryAdapter],
     },
   ],
   exports: [SendMessageUseCase],

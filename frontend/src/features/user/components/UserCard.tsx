@@ -4,7 +4,6 @@ import {
   AvatarImage,
 } from "../../../components/ui/avatar";
 import { Spinner } from "../../../components/ui/spinner";
-import { Card } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { MessageSquare, UserPlus } from "lucide-react";
 import { Typography } from "@/src/components/ui/typography";
@@ -30,49 +29,60 @@ export default function UserCard({
   onAddFriend,
 }: UserCardProps) {
   return (
-    <Card
+    <div
       key={user.id}
-      className="relative p-3 flex flex-col gap-0 transition-colors hover:border-primary/50 cursor-pointer"
+      className="p-3 bg-card shadow-sm hover:border-primary/40 hover:shadow-md flex flex-row items-center justify-between gap-2 transition-all cursor-pointer rounded-xl"
     >
-      <div className="flex items-center gap-4">
-        <Avatar className="h-14 w-14 border border-border">
-          <AvatarImage src={user.avatar || ""} alt={user.name} />
-          <AvatarFallback className="bg-emerald-100 text-emerald-700 text-lg font-medium">
-            {user.name.slice(0, 2).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex flex-col overflow-hidden">
-          <Typography variant="small">{user.name}</Typography>
+      <div className="flex items-center gap-3.5 min-w-0">
+        <div className="relative shrink-0">
+          <Avatar className="size-10 after:border-none">
+            <AvatarImage src={user.avatar || ""} alt={user.name} />
+            <AvatarFallback className="bg-emerald-100 text-emerald-700 text-sm font-semibold">
+              {user.name.slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        </div>
+        <div className="flex flex-col min-w-0">
+          <Typography
+            variant="small"
+            className="font-semibold text-foreground truncate"
+          >
+            {user.name}
+          </Typography>
         </div>
       </div>
 
-      <div className="my-4 border-t border-border" />
-
-      <div className="flex items-center justify-end gap-3">
+      <div className="flex items-center gap-2 shrink-0">
         <Button
           variant="outline"
-          size="sm"
-          className="text-xs h-8 px-4 cursor-pointer"
-          onClick={() => onAddFriend?.(user.id)}
+          size="icon"
+          className="size-8 cursor-pointer text-muted-foreground hover:text-foreground hover:bg-muted"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAddFriend?.(user.id);
+          }}
+          title="Kết bạn"
         >
-          <UserPlus className="h-4 w-4 mr-2" />
-          Kết bạn
+          <UserPlus className="size-4" />
         </Button>
 
         <Button
           size="sm"
           disabled={isCreating}
-          className="text-white bg-primary hover:bg-primary/80 transition-colors h-8 px-4 cursor-pointer"
-          onClick={() => onStartChat(user.id)}
+          className="text-xs h-8 px-3.5 text-white bg-primary hover:bg-primary/90 transition-colors cursor-pointer font-medium shadow-xs"
+          onClick={(e) => {
+            e.stopPropagation();
+            onStartChat(user.id);
+          }}
         >
           {isCreating ? (
-            <Spinner className="h-4 w-4 mr-2" />
+            <Spinner className="size-3.5 mr-1.5" />
           ) : (
-            <MessageSquare className="h-4 w-4 mr-2" />
+            <MessageSquare className="size-3.5 mr-1.5" />
           )}
           Nhắn tin
         </Button>
       </div>
-    </Card>
+    </div>
   );
 }

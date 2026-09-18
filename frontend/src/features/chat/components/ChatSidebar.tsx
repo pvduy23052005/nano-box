@@ -90,7 +90,7 @@ export default function ChatSidebar() {
 
         <TabsContent
           value={RoomTypeSearch.FRIEND}
-          className="w-full flex flex-row sm:flex-col gap-2 sm:gap-1 p-2 overflow-x-auto sm:overflow-y-auto flex-1 mt-0 scrollbar-none"
+          className="w-full flex flex-row sm:flex-col gap-2 sm:gap-3 p-2 overflow-x-auto sm:overflow-y-auto flex-1 mt-0 scrollbar-none"
         >
           <RoomFriend
             rooms={friendRooms as ChatRoom[]}

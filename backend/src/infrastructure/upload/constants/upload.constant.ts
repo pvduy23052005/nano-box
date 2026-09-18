@@ -1,5 +1,13 @@
 export type FileCategory = 'image' | 'audio' | 'document' | 'video' | 'other';
 
+export enum UploadFolder {
+  UPLOADS = 'uploads',
+  TEMP = 'temp',
+  AVATARS = 'avatars',
+}
+
+export const ALLOWED_UPLOAD_FOLDERS: readonly string[] = Object.values(UploadFolder);
+
 export const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 
 export const DOCUMENT_MIMES = [
