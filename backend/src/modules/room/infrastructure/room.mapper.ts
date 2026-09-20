@@ -22,6 +22,7 @@ export interface PopulatedMessage {
   _id: Types.ObjectId | string;
   content?: string | null;
   created_at?: Date | null;
+  sender_id?: string | null;
   senderId?: string | null;
 }
 
@@ -95,7 +96,7 @@ export class RoomMapper {
           id: message._id.toString(),
           content: message.content ?? null,
           createdAt: message.created_at ? new Date(message.created_at) : null,
-          senderId: message.senderId ?? null,
+          senderId: message.sender_id ?? message.senderId ?? null,
         };
       }
     }

@@ -1,6 +1,15 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
+export class ReactionPayload {
+  @Field(() => String)
+  emoji: string;
+
+  @Field(() => [String])
+  userIds: string[];
+}
+
+@ObjectType()
 export class ChatPayload {
   @Field(() => String)
   id: string;
@@ -19,4 +28,7 @@ export class ChatPayload {
 
   @Field(() => [String], { nullable: true })
   readBy: string[];
+
+  @Field(() => [ReactionPayload], { nullable: true, defaultValue: [] })
+  reactions?: ReactionPayload[];
 }

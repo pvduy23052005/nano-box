@@ -7,6 +7,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { MessageRepository } from './infrastructure/database/message.repository';
 import { MessageRepositoryAdapter } from './application/ports/message.port';
 import { SendMessageUseCase } from './application/use-cases/send-message.use-case';
+import { AddEmojiMessageUseCase } from './application/use-cases/add-emoji-message.use-case';
 import { ChatResolver } from './presentation/graphql/chat.resolver';
 import { GetMessagesUseCase } from './application/use-cases/get-message.use-case';
 import { ChatGateway } from './presentation/gateway/chat.gateway';
@@ -43,7 +44,15 @@ import { RoomRepositoryAdapter } from '../room/application/ports/room.ports';
       ) => new GetMessagesUseCase(messageRepository, roomRepository),
       inject: [MessageRepositoryAdapter, RoomRepositoryAdapter],
     },
+    {
+      provide: AddEmojiMessageUseCase,
+      useFactory: (
+        messageRepository: MessageRepositoryAdapter,
+        roomRepository: RoomRepositoryAdapter,
+      ) => new AddEmojiMessageUseCase(messageRepository, roomRepository),
+      inject: [MessageRepositoryAdapter, RoomRepositoryAdapter],
+    },
   ],
-  exports: [SendMessageUseCase],
+  exports: [SendMessageUseCase, AddEmojiMessageUseCase],
 })
 export class ChatModule {}

@@ -21,20 +21,31 @@ export class MessageRepository implements MessageRepositoryAdapter {
     return {
       content: message.getContent(),
       attachments: message.getAttachments(),
-      senderId: message.getSenderId(),
+      sender_id: message.getSenderId(),
       room_id: message.getRoomId(),
-      readBy: message.getReadBy(),
+      read_by: message.getReadBy(),
+      reactions:
+        message.getReactions()?.map((reaction) => ({
+          emoji: reaction.emoji,
+          user_ids: reaction.userIds,
+        })) || [],
     };
   }
 
   private toDTO(document: MessageDocument): MessageType {
+    const raw = document as any;
     return {
       id: document._id.toString() || '',
-      senderId: document.senderId.toString(),
+      senderId: (document.sender_id || raw.senderId || '').toString(),
       roomId: document.room_id?.toString() || '',
       content: document.content || '',
       attachments: document.attachments,
-      readBy: document.readBy,
+      readBy: document.read_by || raw.readBy || [],
+      reactions:
+        document.reactions?.map((r) => ({
+          emoji: r.emoji,
+          userIds: r.user_ids || [],
+        })) || [],
     };
   }
 
@@ -43,6 +54,30 @@ export class MessageRepository implements MessageRepositoryAdapter {
     const newMessage = new this.messageModel(persistenceData);
     const saved = await newMessage.save();
     return this.toDTO(saved);
+  }
+
+  async update(message: MessageEntity): Promise<MessageType> {
+    const id = message.getId();
+    if (!id || !Types.ObjectId.isValid(id)) {
+      throw new Error('Invalid message ID for update');
+    }
+
+    const persistenceData = this.toPersistence(message);
+    const updated = await this.messageModel
+      .findByIdAndUpdate(id, { $set: persistenceData }, { new: true })
+      .exec();
+
+    if (!updated) {
+      throw new Error('Message not found for update');
+    }
+    return this.toDTO(updated);
+  }
+
+  async findById(id: string): Promise<MessageEntity | null> {
+    if (!id || !Types.ObjectId.isValid(id)) return null;
+    const doc = await this.messageModel.findById(id).exec();
+    if (!doc) return null;
+    return MessageEntity.restore(this.toDTO(doc));
   }
 
   async findAll({
