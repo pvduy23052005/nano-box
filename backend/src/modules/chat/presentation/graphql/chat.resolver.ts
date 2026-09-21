@@ -1,10 +1,12 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { ChatPayload } from '../dto/chat.payload';
+import { ChatPayload } from '../dto/chat.ouput';
 import { MessagesPagePayload } from '../dto/messages-page.payload';
 import { GetMessagesUseCase } from '../../application/use-cases/get-message.use-case';
 import { MessageInput } from '../dto/message.input';
+import { AddEmojiMessageInput } from '../dto/add-emoji-message.input';
 import { CurrentUser } from 'src/common/customs/current-user.decorator';
 import { SendMessageUseCase } from '../../application/use-cases/send-message.use-case';
+import { AddEmojiMessageUseCase } from '../../application/use-cases/add-emoji-message.use-case';
 import { WebsocketService } from 'src/infrastructure/websocket/ws.service';
 import { UploadService } from 'src/infrastructure/upload/upload.service';
 import { CHAT_SOCKET_EVENTS } from '../gateway/event.type';
@@ -19,6 +21,7 @@ export class ChatResolver {
   constructor(
     private readonly getMessagesUseCase: GetMessagesUseCase,
     private readonly sendMessageUseCase: SendMessageUseCase,
+    private readonly addEmojiMessageUseCase: AddEmojiMessageUseCase,
     private readonly webSocketService: WebsocketService,
     private readonly uploadService: UploadService,
   ) {}
@@ -45,6 +48,7 @@ export class ChatResolver {
         roomId: msg.roomId,
         attachments: msg.attachments || [],
         readBy: msg.readBy || [],
+        reactions: msg.reactions || [],
       })),
       nextCursor: result.nextCursor ?? null,
       hasMore: result.hasmore,
@@ -90,5 +94,34 @@ export class ChatResolver {
     }
 
     return message;
+  }
+
+  @Mutation(() => ChatPayload)
+  async addEmojiMessage(
+    @Args('input') input: AddEmojiMessageInput,
+    @CurrentUser('id') userId: string,
+  ): Promise<ChatPayload> {
+    const { message, memberIds } = await this.addEmojiMessageUseCase.execute({
+      messageId: input.messageId,
+      emoji: input.emoji,
+      userId,
+    });
+
+    const server = this.webSocketService.server;
+    if (server && memberIds.length) {
+      server
+        .to([...memberIds, message.roomId])
+        .emit(CHAT_SOCKET_EVENTS.UPDATE_MESSAGE_REACTION, message);
+    }
+
+    return {
+      id: message.id as string,
+      content: message.content,
+      senderId: message.senderId,
+      roomId: message.roomId,
+      attachments: message.attachments || [],
+      readBy: message.readBy || [],
+      reactions: message.reactions || [],
+    };
   }
 }

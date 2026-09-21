@@ -8,7 +8,7 @@ import {
 import { CombinedGraphQLErrors } from "@apollo/client/errors";
 import { onError } from "@apollo/client/link/error";
 import { PropsWithChildren } from "react";
-import { createHttpLink } from "./apolloBase";
+import { createHttpLink, cacheConfig } from "./apolloBase";
 import Cookies from "js-cookie";
 import { handleGlobalError } from "./utils/handleGlobalError";
 
@@ -24,7 +24,7 @@ function makeClient() {
   });
 
   return new ApolloClient({
-    cache: new InMemoryCache(),
+    cache: new InMemoryCache(cacheConfig),
     link: errorLink.concat(createHttpLink(token)),
   });
 }

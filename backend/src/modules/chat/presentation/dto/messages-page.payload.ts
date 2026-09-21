@@ -1,5 +1,5 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { ChatPayload } from './chat.payload';
+import { ChatPayload } from './chat.ouput';
 
 @ObjectType()
 export class MessagesPagePayload {

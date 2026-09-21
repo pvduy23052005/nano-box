@@ -1,5 +1,5 @@
 import { useQuery } from "@apollo/client/react";
-import { GET_MESSAGE_QUERY } from "../services/mutation";
+import { GET_MESSAGE_QUERY } from "../mutation/mutation";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { useRoomStore } from "../../room/stores/useRoomStore";
 import { Message, PAGINATION_LIMIT } from "../types/chat.types";

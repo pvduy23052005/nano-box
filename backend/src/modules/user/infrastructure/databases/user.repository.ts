@@ -41,7 +41,7 @@ export class UserRepository implements UserRepositoryAdapter {
       const updated = await this.userModel.findByIdAndUpdate(
         id,
         persistenceData,
-        { new: true },
+        { returnDocument: 'after' },
       );
 
       if (!updated) {

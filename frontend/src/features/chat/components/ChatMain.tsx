@@ -10,6 +10,7 @@ import ChatTypingIndicator from "./ChatTypingIndicator";
 import { useReceiveMessage } from "../socket/useReceiveMessage";
 import { useReceiveTyping } from "../socket/useReceiveTyping";
 import { useReceiveMessageRead } from "../socket/useReceiveMessageRead";
+import { useReceiveReaction } from "../socket/useReceiveReaction";
 import { useMarkAsRead } from "../hooks/useMarkAsRead";
 import { useTypingStore } from "../stores/useTypingStore";
 import { useReadReceiptStore } from "../stores/useReadReceiptStore";
@@ -41,6 +42,7 @@ export default function ChatMain() {
   useReceiveMessage();
   useReceiveTyping();
   useReceiveMessageRead();
+  useReceiveReaction();
   useMarkAsRead(activeRoomId, messages);
 
   const typingList = useMemo(() => {
@@ -106,10 +108,15 @@ export default function ChatMain() {
         }
 
         const lastGroup = groups[groups.length - 1];
-        if (lastGroup && lastGroup.senderId === message.senderId) {
+        const isSameSender =
+          lastGroup &&
+          lastGroup.isMe === message.isMe &&
+          (!lastGroup.senderId || !message.senderId || lastGroup.senderId === message.senderId);
+
+        if (isSameSender) {
           lastGroup.messages.push(message);
         } else {
-          const groupId = `group-${message.senderId}-${message.createdAt}-${index}`;
+          const groupId = `group-${message.senderId || (message.isMe ? "me" : "other")}-${message.createdAt || index}-${index}`;
           groups.push({
             id: groupId,
             isMe: message.isMe,
@@ -140,7 +147,7 @@ export default function ChatMain() {
   return (
     <div
       ref={scrollContainerRef}
-      className="flex-1 min-h-0 flex flex-col gap-4 px-3 py-3 overflow-y-auto"
+      className="flex-1 min-h-0 flex flex-col gap-4 px-3 py-3 overflow-y-auto overflow-x-hidden"
     >
       {isLoading && messages.length === 0 ? (
         <ChatLoading />

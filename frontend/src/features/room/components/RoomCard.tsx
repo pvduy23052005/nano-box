@@ -78,7 +78,7 @@ export default function RoomCard({
     <div
       onClick={onClick}
       className={cn(
-        "relative flex items-center bg-card justify-center sm:justify-start gap-3 cursor-pointer p-2 sm:p-2.5 transition-all duration-200",
+        "relative flex items-center bg-card justify-center sm:justify-start gap-3 cursor-pointer p-2 sm:p-2.5 transition-all duration-200 shadow-lg",
         isSelected
           ? "text-foreground border-t-5 sm:border-l-5 sm:border-t-0 border-primary border-b border-b-muted/50"
           : "hover:bg-primary/5 text-foreground border-b border-muted/50",

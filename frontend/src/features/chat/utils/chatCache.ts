@@ -1,6 +1,6 @@
 import { ApolloCache } from "@apollo/client";
 import { DocumentNode } from "graphql";
-import { Message, PAGINATION_LIMIT } from "../types/chat.types";
+import { Message, MessageReaction, PAGINATION_LIMIT } from "../types/chat.types";
 
 interface GetMessagesData {
   getMessages: {
@@ -13,11 +13,17 @@ interface GetMessagesData {
 export const appendMessageToCache = (
   cache: ApolloCache,
   query: DocumentNode,
-  newMessage: Omit<Message, "isMe"> & { isMe?: boolean },
+  newMessage: Omit<Message, "isMe"> & { isMe?: boolean; __typename?: string },
   tempId?: string,
   roomId?: string | null,
 ): void => {
-  const normalizedMessage: Message = { ...newMessage, isMe: newMessage.isMe ?? false };
+  const normalizedMessage: Message = {
+    ...newMessage,
+    isMe: newMessage.isMe ?? false,
+    reactions: newMessage.reactions ?? [],
+    attachments: newMessage.attachments ?? [],
+    __typename: (newMessage as { __typename?: string }).__typename ?? "ChatPayload",
+  } as Message;
   const targetRoomId = roomId ?? newMessage.roomId ?? null;
   if (!targetRoomId) return;
 
@@ -61,4 +67,99 @@ export const appendMessageToCache = (
       };
     },
   );
+};
+
+export const updateMessageReactionInCache = (
+  cache: ApolloCache,
+  query: DocumentNode,
+  roomId: string,
+  messageId: string,
+  reactions: Message["reactions"],
+): void => {
+  cache.updateQuery<GetMessagesData>(
+    {
+      query,
+      variables: {
+        limit: PAGINATION_LIMIT,
+        roomId,
+      },
+    },
+    (existing) => {
+      if (!existing?.getMessages?.items) return existing;
+      return {
+        getMessages: {
+          ...existing.getMessages,
+          items: existing.getMessages.items.map((item) =>
+            item.id === messageId
+              ? { ...item, reactions: reactions || [] }
+              : item,
+          ),
+        },
+      };
+    },
+  );
+};
+
+export const getMessageFromCache = (
+  cache: ApolloCache,
+  query: DocumentNode,
+  roomId: string,
+  messageId: string,
+): Message | undefined => {
+  const data = cache.readQuery<GetMessagesData>({
+    query,
+    variables: {
+      limit: PAGINATION_LIMIT,
+      roomId,
+    },
+  });
+  return data?.getMessages?.items?.find((item) => item.id === messageId);
+};
+
+export const computeOptimisticReactions = (
+  currentReactions: MessageReaction[],
+  emoji: string,
+  userId: string,
+): MessageReaction[] => {
+  const safeReactions = Array.isArray(currentReactions) ? currentReactions : [];
+  const cleanEmoji = emoji.trim();
+  if (!cleanEmoji || !userId) return safeReactions;
+
+  const clonedReactions = safeReactions.map((reaction) => ({
+    emoji: reaction.emoji,
+    userIds: [...reaction.userIds],
+  }));
+
+  const existingReactionGroup = clonedReactions.find(
+    (reaction) => reaction.emoji === cleanEmoji,
+  );
+  const hasReactedWithThisEmoji =
+    existingReactionGroup?.userIds.includes(userId);
+
+  const remainingReactions = clonedReactions
+    .map((reaction) => ({
+      emoji: reaction.emoji,
+      userIds: reaction.userIds.filter(
+        (currentUserId) => currentUserId !== userId,
+      ),
+    }))
+    .filter((reaction) => reaction.userIds.length > 0);
+
+  if (hasReactedWithThisEmoji) {
+    return remainingReactions;
+  }
+
+  const targetGroup = remainingReactions.find(
+    (reaction) => reaction.emoji === cleanEmoji,
+  );
+  if (targetGroup) {
+    targetGroup.userIds.push(userId);
+  } else {
+    remainingReactions.push({
+      emoji: cleanEmoji,
+      userIds: [userId],
+    });
+  }
+
+  return remainingReactions;
 };

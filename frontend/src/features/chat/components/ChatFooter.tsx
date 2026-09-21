@@ -11,7 +11,10 @@ import { useSendTyping } from "../hooks/useSendTyping";
 import { useRoomStore } from "../../room/stores/useRoomStore";
 import { Button } from "@/src/components/ui/button";
 import ChatEmojiPicker from "./ChatEmojiPicker";
-import ChatImagePreview, { PendingImage, UploadStatus } from "./ChatImagePreview";
+import ChatImagePreview, {
+  PendingImage,
+  UploadStatus,
+} from "./ChatImagePreview";
 import { uploadTempFile } from "@/src/services/upload.service";
 import { useRef, useState, useEffect } from "react";
 import {
@@ -34,20 +37,29 @@ export default function ChatFooter() {
   const { sendMessage } = useSendMessage();
   const { sendTyping, stopTyping } = useSendTyping(activeRoomId ?? undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
   const [images, setImages] = useState<PendingImage[]>([]);
   const uploadPromisesRef = useRef(
-    new Map<string, Promise<{ tempKey: string; url: string } | null>>()
+    new Map<string, Promise<{ tempKey: string; url: string } | null>>(),
   );
 
   const handleSelectFiles = (files: File[]) => {
     if (!files.length) return;
 
-    const newImages: PendingImage[] = files.map((file) => ({
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      file,
-      previewUrl: URL.createObjectURL(file),
-      status: UploadStatus.UPLOADING,
-    }));
+    const newImages: PendingImage[] = files.map((file) => {
+      const isImg = file.type.startsWith("image/");
+      const objectUrl = URL.createObjectURL(file);
+      const previewUrl = isImg
+        ? objectUrl
+        : `${objectUrl}#name=${encodeURIComponent(file.name)}&size=${file.size}`;
+
+      return {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        file,
+        previewUrl,
+        status: UploadStatus.UPLOADING,
+      };
+    });
 
     setImages((prev) => [...prev, ...newImages]);
 
@@ -97,7 +109,7 @@ export default function ChatFooter() {
     setImages((prev) => {
       const target = prev.find((img) => img.id === id);
       if (target?.previewUrl) {
-        URL.revokeObjectURL(target.previewUrl);
+        URL.revokeObjectURL(target.previewUrl.split("#")[0]);
       }
       return prev.filter((img) => img.id !== id);
     });
@@ -148,16 +160,14 @@ export default function ChatFooter() {
       handlePaste: (view, event) => {
         const items = event.clipboardData?.items;
         if (!items) return false;
-        const imageFiles: File[] = [];
+        const pastedFiles: File[] = [];
         for (let i = 0; i < items.length; i++) {
-          if (items[i].type.startsWith("image/")) {
-            const file = items[i].getAsFile();
-            if (file) imageFiles.push(file);
-          }
+          const file = items[i].getAsFile();
+          if (file) pastedFiles.push(file);
         }
-        if (imageFiles.length > 0) {
+        if (pastedFiles.length > 0) {
           event.preventDefault();
-          handleSelectFiles(imageFiles);
+          handleSelectFiles(pastedFiles);
           return true;
         }
         return false;
@@ -184,7 +194,9 @@ export default function ChatFooter() {
   const handleSend = () => {
     if (!editor || !activeRoomId) return;
     const textContent = editor.getText().trim();
-    const pendingImages = images.filter((img) => img.status !== UploadStatus.ERROR);
+    const pendingImages = images.filter(
+      (img) => img.status !== UploadStatus.ERROR,
+    );
 
     if (!textContent && editor.isEmpty && pendingImages.length === 0) return;
 
@@ -195,7 +207,9 @@ export default function ChatFooter() {
 
     const promises = pendingImages
       .map((img) => uploadPromisesRef.current.get(img.id))
-      .filter((p): p is Promise<{ tempKey: string; url: string } | null> => !!p);
+      .filter(
+        (p): p is Promise<{ tempKey: string; url: string } | null> => !!p,
+      );
     pendingImages.forEach((img) => uploadPromisesRef.current.delete(img.id));
 
     const tempKeysPromise = Promise.all(promises).then((results) =>
@@ -229,8 +243,8 @@ export default function ChatFooter() {
   };
 
   return (
-    <div className="bg-background/80 p-2 shrink-0 border-t sm:border-t-0">
-      <div className="flex flex-col bg-card border rounded-xl overflow-hidden focus-within:ring-1 focus-within:ring-ring">
+    <div className="p-2 shrink-0 border-t sm:border-t-0 shadow-sm">
+      <div className="flex flex-col bg-card border rounded-xl overflow-hidden focus-within:ring-1 focus-within:ring-ring shadow-sm">
         <div className="flex items-center gap-0.5 p-2 border-b bg-muted/30 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <Button
             variant="ghost"
@@ -352,7 +366,10 @@ export default function ChatFooter() {
 
         <div className="flex items-center justify-between p-2">
           <div className="flex items-center gap-1">
-            <ChatEmojiPicker onSelect={handleEmojiSelect} disabled={!activeRoomId} />
+            <ChatEmojiPicker
+              onSelect={handleEmojiSelect}
+              disabled={!activeRoomId}
+            />
 
             <input
               ref={fileInputRef}
@@ -369,7 +386,7 @@ export default function ChatFooter() {
               size="icon"
               type="button"
               disabled={!activeRoomId}
-              className="size-10 text-muted-foreground hover:text-foreground"
+              className="size-10 text-muted-foreground hover:text-foreground cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
               title="Chọn ảnh"
             >
@@ -381,9 +398,11 @@ export default function ChatFooter() {
               size="icon"
               type="button"
               disabled={!activeRoomId}
-              className="size-10 text-muted-foreground hover:text-foreground"
+              className="size-10 text-muted-foreground hover:text-foreground cursor-pointer"
+              onClick={() => docInputRef.current?.click()}
+              title="Đính kèm file"
             >
-              <AtSign className="size-5" />
+              <FileText className="size-5" />
             </Button>
 
             <Button
@@ -391,10 +410,19 @@ export default function ChatFooter() {
               size="icon"
               type="button"
               disabled={!activeRoomId}
-              className="size-10 text-muted-foreground hover:text-foreground"
+              className="size-10 text-muted-foreground hover:text-foreground cursor-pointer"
             >
-              <FileText className="size-5" />
+              <AtSign className="size-5" />
             </Button>
+
+            <input
+              ref={docInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              disabled={!activeRoomId}
+              onChange={handleFileInputChange}
+            />
           </div>
 
           <Button
@@ -403,7 +431,7 @@ export default function ChatFooter() {
             size="icon"
             type="button"
             disabled={!activeRoomId}
-            className="size-10 text-primary hover:text-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="size-10 text-primary hover:text-primary/80 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             onClick={handleSend}
           >
             <SendHorizontal className="size-5" />

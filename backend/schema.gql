@@ -2,10 +2,16 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input AddEmojiMessageInput {
+  emoji: String!
+  messageId: String!
+}
+
 type ChatPayload {
   attachments: [String!]
   content: String!
   id: String!
+  reactions: [ReactionPayload!]
   readBy: [String!]
   roomId: String!
   senderId: String!
@@ -64,6 +70,7 @@ type MessagesPagePayload {
 }
 
 type Mutation {
+  addEmojiMessage(input: AddEmojiMessageInput!): ChatPayload!
   createRoomChatNotFriend(otherUserId: String!): RoomOutput!
   login(input: LoginInputDto!): LoginPayload!
   loginGoogle(idToken: String!): LoginPayload!
@@ -77,6 +84,11 @@ type Query {
   getMessages(cursor: String, limit: Float, roomId: String!): MessagesPagePayload!
   getRoomsByStatus(status: MemberStatus!): [RoomOutput!]!
   getUsers(search: String): [UserProfilePayload!]!
+}
+
+type ReactionPayload {
+  emoji: String!
+  userIds: [String!]!
 }
 
 input RegisterInputDto {

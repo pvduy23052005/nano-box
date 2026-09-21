@@ -83,8 +83,19 @@ export class UploadService {
     const category = detectFileCategory(file.mimetype, originalName);
     const mimeType = resolveMimeType(originalName, file.mimetype);
 
+    const rawBaseName = path
+      .basename(originalName, ext)
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 40);
+    const cleanBaseName = rawBaseName ? `-${rawBaseName}` : '';
+
     const shortId = `${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}`;
-    const key = `${cleanFolder}/${shortId}${ext}`;
+    const key = `${cleanFolder}/${shortId}${cleanBaseName}${ext}`;
 
     const endpointUrl = `${this.r2Endpoint}/${key}`;
 
@@ -94,7 +105,7 @@ export class UploadService {
         headers: {
           'Content-Type': mimeType,
           'Content-Length': file.size.toString(),
-          'Content-Disposition': 'inline',
+          'Content-Disposition': `inline; filename="${encodeURIComponent(originalName)}"`,
         },
         body: new Uint8Array(file.buffer),
       });

@@ -57,9 +57,9 @@ export default function ChatSidebar() {
       <Tabs
         value={activeTab}
         onValueChange={(val) => setActiveTab(val as RoomTypeSearch)}
-        className="w-full flex flex-col min-h-0"
+        className="w-full flex flex-col min-h-0 gap-0"
       >
-        <div className="p-1.5 pb-0 sm:p-2 border-b flex flex-col gap-2">
+        <div className="p-1.5 pb-0 sm:p-2 border-b flex flex-col">
           <div className="hidden sm:block">
             <InputGroup className="h-7">
               <InputGroupAddon>
@@ -75,13 +75,13 @@ export default function ChatSidebar() {
           <TabsList variant="line" className="grid w-full grid-cols-2">
             <TabsTrigger
               value={RoomTypeSearch.FRIEND}
-              className="text-xs py-1 sm:py-1.5 font-medium cursor-pointer"
+              className="text-xs py-1 sm:py-1.5 font-medium cursor-pointer after:hidden"
             >
               Bạn bè
             </TabsTrigger>
             <TabsTrigger
               value={RoomTypeSearch.STRANGER}
-              className="text-xs py-1 sm:py-1.5 font-medium cursor-pointer"
+              className="text-xs py-1 sm:py-1.5 font-medium cursor-pointer after:hidden"
             >
               Người lạ
             </TabsTrigger>

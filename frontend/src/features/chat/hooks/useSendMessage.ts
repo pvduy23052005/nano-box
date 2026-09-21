@@ -1,9 +1,10 @@
 import { useMutation, useApolloClient } from "@apollo/client/react";
-import { SEND_MESSAGE_MUTATION, GET_MESSAGE_QUERY } from "../services/mutation";
+import { SEND_MESSAGE_MUTATION, GET_MESSAGE_QUERY } from "../mutation/mutation";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { useRoomStore } from "../../room/stores/useRoomStore";
 import { appendMessageToCache } from "../utils/chatCache";
 import { updateRoomLastMessageInCache } from "../../room/room.cache";
+import { Message } from "../types/chat.types";
 
 export const useSendMessage = () => {
   const { user } = useAuthStore();
@@ -22,13 +23,15 @@ export const useSendMessage = () => {
 
     const optimisticId = `temp-${Date.now()}`;
 
-    const optimisticMsg = {
+    const optimisticMsg: Message = {
       id: optimisticId,
       content,
       senderId: user.id,
       roomId: targetRoomId,
       attachments: previewUrls ?? [],
       readBy: [],
+      reactions: [],
+      isMe: true,
     };
     appendMessageToCache(client.cache, GET_MESSAGE_QUERY, optimisticMsg, undefined, targetRoomId);
 
@@ -59,6 +62,7 @@ export const useSendMessage = () => {
               {
                 ...data.sendMessage,
                 roomId: data.sendMessage.roomId || targetRoomId,
+                reactions: data.sendMessage.reactions ?? [],
                 isMe: data.sendMessage.senderId === user.id,
               },
               optimisticId,

@@ -26,7 +26,10 @@ async function bootstrap() {
       if (allowedOrigins.includes(normalizedOrigin)) {
         return callback(null, true);
       }
-      console.warn(`[CORS Blocked] Origin "${origin}" không nằm trong ALLOWED_ORIGINS:`, allowedOrigins);
+      console.warn(
+        `[CORS Blocked] Origin "${origin}" không nằm trong ALLOWED_ORIGINS:`,
+        allowedOrigins,
+      );
       return callback(null, false);
     },
     credentials: true,

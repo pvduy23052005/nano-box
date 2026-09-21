@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useApolloClient } from "@apollo/client/react";
 import { useSocket } from "@/src/providers/SocketProvider";
-import { GET_MESSAGE_QUERY } from "../services/mutation";
+import { GET_MESSAGE_QUERY } from "../mutation/mutation";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { Message } from "../types/chat.types";
 import { CHAT_SOCKET_EVENTS } from "../types/event.types";
