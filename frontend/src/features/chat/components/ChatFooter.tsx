@@ -34,6 +34,7 @@ export default function ChatFooter() {
   const { sendMessage } = useSendMessage();
   const { sendTyping, stopTyping } = useSendTyping(activeRoomId ?? undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
   const [images, setImages] = useState<PendingImage[]>([]);
   const uploadPromisesRef = useRef(
     new Map<string, Promise<{ tempKey: string; url: string } | null>>()
@@ -42,12 +43,20 @@ export default function ChatFooter() {
   const handleSelectFiles = (files: File[]) => {
     if (!files.length) return;
 
-    const newImages: PendingImage[] = files.map((file) => ({
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      file,
-      previewUrl: URL.createObjectURL(file),
-      status: UploadStatus.UPLOADING,
-    }));
+    const newImages: PendingImage[] = files.map((file) => {
+      const isImg = file.type.startsWith("image/");
+      const objectUrl = URL.createObjectURL(file);
+      const previewUrl = isImg
+        ? objectUrl
+        : `${objectUrl}#name=${encodeURIComponent(file.name)}&size=${file.size}`;
+
+      return {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        file,
+        previewUrl,
+        status: UploadStatus.UPLOADING,
+      };
+    });
 
     setImages((prev) => [...prev, ...newImages]);
 
@@ -97,7 +106,7 @@ export default function ChatFooter() {
     setImages((prev) => {
       const target = prev.find((img) => img.id === id);
       if (target?.previewUrl) {
-        URL.revokeObjectURL(target.previewUrl);
+        URL.revokeObjectURL(target.previewUrl.split("#")[0]);
       }
       return prev.filter((img) => img.id !== id);
     });
@@ -148,16 +157,14 @@ export default function ChatFooter() {
       handlePaste: (view, event) => {
         const items = event.clipboardData?.items;
         if (!items) return false;
-        const imageFiles: File[] = [];
+        const pastedFiles: File[] = [];
         for (let i = 0; i < items.length; i++) {
-          if (items[i].type.startsWith("image/")) {
-            const file = items[i].getAsFile();
-            if (file) imageFiles.push(file);
-          }
+          const file = items[i].getAsFile();
+          if (file) pastedFiles.push(file);
         }
-        if (imageFiles.length > 0) {
+        if (pastedFiles.length > 0) {
           event.preventDefault();
-          handleSelectFiles(imageFiles);
+          handleSelectFiles(pastedFiles);
           return true;
         }
         return false;
@@ -386,12 +393,23 @@ export default function ChatFooter() {
               <AtSign className="size-5" />
             </Button>
 
+            <input
+              ref={docInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              disabled={!activeRoomId}
+              onChange={handleFileInputChange}
+            />
+
             <Button
               variant="ghost"
               size="icon"
               type="button"
               disabled={!activeRoomId}
               className="size-10 text-muted-foreground hover:text-foreground"
+              onClick={() => docInputRef.current?.click()}
+              title="Đính kèm file"
             >
               <FileText className="size-5" />
             </Button>

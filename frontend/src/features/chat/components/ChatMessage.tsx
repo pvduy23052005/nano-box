@@ -33,6 +33,7 @@ import { CheckCheck, Smile } from "lucide-react";
 import Image from "next/image";
 import { useAddEmojiMessage } from "../hooks/useAddEmojiMessage";
 import { cn } from "@/src/lib/utils";
+import ChatMessageFile from "./ChatMesssageFile";
 
 const QUICK_REACTIONS = [
   "👍",
@@ -45,6 +46,21 @@ const QUICK_REACTIONS = [
   "👀",
   "😭",
 ];
+
+const IMAGE_REGEX =
+  /\.(jpg|jpeg|png|gif|webp|avif|heic|heif|svg|bmp|ico|tiff|tif)(\?.*)?$/i;
+
+const isImageAttachment = (url: string) => {
+  if (url.startsWith("data:image/")) return true;
+  if (url.startsWith("blob:")) {
+    if (url.includes("#name=")) {
+      const namePart = decodeURIComponent(url.split("#name=")[1].split("&")[0]);
+      return IMAGE_REGEX.test(namePart);
+    }
+    return true;
+  }
+  return IMAGE_REGEX.test(url);
+};
 
 export interface ChatMessageGroupProps extends MessageGroup {
   isLastGroup?: boolean;
@@ -107,13 +123,9 @@ export default function ChatMessage({
             {messages.map((msg) => {
               const cleanContent = DOMPurify.sanitize(msg.content);
 
-              const attachmentImages = (msg.attachments ?? []).filter(
-                (url) =>
-                  url.startsWith("blob:") ||
-                  url.startsWith("data:image/") ||
-                  /\.(jpg|jpeg|png|gif|webp|avif|heic|heif|svg|bmp|ico|tiff|tif)(\?.*)?$/i.test(
-                    url,
-                  ),
+              const attachmentImages = (msg.attachments ?? []).filter(isImageAttachment);
+              const attachmentFiles = (msg.attachments ?? []).filter(
+                (url) => !isImageAttachment(url),
               );
 
               const hasReactions = Boolean(
@@ -150,6 +162,13 @@ export default function ChatMessage({
                           </div>
                         </BubbleContent>
                       </Bubble>
+                    )}
+                    {attachmentFiles.length > 0 && (
+                      <div className="flex flex-col gap-1.5 my-1 w-full">
+                        {attachmentFiles.map((url, idx) => (
+                          <ChatMessageFile key={idx} url={url} isMe={isMe} />
+                        ))}
+                      </div>
                     )}
                     {cleanContent && (
                       <Bubble

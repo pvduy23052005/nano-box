@@ -34,7 +34,7 @@ export class MessageRepository implements MessageRepositoryAdapter {
   constructor(
     @InjectModel(Message.name)
     private readonly messageModel: Model<MessageDocument>,
-  ) {}
+  ) { }
 
   private toPersistence(message: MessageEntity): Partial<Message> {
     const persistence: Partial<Message> = {
@@ -46,7 +46,7 @@ export class MessageRepository implements MessageRepositoryAdapter {
         message.getReactions()?.map((reaction) => ({
           emoji: reaction.emoji,
           user_ids: reaction.userIds,
-        })) || [],
+        })) ?? [],
     };
     const senderId = message.getSenderId();
     if (senderId) {
@@ -61,21 +61,24 @@ export class MessageRepository implements MessageRepositoryAdapter {
         ? document.toObject()
         : document;
 
-    const senderId = record.sender_id || record.senderId || '';
-    const roomId = record.room_id || record.roomId || '';
-    const readBy = record.read_by || record.readBy || [];
-    const reactions = record.reactions || [];
+    const senderId = record.sender_id ?? record.senderId ?? '';
+    const roomId = record.room_id ?? record.roomId ?? '';
+    const readBy = record.read_by ?? record.readBy ?? [];
+    const rawReactions = record.reactions ?? [];
+    const reactions = Array.isArray(rawReactions) ? rawReactions : [];
 
     return {
-      id: record._id?.toString() || '',
+      id: record._id?.toString() ?? '',
       senderId: String(senderId),
       roomId: String(roomId),
-      content: record.content || '',
-      attachments: record.attachments || [],
+      content: record.content ?? '',
+      attachments: Array.isArray(record.attachments) ? record.attachments : [],
       readBy: Array.isArray(readBy) ? readBy : [],
       reactions: reactions.map((reaction) => ({
-        emoji: reaction.emoji || '',
-        userIds: reaction.user_ids || reaction.userIds || [],
+        emoji: reaction.emoji ?? '',
+        userIds: Array.isArray(reaction.user_ids ?? reaction.userIds)
+          ? ((reaction.user_ids ?? reaction.userIds) as string[])
+          : [],
       })),
     };
   }
