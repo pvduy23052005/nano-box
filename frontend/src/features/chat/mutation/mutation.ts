@@ -9,6 +9,10 @@ export const GET_MESSAGE_QUERY = graphql(`
         senderId
         roomId
         attachments
+        reactions {
+          emoji
+          userIds
+        }
       }
       hasMore
       nextCursor
@@ -24,6 +28,26 @@ export const SEND_MESSAGE_MUTATION = graphql(`
       senderId
       roomId
       attachments
+      reactions {
+        emoji
+        userIds
+      }
+    }
+  }
+`);
+
+export const ADD_EMOJI_MESSAGE_MUTATION = graphql(`
+  mutation AddEmojiMessage($input: AddEmojiMessageInput!) {
+    addEmojiMessage(input: $input) {
+      id
+      content
+      senderId
+      roomId
+      attachments
+      reactions {
+        emoji
+        userIds
+      }
     }
   }
 `);

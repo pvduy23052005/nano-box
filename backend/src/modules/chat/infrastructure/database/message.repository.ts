@@ -10,6 +10,25 @@ import { Message, MessageDocument } from './message.schema';
 import { Model, Types } from 'mongoose';
 import { MessageType } from '../../domain/message.type';
 
+interface RawReactionRecord {
+  emoji?: string;
+  user_ids?: string[];
+  userIds?: string[];
+}
+
+interface RawMessageRecord {
+  _id?: Types.ObjectId | string;
+  content?: string;
+  attachments?: string[];
+  sender_id?: string;
+  senderId?: string;
+  room_id?: string;
+  roomId?: string;
+  read_by?: string[];
+  readBy?: string[];
+  reactions?: RawReactionRecord[];
+}
+
 @Injectable()
 export class MessageRepository implements MessageRepositoryAdapter {
   constructor(
@@ -17,11 +36,10 @@ export class MessageRepository implements MessageRepositoryAdapter {
     private readonly messageModel: Model<MessageDocument>,
   ) {}
 
-  private toPersistence(message: MessageEntity) {
-    return {
+  private toPersistence(message: MessageEntity): Partial<Message> {
+    const persistence: Partial<Message> = {
       content: message.getContent(),
       attachments: message.getAttachments(),
-      sender_id: message.getSenderId(),
       room_id: message.getRoomId(),
       read_by: message.getReadBy(),
       reactions:
@@ -30,22 +48,35 @@ export class MessageRepository implements MessageRepositoryAdapter {
           user_ids: reaction.userIds,
         })) || [],
     };
+    const senderId = message.getSenderId();
+    if (senderId) {
+      persistence.sender_id = senderId;
+    }
+    return persistence;
   }
 
-  private toDTO(document: MessageDocument): MessageType {
-    const raw = document as any;
+  private toDTO(document: MessageDocument | RawMessageRecord): MessageType {
+    const record: RawMessageRecord =
+      'toObject' in document && typeof document.toObject === 'function'
+        ? document.toObject()
+        : document;
+
+    const senderId = record.sender_id || record.senderId || '';
+    const roomId = record.room_id || record.roomId || '';
+    const readBy = record.read_by || record.readBy || [];
+    const reactions = record.reactions || [];
+
     return {
-      id: document._id.toString() || '',
-      senderId: (document.sender_id || raw.senderId || '').toString(),
-      roomId: document.room_id?.toString() || '',
-      content: document.content || '',
-      attachments: document.attachments,
-      readBy: document.read_by || raw.readBy || [],
-      reactions:
-        document.reactions?.map((r) => ({
-          emoji: r.emoji,
-          userIds: r.user_ids || [],
-        })) || [],
+      id: record._id?.toString() || '',
+      senderId: String(senderId),
+      roomId: String(roomId),
+      content: record.content || '',
+      attachments: record.attachments || [],
+      readBy: Array.isArray(readBy) ? readBy : [],
+      reactions: reactions.map((reaction) => ({
+        emoji: reaction.emoji || '',
+        userIds: reaction.user_ids || reaction.userIds || [],
+      })),
     };
   }
 
@@ -64,7 +95,11 @@ export class MessageRepository implements MessageRepositoryAdapter {
 
     const persistenceData = this.toPersistence(message);
     const updated = await this.messageModel
-      .findByIdAndUpdate(id, { $set: persistenceData }, { new: true })
+      .findByIdAndUpdate(
+        id,
+        { $set: persistenceData },
+        { returnDocument: 'after' },
+      )
       .exec();
 
     if (!updated) {

@@ -1,7 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
-
 @Schema({ _id: false })
 export class Reaction {
   @Prop({ required: true, trim: true })
@@ -17,6 +16,7 @@ export class Reaction {
     updatedAt: 'updated_at',
   },
   collection: 'messages',
+  strict: false,
 })
 export class Message {
   @Prop({ required: true, trim: true, index: true })

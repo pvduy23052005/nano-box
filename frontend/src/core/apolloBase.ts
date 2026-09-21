@@ -1,4 +1,4 @@
-import { HttpLink } from "@apollo/client";
+import { HttpLink, InMemoryCacheConfig } from "@apollo/client";
 
 export const createHttpLink = (token?: string | null) => {
   let uri =
@@ -27,4 +27,21 @@ export const createHttpLink = (token?: string | null) => {
       authorization: token ? `Bearer ${token}` : "",
     },
   });
+};
+
+export const cacheConfig: InMemoryCacheConfig = {
+  typePolicies: {
+    ChatPayload: {
+      fields: {
+        reactions: {
+          merge(_existing, incoming) {
+            return incoming;
+          },
+        },
+      },
+    },
+    ReactionPayload: {
+      keyFields: false,
+    },
+  },
 };

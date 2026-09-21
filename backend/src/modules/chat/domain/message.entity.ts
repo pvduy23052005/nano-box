@@ -45,7 +45,9 @@ export class MessageEntity {
     const cleanEmoji = emoji?.trim();
     if (!cleanEmoji || !userId) return;
 
-    const existingEmojiGroup = this.reactions.find((reaction: MessageReactionType) => reaction.emoji === cleanEmoji);
+    const existingEmojiGroup = this.reactions.find(
+      (reaction: MessageReactionType) => reaction.emoji === cleanEmoji,
+    );
     const alreadyReactedThis = existingEmojiGroup?.userIds.includes(userId);
 
     this.reactions.forEach((reaction: MessageReactionType) => {
@@ -53,7 +55,9 @@ export class MessageEntity {
     });
 
     if (alreadyReactedThis) {
-      this.reactions = this.reactions.filter((reaction: MessageReactionType) => reaction.userIds.length > 0);
+      this.reactions = this.reactions.filter(
+        (reaction: MessageReactionType) => reaction.userIds.length > 0,
+      );
       return;
     }
 

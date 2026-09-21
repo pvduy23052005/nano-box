@@ -24,7 +24,7 @@ export class ChatResolver {
     private readonly addEmojiMessageUseCase: AddEmojiMessageUseCase,
     private readonly webSocketService: WebsocketService,
     private readonly uploadService: UploadService,
-  ) { }
+  ) {}
 
   @Query(() => MessagesPagePayload)
   async getMessages(

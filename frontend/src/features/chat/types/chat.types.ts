@@ -1,3 +1,8 @@
+export interface MessageReaction {
+  emoji: string;
+  userIds: string[];
+}
+
 export interface Message {
   id: string;
   content: string;
@@ -7,6 +12,7 @@ export interface Message {
   isMe: boolean;
   attachments?: string[] | null;
   readBy?: string[] | null;
+  reactions?: MessageReaction[] | null;
   createdAt?: string | Date;
 }
 
