@@ -243,8 +243,8 @@ export default function ChatFooter() {
   };
 
   return (
-    <div className="bg-background/80 p-2 shrink-0 border-t sm:border-t-0">
-      <div className="flex flex-col bg-card border rounded-xl overflow-hidden focus-within:ring-1 focus-within:ring-ring">
+    <div className="p-2 shrink-0 border-t sm:border-t-0 shadow-sm">
+      <div className="flex flex-col bg-card border rounded-xl overflow-hidden focus-within:ring-1 focus-within:ring-ring shadow-sm">
         <div className="flex items-center gap-0.5 p-2 border-b bg-muted/30 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <Button
             variant="ghost"
@@ -403,7 +403,7 @@ export default function ChatFooter() {
               title="Đính kèm file"
             >
               <FileText className="size-5" />
-            </Button>x
+            </Button>
 
             <Button
               variant="ghost"
@@ -431,7 +431,7 @@ export default function ChatFooter() {
             size="icon"
             type="button"
             disabled={!activeRoomId}
-            className="size-10 text-primary hover:text-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="size-10 text-primary hover:text-primary/80 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             onClick={handleSend}
           >
             <SendHorizontal className="size-5" />

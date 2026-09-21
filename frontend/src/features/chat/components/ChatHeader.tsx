@@ -25,7 +25,7 @@ export default function ChatHeader() {
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
-    <header className="hidden sm:flex h-12 border-b items-center gap-2 p-2">
+    <header className="hidden sm:flex h-12 border-b items-center gap-2 p-2 shadow-sm">
       <Avatar className="size-8">
         <AvatarImage src={activeRoom.avatar || ""} alt={displayName} />
         <AvatarFallback>{initials}</AvatarFallback>

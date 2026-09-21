@@ -62,10 +62,7 @@ export default function ChatImagePreview({
 
         if (isImage) {
           return (
-            <div
-              key={img.id}
-              className="relative size-16 rounded-lg overflow-hidden border bg-muted shrink-0"
-            >
+            <div key={img.id} className="relative size-16 rounded-lg shrink-0">
               <Image
                 src={img.previewUrl}
                 alt={img.file.name}
@@ -91,10 +88,10 @@ export default function ChatImagePreview({
               <button
                 type="button"
                 onClick={() => onRemove(img.id)}
-                className="absolute top-1 right-1 size-4 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center"
+                className="absolute cursor-pointer top-[-5px] right-[-8px] size-4 bg-primary hover:bg-primary/70 transition-all duration-200 text-white rounded-full flex items-center justify-center"
                 title="Xóa ảnh"
               >
-                <X className="size-3" />
+                <X className="size-3 cursor-pointer" />
               </button>
             </div>
           );
@@ -121,7 +118,9 @@ export default function ChatImagePreview({
             {img.status === UploadStatus.UPLOADING && (
               <div className="absolute inset-0 bg-background/80 rounded-lg flex items-center justify-center gap-1.5">
                 <Loader2 className="size-4 animate-spin text-primary" />
-                <span className="text-xs text-muted-foreground">Đang tải...</span>
+                <span className="text-xs text-muted-foreground">
+                  Đang tải...
+                </span>
               </div>
             )}
 
@@ -136,10 +135,10 @@ export default function ChatImagePreview({
             <button
               type="button"
               onClick={() => onRemove(img.id)}
-              className="absolute top-1.5 right-1.5 size-4 bg-muted-foreground/30 hover:bg-muted-foreground/60 text-foreground rounded-full flex items-center justify-center transition-colors"
+              className="absolute cursor-pointer top-[-5px] right-[-8px] size-4 bg-primary hover:bg-primary/70 transition-all duration-200 text-white rounded-full flex items-center justify-center"
               title="Xóa file"
             >
-              <X className="size-3" />
+              <X className="size-3 cursor-pointer" />
             </button>
           </div>
         );

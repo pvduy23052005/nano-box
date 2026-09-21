@@ -176,15 +176,21 @@ export default function ChatMessage({
                 <div
                   key={msg.id}
                   className={cn(
-                    "group/msg relative flex items-center gap-2 w-full",
+                    "group/msg relative flex items-center gap-2 w-full ",
                     isMe ? "flex-row-reverse" : "flex-row",
                   )}
                 >
-                  <div className="flex flex-col max-w-[80%] min-w-0">
+                  <div
+                    className={cn(
+                      "flex flex-col max-w-[85%] sm:max-w-[75%] min-w-0",
+                      isMe ? "items-end" : "items-start",
+                    )}
+                  >
                     {attachmentImages.length > 0 && (
                       <Bubble
                         variant="ghost"
                         className={cn(
+                          "max-w-full shadow-lg rounded-lg",
                           reactionTarget === "images" &&
                             hasReactions &&
                             "has-[[data-slot=bubble-reactions]]:mb-3.5",
@@ -192,7 +198,7 @@ export default function ChatMessage({
                       >
                         <BubbleContent>
                           <div
-                            className="flex flex-wrap gap-1.5"
+                            className="flex flex-wrap gap-1.5 "
                             onClick={handleContentClick}
                           >
                             {attachmentImages.map((url, idx) => (
@@ -214,7 +220,7 @@ export default function ChatMessage({
                     {attachmentFiles.length > 0 && (
                       <div
                         className={cn(
-                          "relative flex flex-col gap-1.5 my-1 w-full",
+                          "relative flex flex-col gap-1.5 my-1 w-full max-w-full",
                           reactionTarget === "files" &&
                             hasReactions &&
                             "mb-3.5",
@@ -230,14 +236,15 @@ export default function ChatMessage({
                       <Bubble
                         variant={isMe ? "default" : "muted"}
                         className={cn(
+                          "max-w-full",
                           reactionTarget === "content" &&
                             hasReactions &&
                             "has-[[data-slot=bubble-reactions]]:mb-3.5",
                         )}
                       >
-                        <BubbleContent>
+                        <BubbleContent className="max-w-full shadow-lg">
                           <div
-                            className="w-max max-w-full [&_img]:rounded-lg [&_img]:max-h-72 [&_img]:w-auto [&_img]:object-cover [&_img]:my-1.5 [&_img]:cursor-pointer hover:[&_img]:opacity-90 transition-opacity"
+                            className="chat-html-content w-fit max-w-full break-words [&_img]:rounded-lg [&_img]:max-h-72 [&_img]:w-auto [&_img]:object-cover [&_img]:my-1.5 [&_img]:cursor-pointer hover:[&_img]:opacity-90 transition-opacity"
                             onClick={handleContentClick}
                             dangerouslySetInnerHTML={{
                               __html: cleanContent,

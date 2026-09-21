@@ -65,7 +65,7 @@ export default function ChatMessageFile({
       rel="noopener noreferrer"
       download={fileName}
       className={cn(
-        "flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all max-w-sm w-full group/file shadow-xs bg-muted",
+        "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all max-w-sm w-full group/file shadow-lg bg-muted",
         isMe
           ? "bg-primary-foreground/15 border-primary/20 hover:opacity-95"
           : "bg-muted hover:bg-accent border-border text-foreground",
