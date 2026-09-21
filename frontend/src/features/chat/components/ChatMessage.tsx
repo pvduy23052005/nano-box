@@ -35,17 +35,7 @@ import { useAddEmojiMessage } from "../hooks/useAddEmojiMessage";
 import { cn } from "@/src/lib/utils";
 import ChatMessageFile from "./ChatMesssageFile";
 
-const QUICK_REACTIONS = [
-  "👍",
-  "❤️",
-  "😂",
-  "😮",
-  "😢",
-  "😡",
-  "🫪",
-  "👀",
-  "😭",
-];
+const QUICK_REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "😡", "🫪", "👀", "😭"];
 
 const IMAGE_REGEX =
   /\.(jpg|jpeg|png|gif|webp|avif|heic|heif|svg|bmp|ico|tiff|tif)(\?.*)?$/i;
@@ -123,7 +113,9 @@ export default function ChatMessage({
             {messages.map((msg) => {
               const cleanContent = DOMPurify.sanitize(msg.content);
 
-              const attachmentImages = (msg.attachments ?? []).filter(isImageAttachment);
+              const attachmentImages = (msg.attachments ?? []).filter(
+                isImageAttachment,
+              );
               const attachmentFiles = (msg.attachments ?? []).filter(
                 (url) => !isImageAttachment(url),
               );
@@ -131,6 +123,54 @@ export default function ChatMessage({
               const hasReactions = Boolean(
                 msg.reactions && msg.reactions.length > 0,
               );
+
+              const hasContent = Boolean(cleanContent);
+              const hasImages = attachmentImages.length > 0;
+              const hasFiles = attachmentFiles.length > 0;
+
+              const reactionTarget = hasContent
+                ? "content"
+                : hasFiles
+                  ? "files"
+                  : hasImages
+                    ? "images"
+                    : null;
+
+              const renderReactions = () => {
+                if (!hasReactions || !msg.reactions?.length) return null;
+                return (
+                  <BubbleReactions
+                    role="img"
+                    aria-label="Reaction"
+                    align={isMe ? "end" : "start"}
+                    side="bottom"
+                    className={cn(
+                      "bg-background shadow-xs rounded-full text-xs ring-1 ring-background cursor-pointer hover:scale-110 transition-transform z-20",
+                      isMe ? "" : "border border-primary",
+                    )}
+                  >
+                    <span className="flex items-center gap-1">
+                      {msg.reactions.map((reaction) => (
+                        <span
+                          key={reaction.emoji}
+                          className="flex items-center gap-0.5 cursor-pointer hover:scale-110 transition-transform"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addEmoji(msg.id, reaction.emoji);
+                          }}
+                        >
+                          <span>{reaction.emoji}</span>
+                          {reaction.userIds.length > 1 && (
+                            <span className="text-[10px] text-muted-foreground font-medium">
+                              {reaction.userIds.length}
+                            </span>
+                          )}
+                        </span>
+                      ))}
+                    </span>
+                  </BubbleReactions>
+                );
+              };
 
               return (
                 <div
@@ -142,7 +182,14 @@ export default function ChatMessage({
                 >
                   <div className="flex flex-col max-w-[80%] min-w-0">
                     {attachmentImages.length > 0 && (
-                      <Bubble variant="ghost">
+                      <Bubble
+                        variant="ghost"
+                        className={cn(
+                          reactionTarget === "images" &&
+                            hasReactions &&
+                            "has-[[data-slot=bubble-reactions]]:mb-3.5",
+                        )}
+                      >
                         <BubbleContent>
                           <div
                             className="flex flex-wrap gap-1.5"
@@ -161,20 +208,30 @@ export default function ChatMessage({
                             ))}
                           </div>
                         </BubbleContent>
+                        {reactionTarget === "images" && renderReactions()}
                       </Bubble>
                     )}
                     {attachmentFiles.length > 0 && (
-                      <div className="flex flex-col gap-1.5 my-1 w-full">
+                      <div
+                        className={cn(
+                          "relative flex flex-col gap-1.5 my-1 w-full",
+                          reactionTarget === "files" &&
+                            hasReactions &&
+                            "mb-3.5",
+                        )}
+                      >
                         {attachmentFiles.map((url, idx) => (
                           <ChatMessageFile key={idx} url={url} isMe={isMe} />
                         ))}
+                        {reactionTarget === "files" && renderReactions()}
                       </div>
                     )}
                     {cleanContent && (
                       <Bubble
                         variant={isMe ? "default" : "muted"}
                         className={cn(
-                          hasReactions &&
+                          reactionTarget === "content" &&
+                            hasReactions &&
                             "has-[[data-slot=bubble-reactions]]:mb-3.5",
                         )}
                       >
@@ -187,35 +244,7 @@ export default function ChatMessage({
                             }}
                           />
                         </BubbleContent>
-                        {hasReactions && (
-                          <BubbleReactions
-                            role="img"
-                            aria-label="Reaction"
-                            align={isMe ? "end" : "start"}
-                            side="bottom"
-                            className="bg-background border border-border/50 shadow-xs rounded-full px-2 py-0.5 text-xs ring-2 ring-background cursor-pointer hover:bg-muted/80 transition-colors"
-                          >
-                            <span className="flex items-center gap-1.5">
-                              {msg.reactions!.map((r) => (
-                                <span
-                                  key={r.emoji}
-                                  className="flex items-center gap-0.5 cursor-pointer hover:scale-110 transition-transform"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    addEmoji(msg.id, r.emoji);
-                                  }}
-                                >
-                                  <span>{r.emoji}</span>
-                                  {r.userIds.length > 1 && (
-                                    <span className="text-[10px] text-muted-foreground font-medium">
-                                      {r.userIds.length}
-                                    </span>
-                                  )}
-                                </span>
-                              ))}
-                            </span>
-                          </BubbleReactions>
-                        )}
+                        {reactionTarget === "content" && renderReactions()}
                       </Bubble>
                     )}
                   </div>
@@ -243,7 +272,7 @@ export default function ChatMessage({
                         side="top"
                         sideOffset={6}
                         align={isMe ? "end" : "start"}
-                        className="p-1 rounded-full bg-background/95 backdrop-blur-md border border-border/50 shadow-lg"
+                        className="p-1 rounded-full bg-background/95 backdrop-blur-md border shadow-lg"
                       >
                         <div className="flex items-center gap-1 px-1 py-0.5">
                           {QUICK_REACTIONS.map((emoji) => (
@@ -254,7 +283,7 @@ export default function ChatMessage({
                                 addEmoji(msg.id, emoji);
                                 setActivePopoverMsgId(null);
                               }}
-                              className="p-1.5 text-lg hover:scale-125 transition-transform hover:bg-muted/80 rounded-full cursor-pointer flex items-center justify-center leading-none"
+                              className="p-1 text-lg hover:scale-125 transition-transform hover:bg-muted/80 rounded-full cursor-pointer flex items-center justify-center leading-none"
                             >
                               {emoji}
                             </button>

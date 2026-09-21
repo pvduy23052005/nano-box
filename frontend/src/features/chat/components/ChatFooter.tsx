@@ -11,7 +11,10 @@ import { useSendTyping } from "../hooks/useSendTyping";
 import { useRoomStore } from "../../room/stores/useRoomStore";
 import { Button } from "@/src/components/ui/button";
 import ChatEmojiPicker from "./ChatEmojiPicker";
-import ChatImagePreview, { PendingImage, UploadStatus } from "./ChatImagePreview";
+import ChatImagePreview, {
+  PendingImage,
+  UploadStatus,
+} from "./ChatImagePreview";
 import { uploadTempFile } from "@/src/services/upload.service";
 import { useRef, useState, useEffect } from "react";
 import {
@@ -37,7 +40,7 @@ export default function ChatFooter() {
   const docInputRef = useRef<HTMLInputElement>(null);
   const [images, setImages] = useState<PendingImage[]>([]);
   const uploadPromisesRef = useRef(
-    new Map<string, Promise<{ tempKey: string; url: string } | null>>()
+    new Map<string, Promise<{ tempKey: string; url: string } | null>>(),
   );
 
   const handleSelectFiles = (files: File[]) => {
@@ -191,7 +194,9 @@ export default function ChatFooter() {
   const handleSend = () => {
     if (!editor || !activeRoomId) return;
     const textContent = editor.getText().trim();
-    const pendingImages = images.filter((img) => img.status !== UploadStatus.ERROR);
+    const pendingImages = images.filter(
+      (img) => img.status !== UploadStatus.ERROR,
+    );
 
     if (!textContent && editor.isEmpty && pendingImages.length === 0) return;
 
@@ -202,7 +207,9 @@ export default function ChatFooter() {
 
     const promises = pendingImages
       .map((img) => uploadPromisesRef.current.get(img.id))
-      .filter((p): p is Promise<{ tempKey: string; url: string } | null> => !!p);
+      .filter(
+        (p): p is Promise<{ tempKey: string; url: string } | null> => !!p,
+      );
     pendingImages.forEach((img) => uploadPromisesRef.current.delete(img.id));
 
     const tempKeysPromise = Promise.all(promises).then((results) =>
@@ -359,7 +366,10 @@ export default function ChatFooter() {
 
         <div className="flex items-center justify-between p-2">
           <div className="flex items-center gap-1">
-            <ChatEmojiPicker onSelect={handleEmojiSelect} disabled={!activeRoomId} />
+            <ChatEmojiPicker
+              onSelect={handleEmojiSelect}
+              disabled={!activeRoomId}
+            />
 
             <input
               ref={fileInputRef}
@@ -376,7 +386,7 @@ export default function ChatFooter() {
               size="icon"
               type="button"
               disabled={!activeRoomId}
-              className="size-10 text-muted-foreground hover:text-foreground"
+              className="size-10 text-muted-foreground hover:text-foreground cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
               title="Chọn ảnh"
             >
@@ -388,7 +398,19 @@ export default function ChatFooter() {
               size="icon"
               type="button"
               disabled={!activeRoomId}
-              className="size-10 text-muted-foreground hover:text-foreground"
+              className="size-10 text-muted-foreground hover:text-foreground cursor-pointer"
+              onClick={() => docInputRef.current?.click()}
+              title="Đính kèm file"
+            >
+              <FileText className="size-5" />
+            </Button>x
+
+            <Button
+              variant="ghost"
+              size="icon"
+              type="button"
+              disabled={!activeRoomId}
+              className="size-10 text-muted-foreground hover:text-foreground cursor-pointer"
             >
               <AtSign className="size-5" />
             </Button>
@@ -401,18 +423,6 @@ export default function ChatFooter() {
               disabled={!activeRoomId}
               onChange={handleFileInputChange}
             />
-
-            <Button
-              variant="ghost"
-              size="icon"
-              type="button"
-              disabled={!activeRoomId}
-              className="size-10 text-muted-foreground hover:text-foreground"
-              onClick={() => docInputRef.current?.click()}
-              title="Đính kèm file"
-            >
-              <FileText className="size-5" />
-            </Button>
           </div>
 
           <Button
