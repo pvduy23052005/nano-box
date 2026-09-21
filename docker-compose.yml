@@ -21,7 +21,7 @@ services:
     build: 
       context: ./backend
       dockerfile: Dockerfile
-    image: ghcr.io/pvduy23052005/nano-box-backend:latest
+    image: nano-box-backend:local
     container_name: nano_box_backend
     restart: unless-stopped
     ports:
@@ -37,7 +37,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    image: ghcr.io/pvduy23052005/nano-box-frontend:latest
+    image: nano-box-frontend:local
     container_name: nano_box_frontend
     restart: unless-stopped
     ports:
