@@ -2,3 +2,5 @@ nginx/ssl/
 *.pem
 *.key
 *.crt
+.DS_Store
+ssl
