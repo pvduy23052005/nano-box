@@ -74,15 +74,51 @@ type Mutation {
   createRoomChatNotFriend(otherUserId: String!): RoomOutput!
   login(input: LoginInputDto!): LoginPayload!
   loginGoogle(idToken: String!): LoginPayload!
+  markAllNotificationsAsRead: Boolean!
+  markNotificationAsRead(id: String!): Boolean!
   register(input: RegisterInputDto!): RegisterPayload!
   sendMessage(input: MessageInput!): ChatPayload!
   updateMemberLastReadMessage(messageId: String!, roomId: String!): Boolean!
 }
 
+type NotificationMetadataOutput {
+  messageId: String
+  roomId: String!
+}
+
+type NotificationPayload {
+  content: String!
+  createdAt: DateTime!
+  id: ID!
+  isRead: Boolean!
+  metadata: NotificationMetadataOutput!
+  recipientId: String!
+  senderAvatar: String
+  senderId: String!
+  senderName: String
+  title: String!
+  type: NotificationType!
+}
+
+enum NotificationType {
+  NEW_MESSAGE
+  NEW_ROOM
+  REACTION
+}
+
+type NotificationsPagePayload {
+  hasMore: Boolean!
+  items: [NotificationPayload!]!
+  nextCursor: String
+  unreadCount: Int!
+}
+
 type Query {
   getMe: UserProfilePayload!
   getMessages(cursor: String, limit: Float, roomId: String!): MessagesPagePayload!
+  getNotifications(cursor: String, limit: Float): NotificationsPagePayload!
   getRoomsByStatus(status: MemberStatus!): [RoomOutput!]!
+  getUnreadNotificationCount: Int!
   getUsers(search: String): [UserProfilePayload!]!
 }
 

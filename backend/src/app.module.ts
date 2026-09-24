@@ -11,6 +11,7 @@ import { WebsocketModule } from './infrastructure/websocket/ws.module';
 import { UploadModule } from './infrastructure/upload/upload.module';
 import { RoomModule } from './modules/room/room.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { NotificationModule } from './modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { AuthModule } from './modules/auth/auth.module';
     AuthModule,
     ChatModule,
     RoomModule,
+    NotificationModule,
   ],
   controllers: [],
   providers: [],

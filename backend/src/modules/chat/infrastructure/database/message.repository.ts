@@ -34,7 +34,7 @@ export class MessageRepository implements MessageRepositoryAdapter {
   constructor(
     @InjectModel(Message.name)
     private readonly messageModel: Model<MessageDocument>,
-  ) { }
+  ) {}
 
   private toPersistence(message: MessageEntity): Partial<Message> {
     const persistence: Partial<Message> = {
