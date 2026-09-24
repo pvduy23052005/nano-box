@@ -13,6 +13,7 @@ import { MarkNotificationAsReadUseCase } from './applications/use-cases/mark-not
 import { MarkAllNotificationsAsReadUseCase } from './applications/use-cases/mark-all-notifications-as-read.use-case';
 import { CreateNotificationUseCase } from './applications/use-cases/create-notification.use-case';
 import { NotificationResolver } from './presentation/graphql/notification.resolver';
+import { NotificationListener } from './presentation/listener/notification.listener';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { NotificationResolver } from './presentation/graphql/notification.resolv
   ],
   providers: [
     NotificationResolver,
+    NotificationListener,
     {
       provide: NotificationRepositoryAdapter,
       useClass: NotificationRepository,

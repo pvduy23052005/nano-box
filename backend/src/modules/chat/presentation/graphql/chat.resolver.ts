@@ -13,6 +13,9 @@ import { CHAT_SOCKET_EVENTS } from '../gateway/event.type';
 import { UseGuards, Logger } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { NOTIFICATION_EVENTS } from 'src/modules/notification/presentation/listener/notification.event';
+
 @Resolver()
 @UseGuards(AuthGuard)
 export class ChatResolver {
@@ -24,6 +27,7 @@ export class ChatResolver {
     private readonly addEmojiMessageUseCase: AddEmojiMessageUseCase,
     private readonly webSocketService: WebsocketService,
     private readonly uploadService: UploadService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   @Query(() => MessagesPagePayload)
@@ -86,12 +90,20 @@ export class ChatResolver {
       ).catch((err) => this.logger.warn(`Failed to delete temp files: ${err}`));
     }
 
+    // emit event socket
     const server = this.webSocketService.server;
     if (server && memberIds.length) {
       server
         .to([...memberIds, input.roomId])
         .emit(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, message);
     }
+
+    // emit event event driven
+    this.eventEmitter.emit(NOTIFICATION_EVENTS.MESSAGE_CREATED, {
+      message,
+      memberIds,
+      senderName: input.senderName,
+    });
 
     return message;
   }

@@ -27,6 +27,7 @@ export type MemberStatus =
 export type MessageInput = {
   content?: string | null | undefined;
   roomId: string;
+  senderName?: string | null | undefined;
   tempKeys?: Array<string> | null | undefined;
 };
 

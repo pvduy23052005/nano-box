@@ -60,6 +60,7 @@ enum MemberStatus {
 input MessageInput {
   content: String
   roomId: String!
+  senderName: String
   tempKeys: [String!]
 }
 
