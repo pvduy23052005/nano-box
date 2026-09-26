@@ -79,6 +79,86 @@ export const resetUnreadCountInCache = (cache: ApolloCache): void => {
   }
 };
 
+export const markNotificationAsReadInCache = (
+  cache: ApolloCache,
+  notificationId: string,
+  limit = NOTIFICATIONS_LIMIT,
+): void => {
+  let wasUnread = false;
+
+  try {
+    cache.updateQuery<GetNotificationsQuery, GetNotificationsQueryVariables>(
+      {
+        query: GET_NOTIFICATIONS_QUERY,
+        variables: { limit },
+      },
+      (data) => {
+        if (!data?.getNotifications) return data;
+
+        const currentItems = data.getNotifications.items || [];
+        const targetItem = currentItems.find(
+          (item) => item.id === notificationId,
+        );
+
+        if (targetItem && !targetItem.isRead) {
+          wasUnread = true;
+        }
+
+        return {
+          getNotifications: {
+            ...data.getNotifications,
+            unreadCount: wasUnread
+              ? Math.max(0, (data.getNotifications.unreadCount ?? 0) - 1)
+              : data.getNotifications.unreadCount,
+            items: currentItems.map((item) =>
+              item.id === notificationId ? { ...item, isRead: true } : item,
+            ),
+          },
+        };
+      },
+    );
+  } catch (error) {
+    console.warn(
+      "Could not update GET_NOTIFICATIONS_QUERY cache for mark as read:",
+      error,
+    );
+  }
+
+  if (wasUnread) {
+    decrementUnreadCountInCache(cache, 1);
+  }
+};
+
+export const markAllNotificationsAsReadInCache = (
+  cache: ApolloCache,
+  limit = NOTIFICATIONS_LIMIT,
+): void => {
+  try {
+    cache.updateQuery<GetNotificationsQuery, GetNotificationsQueryVariables>(
+      {
+        query: GET_NOTIFICATIONS_QUERY,
+        variables: { limit },
+      },
+      (data) => {
+        if (!data?.getNotifications) return data;
+
+        const currentItems = data.getNotifications.items || [];
+        return {
+          getNotifications: {
+            ...data.getNotifications,
+            unreadCount: 0,
+            items: currentItems.map((item) => ({ ...item, isRead: true })),
+          },
+        };
+      },
+    );
+  } catch (error) {
+    console.warn("Could not mark all notifications as read in cache:", error);
+  }
+
+  resetUnreadCountInCache(cache);
+};
+
 export const appendNotificationToCache = (
   cache: ApolloCache,
   newNotification: NotificationItem,

@@ -13,6 +13,8 @@ export interface NotificationProps {
   id?: string;
   recipientId: string;
   senderId: string;
+  senderName?: string;
+  senderAvatar?: string;
   type: NotificationType;
   title: string;
   content: string;

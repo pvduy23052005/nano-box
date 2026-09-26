@@ -14,6 +14,7 @@ export const useGetMessages = () => {
       limit: PAGINATION_LIMIT,
       roomId: activeRoomId!,
     },
+    fetchPolicy: "cache-and-network",
     skip: !activeRoomId,
   });
 

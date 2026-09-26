@@ -8,6 +8,8 @@ export class NotificationEntity {
   private id?: string;
   private recipientId: string;
   private senderId: string;
+  private senderName?: string;
+  private senderAvatar?: string;
   private type: NotificationType;
   private title: string;
   private content: string;
@@ -19,6 +21,8 @@ export class NotificationEntity {
     this.id = props.id;
     this.recipientId = props.recipientId;
     this.senderId = props.senderId;
+    this.senderName = props.senderName;
+    this.senderAvatar = props.senderAvatar;
     this.type = props.type;
     this.title = props.title;
     this.content = props.content;
@@ -52,6 +56,12 @@ export class NotificationEntity {
   }
   public getSenderId(): string {
     return this.senderId;
+  }
+  public getSenderName(): string | undefined {
+    return this.senderName;
+  }
+  public getSenderAvatar(): string | undefined {
+    return this.senderAvatar;
   }
   public getType(): NotificationType {
     return this.type;

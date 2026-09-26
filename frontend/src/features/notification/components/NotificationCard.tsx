@@ -42,13 +42,13 @@ export default function NotificationCard({
     <div
       onClick={onClick}
       className={cn(
-        "group relative flex items-start gap-3 p-3 hover:bg-accent/50 cursor-pointer border-b border-border",
+        "group relative flex items-start gap-3 p-2 hover:bg-accent/70 cursor-pointer",
         !notification.isRead &&
           "bg-primary/5 border-primary/25 hover:bg-primary/10",
       )}
     >
-      <div className="relative shrink-0">
-        <Avatar className="size-9 rounded-full after:border-none">
+      <div className="">
+        <Avatar className="size-12 rounded-full after:border-none">
           {notification.senderAvatar ? (
             <AvatarImage
               src={notification.senderAvatar}
@@ -60,9 +60,6 @@ export default function NotificationCard({
             {senderInitial}
           </AvatarFallback>
         </Avatar>
-        {!notification.isRead && (
-          <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-primary ring-2 ring-background" />
-        )}
       </div>
 
       <div className="flex-1 min-w-0">
@@ -86,6 +83,10 @@ export default function NotificationCard({
           {previewContent ?? "Đã gửi một thông báo mới"}
         </p>
       </div>
+
+      {!notification.isRead && (
+        <span className="absolute right-3 top-1/2 size-3 rounded-full bg-primary ring-2 ring-background" />
+      )}
     </div>
   );
 }

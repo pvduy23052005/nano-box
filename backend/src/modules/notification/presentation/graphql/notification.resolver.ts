@@ -47,6 +47,8 @@ export class NotificationResolver {
         id: item.id ?? '',
         recipientId: item.recipientId,
         senderId: item.senderId,
+        senderName: item.senderName,
+        senderAvatar: item.senderAvatar,
         type: item.type,
         title: item.title,
         content: item.content,

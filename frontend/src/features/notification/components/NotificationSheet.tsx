@@ -9,6 +9,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/src/components/ui/sheet";
+import { Badge } from "@/src/components/ui/badge";
 import { useReceiveNotification } from "../socket/useReceiveNotification";
 import { NotificationItem } from "../types/notification.types";
 import NotificationCard from "./NotificationCard";
@@ -24,6 +25,7 @@ interface NotificationSheetProps {
   isLoadingMore: boolean;
   hasMore: boolean;
   loadMore: () => void;
+  onNotificationClick?: (notification: NotificationItem) => void;
   className?: string;
 }
 
@@ -36,6 +38,7 @@ export default function NotificationSheet({
   isLoadingMore,
   hasMore,
   loadMore,
+  onNotificationClick,
 }: NotificationSheetProps) {
   useReceiveNotification();
 
@@ -46,19 +49,9 @@ export default function NotificationSheet({
         className="w-full sm:w-[420px] max-w-full p-0 flex flex-col gap-0 border-l border-border bg-popover shadow-2xl"
       >
         <SheetHeader className="p-4 border-b border-border/60 bg-muted/20">
-          <div className="flex items-center gap-2.5">
-            <SheetTitle className="text-base font-semibold text-foreground">
-              Thông báo
-            </SheetTitle>
-            {unreadCount !== undefined && unreadCount > 0 && (
-              <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                {unreadCount} mới
-              </span>
-            )}
-          </div>
-          <SheetDescription className="text-xs text-muted-foreground mt-0.5">
-            Tất cả thông báo và tin nhắn gửi đến bạn
-          </SheetDescription>
+          <SheetTitle className="text-base font-semibold text-foreground">
+            Thông báo
+          </SheetTitle>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto flex flex-col">
@@ -73,21 +66,22 @@ export default function NotificationSheet({
                   <NotificationCard
                     key={notification.id}
                     notification={notification}
+                    onClick={() => onNotificationClick?.(notification)}
                   />
                 ))}
               </div>
 
               {hasMore && (
-                <div className="p-3 border-t border-border/40 text-center">
+                <div className="border-t border-border/40 text-center">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={loadMore}
                     disabled={isLoadingMore}
-                    className="w-full text-xs text-muted-foreground hover:text-foreground h-9 cursor-pointer"
+                    className="w-full text-xs text-muted-foreground hover:text-foreground cursor-pointer"
                   >
                     {isLoadingMore && <Spinner data-icon="inline-start" />}
-                    {isLoadingMore ? "Đang tải thêm..." : "Tải thêm thông báo"}
+                    {isLoadingMore ? "Đang tải thêm..." : "Xem thêm"}
                   </Button>
                 </div>
               )}

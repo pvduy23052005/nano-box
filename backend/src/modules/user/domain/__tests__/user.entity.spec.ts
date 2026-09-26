@@ -193,5 +193,43 @@ describe('UserEntity', () => {
         });
       }
     });
+
+    it('nên cập nhật cả tên và avatar khi truyền object hợp lệ', () => {
+      const user = makeRestoredUser();
+
+      user.updateProfile({
+        name: 'Tran Van B',
+        avatar: 'https://example.com/new-avatar.png',
+      });
+
+      expect(user.getName()).toBe('Tran Van B');
+      expect(user.getAvatar()).toBe('https://example.com/new-avatar.png');
+    });
+
+    it('nên ném lỗi DomainValidationException khi tên trong object ngắn hơn 2 ký tự', () => {
+      const user = makeRestoredUser();
+
+      expect(() => user.updateProfile({ name: 'A' })).toThrow(
+        DomainValidationException,
+      );
+
+      try {
+        user.updateProfile({ name: 'A' });
+      } catch (error) {
+        const validationError = error as DomainValidationException;
+        expect(validationError.errors).toEqual({
+          name: 'Tên phải có ít nhất 2 ký tự',
+        });
+      }
+    });
+
+    it('nên chỉ cập nhật avatar nếu không truyền name', () => {
+      const user = makeRestoredUser({ name: 'Giữ nguyên tên' });
+
+      user.updateProfile({ avatar: 'https://example.com/avatar-only.png' });
+
+      expect(user.getName()).toBe('Giữ nguyên tên');
+      expect(user.getAvatar()).toBe('https://example.com/avatar-only.png');
+    });
   });
 });

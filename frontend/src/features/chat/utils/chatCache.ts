@@ -76,28 +76,47 @@ export const updateMessageReactionInCache = (
   messageId: string,
   reactions: Message["reactions"],
 ): void => {
-  cache.updateQuery<GetMessagesData>(
-    {
-      query,
-      variables: {
-        limit: PAGINATION_LIMIT,
-        roomId,
-      },
-    },
-    (existing) => {
-      if (!existing?.getMessages?.items) return existing;
-      return {
-        getMessages: {
-          ...existing.getMessages,
-          items: existing.getMessages.items.map((item) =>
-            item.id === messageId
-              ? { ...item, reactions: reactions || [] }
-              : item,
-          ),
+  try {
+    const identifiedId =
+      cache.identify({ __typename: "ChatPayload", id: messageId }) ||
+      `ChatPayload:${messageId}`;
+
+    cache.modify({
+      id: identifiedId,
+      fields: {
+        reactions() {
+          return reactions || [];
         },
-      };
-    },
-  );
+      },
+    });
+  } catch {
+  }
+
+  try {
+    cache.updateQuery<GetMessagesData>(
+      {
+        query,
+        variables: {
+          limit: PAGINATION_LIMIT,
+          roomId,
+        },
+      },
+      (existing) => {
+        if (!existing?.getMessages?.items) return existing;
+        return {
+          getMessages: {
+            ...existing.getMessages,
+            items: existing.getMessages.items.map((item) =>
+              item.id === messageId
+                ? { ...item, reactions: reactions || [] }
+                : item,
+            ),
+          },
+        };
+      },
+    );
+  } catch {
+  }
 };
 
 export const getMessageFromCache = (

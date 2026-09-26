@@ -1,13 +1,15 @@
 import { useCallback, useMemo, useState } from "react";
-import { useQuery } from "@apollo/client/react";
+import { useMutation, useQuery } from "@apollo/client/react";
 import {
   GET_NOTIFICATIONS_QUERY,
   GET_UNREAD_NOTIFICATION_COUNT_QUERY,
+  MARK_NOTIFICATION_AS_READ_MUTATION,
 } from "../graphql/notification.operations";
 import { NotificationItem } from "../types/notification.types";
 import {
   NOTIFICATIONS_LIMIT,
   mergeNotificationPages,
+  markNotificationAsReadInCache,
 } from "../notification.cache";
 
 export interface UseNotificationsOptions {
@@ -29,6 +31,10 @@ export const useNotifications = (options?: UseNotificationsOptions) => {
       fetchPolicy: "cache-and-network",
       skip: !isEnabled,
     },
+  );
+
+  const [markNotificationAsReadMutation] = useMutation(
+    MARK_NOTIFICATION_AS_READ_MUTATION,
   );
 
   const notifications: NotificationItem[] = useMemo(() => {
@@ -72,6 +78,25 @@ export const useNotifications = (options?: UseNotificationsOptions) => {
     }
   }, [fetchMore, hasMore, nextCursor, isLoadingMore]);
 
+  const markAsRead = useCallback(
+    async (id: string) => {
+      try {
+        await markNotificationAsReadMutation({
+          variables: { id },
+          optimisticResponse: {
+            markNotificationAsRead: true,
+          },
+          update: (cache) => {
+            markNotificationAsReadInCache(cache, id);
+          },
+        });
+      } catch (error) {
+        console.error("Failed to mark notification as read:", error);
+      }
+    },
+    [markNotificationAsReadMutation],
+  );
+
   return {
     notifications,
     unreadCount,
@@ -80,5 +105,6 @@ export const useNotifications = (options?: UseNotificationsOptions) => {
     hasMore,
     loadMore,
     refetch,
+    markAsRead,
   };
 };

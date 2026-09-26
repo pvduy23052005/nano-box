@@ -20,10 +20,16 @@ export class NotificationMetadataSchema {
 })
 export class Notification {
   @Prop({ required: true, trim: true, index: true })
-  recipient_id: string; // Người nhận thông báo
+  recipient_id: string; 
 
   @Prop({ required: true, trim: true })
-  sender_id: string; // Người gửi / người gây ra hành động
+  sender_id: string;
+
+  @Prop({ trim: true })
+  sender_name?: string;
+
+  @Prop({ trim: true })
+  sender_avatar?: string;
 
   @Prop({
     required: true,

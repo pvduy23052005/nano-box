@@ -1,17 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/src/features/auth/store/useAuthStore";
+import { useRoomStore } from "@/src/features/room/stores/useRoomStore";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { SidebarTrigger } from "../ui/sidebar";
 import { Button } from "../ui/button";
 import { Bell } from "lucide-react";
 import { useNotifications } from "@/src/features/notification/hooks/useNotifications";
+import { NotificationItem } from "@/src/features/notification/types/notification.types";
 import NotificationSheet from "@/src/features/notification/components/NotificationSheet";
 
 export default function AppHeader() {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const setActiveRoomId = useRoomStore((state) => state.setActiveRoomId);
 
   const {
     notifications,
@@ -20,7 +25,20 @@ export default function AppHeader() {
     isLoadingMore,
     hasMore,
     loadMore,
+    markAsRead,
   } = useNotifications({ enabled: isOpen });
+
+  const handleNotificationClick = (notification: NotificationItem) => {
+    if (!notification.isRead) {
+      markAsRead(notification.id);
+    }
+
+    if (notification.metadata?.roomId) {
+      setActiveRoomId(notification.metadata.roomId);
+      router.push("/chat");
+      setIsOpen(false);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background/80 px-2 sm:px-4">
@@ -52,6 +70,7 @@ export default function AppHeader() {
             isLoadingMore={isLoadingMore}
             hasMore={hasMore}
             loadMore={loadMore}
+            onNotificationClick={handleNotificationClick}
           />
         </div>
 

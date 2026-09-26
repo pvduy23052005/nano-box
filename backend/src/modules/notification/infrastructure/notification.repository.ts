@@ -17,6 +17,8 @@ interface RawNotificationRecord {
   _id?: Types.ObjectId | string;
   recipient_id?: string;
   sender_id?: string;
+  sender_name?: string;
+  sender_avatar?: string;
   type?: NotificationType;
   title?: string;
   content?: string;
@@ -42,6 +44,8 @@ export class NotificationRepository implements NotificationRepositoryAdapter {
     return {
       recipient_id: notification.getRecipientId(),
       sender_id: notification.getSenderId(),
+      sender_name: notification.getSenderName(),
+      sender_avatar: notification.getSenderAvatar(),
       type: notification.getType(),
       title: notification.getTitle(),
       content: notification.getContent(),
@@ -65,6 +69,8 @@ export class NotificationRepository implements NotificationRepositoryAdapter {
       id: record._id?.toString() ?? '',
       recipientId: record.recipient_id ?? '',
       senderId: record.sender_id ?? '',
+      senderName: record.sender_name,
+      senderAvatar: record.sender_avatar,
       type: record.type ?? NotificationType.NEW_MESSAGE,
       title: record.title ?? '',
       content: record.content ?? '',

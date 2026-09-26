@@ -42,6 +42,8 @@ export class NotificationListener {
       const notification = await this.createNotificationUseCase.execute({
         recipientId,
         senderId: reactorId,
+        senderName: reactorName,
+        senderAvatar: reactorAvatar,
         type: NotificationType.REACTION,
         title,
         content,
@@ -54,11 +56,7 @@ export class NotificationListener {
       // emit event socket 
       this.websocketService.server
         ?.to(recipientId)
-        ?.emit(NOTIFICATION_SOCKET_EVENTS.RECEIVE_NOTIFICATION, {
-          ...notification,
-          senderName: reactorName,
-          senderAvatar: reactorAvatar ?? null,
-        });
+        ?.emit(NOTIFICATION_SOCKET_EVENTS.RECEIVE_NOTIFICATION, notification);
     } catch (error) {
       this.logger.error('Error handling message.reaction event', error);
     }
