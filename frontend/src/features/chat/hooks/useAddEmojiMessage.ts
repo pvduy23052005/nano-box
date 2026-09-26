@@ -38,6 +38,8 @@ export const useAddEmojiMessage = () => {
           input: {
             messageId,
             emoji,
+            userName: user.name,
+            userAvatar: user.avatar ?? null,
           },
         },
         optimisticResponse: {

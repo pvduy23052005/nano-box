@@ -51,6 +51,7 @@ export const useSendMessage = () => {
             input: {
               content,
               roomId: targetRoomId,
+              senderName: user.name,
               ...(tempKeys.length ? { tempKeys } : {}),
             },
           },

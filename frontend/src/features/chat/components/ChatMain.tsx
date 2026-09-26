@@ -7,10 +7,6 @@ import LogoSpinner from "@/src/components/common/LogoSpinner";
 import ChatLoading from "./ChatLoading";
 import ChatMessage from "./ChatMessage";
 import ChatTypingIndicator from "./ChatTypingIndicator";
-import { useReceiveMessage } from "../socket/useReceiveMessage";
-import { useReceiveTyping } from "../socket/useReceiveTyping";
-import { useReceiveMessageRead } from "../socket/useReceiveMessageRead";
-import { useReceiveReaction } from "../socket/useReceiveReaction";
 import { useMarkAsRead } from "../hooks/useMarkAsRead";
 import { useTypingStore } from "../stores/useTypingStore";
 import { useReadReceiptStore } from "../stores/useReadReceiptStore";
@@ -39,10 +35,6 @@ export default function ChatMain() {
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useReceiveMessage();
-  useReceiveTyping();
-  useReceiveMessageRead();
-  useReceiveReaction();
   useMarkAsRead(activeRoomId, messages);
 
   const typingList = useMemo(() => {

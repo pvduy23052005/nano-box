@@ -193,5 +193,6 @@ describe('UserEntity', () => {
         });
       }
     });
+
   });
 });
