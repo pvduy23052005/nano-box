@@ -38,3 +38,24 @@ export const formatMessageTime = (rawDate: unknown): string => {
 
   return `${day}/${month}/${date.getFullYear()}`;
 };
+
+export const formatNotificationTime = (rawDate: unknown): string => {
+  if (!rawDate) return "";
+
+  const date =
+    rawDate instanceof Date ? rawDate : new Date(rawDate as string | number);
+  if (isNaN(date.getTime())) return "";
+
+  const now = new Date();
+  const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffSec < 60) return "Vừa xong";
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin} phút trước`;
+  const diffHours = Math.floor(diffMin / 60);
+  if (diffHours < 24) return `${diffHours} giờ trước`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays} ngày trước`;
+
+  return formatMessageTime(date);
+};

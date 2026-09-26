@@ -20,6 +20,8 @@ export interface MessageCreatedEventPayload {
 export interface MessageReactionEventPayload {
   message: MessageType;
   memberIds: string[];
-  userId: string;
+  reactorId: string;
+  reactorName?: string;
+  reactorAvatar?: string;
   emoji: string;
 }

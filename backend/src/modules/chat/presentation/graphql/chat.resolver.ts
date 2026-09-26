@@ -98,13 +98,6 @@ export class ChatResolver {
         .emit(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, message);
     }
 
-    // emit event event driven
-    this.eventEmitter.emit(NOTIFICATION_EVENTS.MESSAGE_CREATED, {
-      message,
-      memberIds,
-      senderName: input.senderName,
-    });
-
     return message;
   }
 
@@ -125,6 +118,16 @@ export class ChatResolver {
         .to([...memberIds, message.roomId])
         .emit(CHAT_SOCKET_EVENTS.UPDATE_MESSAGE_REACTION, message);
     }
+
+    // emit event event driven for notification only on reaction
+    this.eventEmitter.emit(NOTIFICATION_EVENTS.MESSAGE_REACTION, {
+      message,
+      memberIds,
+      reactorId: userId,
+      reactorName: input.userName,
+      reactorAvatar: input.userAvatar,
+      emoji: input.emoji,
+    });
 
     return {
       id: message.id as string,

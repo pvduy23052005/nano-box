@@ -6,8 +6,8 @@ import { WebsocketService } from 'src/infrastructure/websocket/ws.service';
 import {
   NOTIFICATION_EVENTS,
   NOTIFICATION_SOCKET_EVENTS,
+  type MessageReactionEventPayload,
 } from './notification.event';
-import { type MessageCreatedEventPayload } from './notification.event';
 
 @Injectable()
 export class NotificationListener {
@@ -16,53 +16,51 @@ export class NotificationListener {
   constructor(
     private readonly createNotificationUseCase: CreateNotificationUseCase,
     private readonly websocketService: WebsocketService,
-  ) {}
+  ) { }
 
-  @OnEvent(NOTIFICATION_EVENTS.MESSAGE_CREATED)
-  async handleMessageCreated(
-    payload: MessageCreatedEventPayload,
+  @OnEvent(NOTIFICATION_EVENTS.MESSAGE_REACTION)
+  async handleMessageReaction(
+    payload: MessageReactionEventPayload,
   ): Promise<void> {
     try {
-      const { message, memberIds } = payload;
+      const { message, reactorId, reactorName, reactorAvatar, emoji } = payload;
 
-      if (!message || !memberIds?.length) return;
+      if (!message || !reactorId || !reactorName) return;
+      if (message.senderId === reactorId) return;
 
-      const recipientIds = memberIds.filter(
-        (memberId) => memberId !== message.senderId,
+      const isReacted = message.reactions?.some(
+        (reaction) =>
+          reaction.emoji === emoji && reaction.userIds.includes(reactorId),
       );
+      if (!isReacted) return;
 
-      if (!recipientIds.length) return;
+      const title = `${reactorName}`;
+      const content = `${reactorName} đã thả ${emoji} vào tin nhắn của bạn`.trim();
 
-      const title = `${payload.senderName} đã gửi một tin nhắn`;
-      const content =
-        message.content ||
-        (message.attachments?.length ? '[Tệp đính kèm]' : '');
+      const recipientId = message.senderId;
 
-      await Promise.all(
-        recipientIds.map(async (recipientId) => {
-          const notification = await this.createNotificationUseCase.execute({
-            recipientId,
-            senderId: message.senderId,
-            type: NotificationType.NEW_MESSAGE,
-            title,
-            content,
-            metadata: {
-              roomId: message.roomId,
-              messageId: message.id,
-            },
-          });
+      const notification = await this.createNotificationUseCase.execute({
+        recipientId,
+        senderId: reactorId,
+        type: NotificationType.REACTION,
+        title,
+        content,
+        metadata: {
+          roomId: message.roomId,
+          messageId: message.id,
+        },
+      });
 
-          // emit event
-          this.websocketService.server
-            ?.to(recipientId)
-            ?.emit(
-              NOTIFICATION_SOCKET_EVENTS.RECEIVE_NOTIFICATION,
-              notification,
-            );
-        }),
-      );
+      // emit event socket 
+      this.websocketService.server
+        ?.to(recipientId)
+        ?.emit(NOTIFICATION_SOCKET_EVENTS.RECEIVE_NOTIFICATION, {
+          ...notification,
+          senderName: reactorName,
+          senderAvatar: reactorAvatar ?? null,
+        });
     } catch (error) {
-      this.logger.error('Error handling message.created event', error);
+      this.logger.error('Error handling message.reaction event', error);
     }
   }
 }

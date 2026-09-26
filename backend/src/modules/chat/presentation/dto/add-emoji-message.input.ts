@@ -1,5 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 @InputType()
 export class AddEmojiMessageInput {
@@ -12,4 +12,14 @@ export class AddEmojiMessageInput {
   @IsString()
   @IsNotEmpty({ message: 'Emoji không được để trống' })
   emoji: string;
+
+  @Field({ nullable: true })
+  @IsString()
+  @IsOptional()
+  userName?: string;
+
+  @Field({ nullable: true })
+  @IsString()
+  @IsOptional()
+  userAvatar?: string;
 }

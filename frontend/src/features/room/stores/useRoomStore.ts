@@ -21,6 +21,7 @@ interface RoomState {
   activeRoomId: string | null;
   activeRoom: ChatRoom | null;
   setActiveRoom: (room: ChatRoom | null) => void;
+  setActiveRoomId: (roomId: string | null) => void;
 }
 
 export const useRoomStore = create<RoomState>((set) => ({
@@ -30,5 +31,9 @@ export const useRoomStore = create<RoomState>((set) => ({
     set({
       activeRoom: room,
       activeRoomId: room?.id ?? null,
+    }),
+  setActiveRoomId: (roomId) =>
+    set({
+      activeRoomId: roomId,
     }),
 }));

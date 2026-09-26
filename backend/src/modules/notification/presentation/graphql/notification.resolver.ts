@@ -4,9 +4,7 @@ import {
   Float,
   Int,
   Mutation,
-  Parent,
   Query,
-  ResolveField,
   Resolver,
 } from '@nestjs/graphql';
 import { CurrentUser } from 'src/common/customs/current-user.decorator';
@@ -30,7 +28,7 @@ export class NotificationResolver {
     private readonly markNotificationAsReadUseCase: MarkNotificationAsReadUseCase,
     private readonly markAllNotificationsAsReadUseCase: MarkAllNotificationsAsReadUseCase,
     private readonly getMeUseCase: GetMeUseCase,
-  ) {}
+  ) { }
 
   @Query(() => NotificationsPagePayload)
   async getNotifications(
@@ -92,31 +90,4 @@ export class NotificationResolver {
     return this.markAllNotificationsAsReadUseCase.execute(recipientId);
   }
 
-  @ResolveField(() => String, { nullable: true })
-  async senderName(
-    @Parent() notification: NotificationPayload,
-  ): Promise<string | null> {
-    if (notification.senderName) return notification.senderName;
-    if (!notification.senderId) return null;
-    try {
-      const user = await this.getMeUseCase.execute(notification.senderId);
-      return user?.name ?? null;
-    } catch {
-      return null;
-    }
-  }
-
-  @ResolveField(() => String, { nullable: true })
-  async senderAvatar(
-    @Parent() notification: NotificationPayload,
-  ): Promise<string | null> {
-    if (notification.senderAvatar) return notification.senderAvatar;
-    if (!notification.senderId) return null;
-    try {
-      const user = await this.getMeUseCase.execute(notification.senderId);
-      return user?.avatar ?? null;
-    } catch {
-      return null;
-    }
-  }
 }

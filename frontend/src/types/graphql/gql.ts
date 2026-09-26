@@ -21,6 +21,10 @@ type Documents = {
     "\n  query GetMessages($cursor: String, $limit: Float, $roomId: String!) {\n    getMessages(cursor: $cursor, limit: $limit, roomId: $roomId) {\n      items {\n        id\n        content\n        senderId\n        roomId\n        attachments\n        reactions {\n          emoji\n          userIds\n        }\n      }\n      hasMore\n      nextCursor\n    }\n  }\n": typeof types.GetMessagesDocument,
     "\n  mutation SendMessage($input: MessageInput!) {\n    sendMessage(input: $input) {\n      id  \n      content\n      senderId\n      roomId\n      attachments\n      reactions {\n        emoji\n        userIds\n      }\n    }\n  }\n": typeof types.SendMessageDocument,
     "\n  mutation AddEmojiMessage($input: AddEmojiMessageInput!) {\n    addEmojiMessage(input: $input) {\n      id\n      content\n      senderId\n      roomId\n      attachments\n      reactions {\n        emoji\n        userIds\n      }\n    }\n  }\n": typeof types.AddEmojiMessageDocument,
+    "\n  query GetNotifications($cursor: String, $limit: Float) {\n    getNotifications(cursor: $cursor, limit: $limit) {\n      items {\n        id\n        recipientId\n        senderId\n        senderName\n        senderAvatar\n        type\n        title\n        content\n        metadata {\n          roomId\n          messageId\n        }\n        isRead\n        createdAt\n      }\n      hasMore\n      nextCursor\n      unreadCount\n    }\n  }\n": typeof types.GetNotificationsDocument,
+    "\n  query GetUnreadNotificationCount {\n    getUnreadNotificationCount\n  }\n": typeof types.GetUnreadNotificationCountDocument,
+    "\n  mutation MarkNotificationAsRead($id: String!) {\n    markNotificationAsRead(id: $id)\n  }\n": typeof types.MarkNotificationAsReadDocument,
+    "\n  mutation MarkAllNotificationsAsRead {\n    markAllNotificationsAsRead\n  }\n": typeof types.MarkAllNotificationsAsReadDocument,
     "\n  query GetRoomsByStatus($status: MemberStatus!) {\n    getRoomsByStatus(status: $status) {\n      id\n      title\n      typeRoom\n      lastMessageId{\n        id\n        content\n        senderId\n        createdAt\n      }\n      avatar\n      members {\n        userId\n        lastReadMessageId\n      }\n    }\n  }\n": typeof types.GetRoomsByStatusDocument,
     "\n  mutation UpdateMemberLastReadMessage($roomId: String!, $messageId: String!) {\n    updateMemberLastReadMessage(roomId: $roomId, messageId: $messageId)\n  }\n": typeof types.UpdateMemberLastReadMessageDocument,
     "\n  query GetUsers($search: String) {\n    getUsers(search: $search) {\n      id\n      name\n      email\n      avatar\n    }\n  }\n": typeof types.GetUsersDocument,
@@ -34,6 +38,10 @@ const documents: Documents = {
     "\n  query GetMessages($cursor: String, $limit: Float, $roomId: String!) {\n    getMessages(cursor: $cursor, limit: $limit, roomId: $roomId) {\n      items {\n        id\n        content\n        senderId\n        roomId\n        attachments\n        reactions {\n          emoji\n          userIds\n        }\n      }\n      hasMore\n      nextCursor\n    }\n  }\n": types.GetMessagesDocument,
     "\n  mutation SendMessage($input: MessageInput!) {\n    sendMessage(input: $input) {\n      id  \n      content\n      senderId\n      roomId\n      attachments\n      reactions {\n        emoji\n        userIds\n      }\n    }\n  }\n": types.SendMessageDocument,
     "\n  mutation AddEmojiMessage($input: AddEmojiMessageInput!) {\n    addEmojiMessage(input: $input) {\n      id\n      content\n      senderId\n      roomId\n      attachments\n      reactions {\n        emoji\n        userIds\n      }\n    }\n  }\n": types.AddEmojiMessageDocument,
+    "\n  query GetNotifications($cursor: String, $limit: Float) {\n    getNotifications(cursor: $cursor, limit: $limit) {\n      items {\n        id\n        recipientId\n        senderId\n        senderName\n        senderAvatar\n        type\n        title\n        content\n        metadata {\n          roomId\n          messageId\n        }\n        isRead\n        createdAt\n      }\n      hasMore\n      nextCursor\n      unreadCount\n    }\n  }\n": types.GetNotificationsDocument,
+    "\n  query GetUnreadNotificationCount {\n    getUnreadNotificationCount\n  }\n": types.GetUnreadNotificationCountDocument,
+    "\n  mutation MarkNotificationAsRead($id: String!) {\n    markNotificationAsRead(id: $id)\n  }\n": types.MarkNotificationAsReadDocument,
+    "\n  mutation MarkAllNotificationsAsRead {\n    markAllNotificationsAsRead\n  }\n": types.MarkAllNotificationsAsReadDocument,
     "\n  query GetRoomsByStatus($status: MemberStatus!) {\n    getRoomsByStatus(status: $status) {\n      id\n      title\n      typeRoom\n      lastMessageId{\n        id\n        content\n        senderId\n        createdAt\n      }\n      avatar\n      members {\n        userId\n        lastReadMessageId\n      }\n    }\n  }\n": types.GetRoomsByStatusDocument,
     "\n  mutation UpdateMemberLastReadMessage($roomId: String!, $messageId: String!) {\n    updateMemberLastReadMessage(roomId: $roomId, messageId: $messageId)\n  }\n": types.UpdateMemberLastReadMessageDocument,
     "\n  query GetUsers($search: String) {\n    getUsers(search: $search) {\n      id\n      name\n      email\n      avatar\n    }\n  }\n": types.GetUsersDocument,
@@ -82,6 +90,22 @@ export function graphql(source: "\n  mutation SendMessage($input: MessageInput!)
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation AddEmojiMessage($input: AddEmojiMessageInput!) {\n    addEmojiMessage(input: $input) {\n      id\n      content\n      senderId\n      roomId\n      attachments\n      reactions {\n        emoji\n        userIds\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation AddEmojiMessage($input: AddEmojiMessageInput!) {\n    addEmojiMessage(input: $input) {\n      id\n      content\n      senderId\n      roomId\n      attachments\n      reactions {\n        emoji\n        userIds\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query GetNotifications($cursor: String, $limit: Float) {\n    getNotifications(cursor: $cursor, limit: $limit) {\n      items {\n        id\n        recipientId\n        senderId\n        senderName\n        senderAvatar\n        type\n        title\n        content\n        metadata {\n          roomId\n          messageId\n        }\n        isRead\n        createdAt\n      }\n      hasMore\n      nextCursor\n      unreadCount\n    }\n  }\n"): (typeof documents)["\n  query GetNotifications($cursor: String, $limit: Float) {\n    getNotifications(cursor: $cursor, limit: $limit) {\n      items {\n        id\n        recipientId\n        senderId\n        senderName\n        senderAvatar\n        type\n        title\n        content\n        metadata {\n          roomId\n          messageId\n        }\n        isRead\n        createdAt\n      }\n      hasMore\n      nextCursor\n      unreadCount\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query GetUnreadNotificationCount {\n    getUnreadNotificationCount\n  }\n"): (typeof documents)["\n  query GetUnreadNotificationCount {\n    getUnreadNotificationCount\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation MarkNotificationAsRead($id: String!) {\n    markNotificationAsRead(id: $id)\n  }\n"): (typeof documents)["\n  mutation MarkNotificationAsRead($id: String!) {\n    markNotificationAsRead(id: $id)\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation MarkAllNotificationsAsRead {\n    markAllNotificationsAsRead\n  }\n"): (typeof documents)["\n  mutation MarkAllNotificationsAsRead {\n    markAllNotificationsAsRead\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

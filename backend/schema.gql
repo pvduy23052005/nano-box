@@ -5,6 +5,8 @@
 input AddEmojiMessageInput {
   emoji: String!
   messageId: String!
+  userAvatar: String
+  userName: String
 }
 
 type ChatPayload {
