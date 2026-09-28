@@ -10,7 +10,7 @@ export class AuthResolver {
   constructor(
     private readonly loginUseCase: LoginUseCase,
     private readonly loginGoogleUseCase: LoginGoogleUseCase,
-  ) {}
+  ) { }
 
   @Mutation(() => LoginPayload)
   async login(
@@ -54,5 +54,16 @@ export class AuthResolver {
       message: 'Đăng nhập thành công',
       data: result,
     };
+  }
+
+  @Mutation(() => Boolean)
+  logout(@Context('res') res: Response): boolean {
+    const isProd = process.env.NODE_ENV === 'production';
+    res.clearCookie('accessToken', {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+    });
+    return true;
   }
 }

@@ -58,3 +58,10 @@ export const GET_ME_QUERY = graphql(`
     }
   }
 `);
+
+export const LOGOUT_MUTATION = graphql(`
+  mutation Logout {
+    logout
+  }
+`);
+

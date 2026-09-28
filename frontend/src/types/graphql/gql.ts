@@ -18,6 +18,7 @@ type Documents = {
     "\n  mutation Login($input: LoginInputDto!) {\n    login(input: $input) {\n      success\n      message\n      data {\n        accessToken\n        user {\n          id\n          name\n          email\n        }\n      }\n    }\n  }\n": typeof types.LoginDocument,
     "\n  mutation LoginGoogle($idToken: String!) {\n    loginGoogle(idToken: $idToken) {\n      success\n      message\n      data {\n        accessToken\n        user {\n          id\n          name\n          email\n        }\n      }\n    }\n  }\n": typeof types.LoginGoogleDocument,
     "\n  query GetMe {\n    getMe {\n      id\n      name\n      email\n      avatar\n    }\n  }\n": typeof types.GetMeDocument,
+    "\n  mutation Logout {\n    logout\n  }\n": typeof types.LogoutDocument,
     "\n  query GetMessages($cursor: String, $limit: Float, $roomId: String!) {\n    getMessages(cursor: $cursor, limit: $limit, roomId: $roomId) {\n      items {\n        id\n        content\n        senderId\n        roomId\n        attachments\n        reactions {\n          emoji\n          userIds\n        }\n      }\n      hasMore\n      nextCursor\n    }\n  }\n": typeof types.GetMessagesDocument,
     "\n  mutation SendMessage($input: MessageInput!) {\n    sendMessage(input: $input) {\n      id  \n      content\n      senderId\n      roomId\n      attachments\n      reactions {\n        emoji\n        userIds\n      }\n    }\n  }\n": typeof types.SendMessageDocument,
     "\n  mutation AddEmojiMessage($input: AddEmojiMessageInput!) {\n    addEmojiMessage(input: $input) {\n      id\n      content\n      senderId\n      roomId\n      attachments\n      reactions {\n        emoji\n        userIds\n      }\n    }\n  }\n": typeof types.AddEmojiMessageDocument,
@@ -29,12 +30,14 @@ type Documents = {
     "\n  mutation UpdateMemberLastReadMessage($roomId: String!, $messageId: String!) {\n    updateMemberLastReadMessage(roomId: $roomId, messageId: $messageId)\n  }\n": typeof types.UpdateMemberLastReadMessageDocument,
     "\n  query GetUsers($search: String) {\n    getUsers(search: $search) {\n      id\n      name\n      email\n      avatar\n    }\n  }\n": typeof types.GetUsersDocument,
     "\n  mutation CreateRoomChatNotFriend($otherUserId: String!) {\n    createRoomChatNotFriend(otherUserId: $otherUserId) {\n      id\n      title\n      typeRoom\n      avatar\n      lastMessageId {\n        id\n        content\n        senderId\n        createdAt\n      }\n      members {\n        userId\n        role\n        status\n      }\n    }\n  }\n": typeof types.CreateRoomChatNotFriendDocument,
+    "\n  mutation UpdateProfile($input: UpdateProfileInputDto!) {\n    updateProfile(input: $input) {\n      success\n      message\n      data {\n        id\n        name\n        email\n        avatar\n      }\n    }\n  }\n": typeof types.UpdateProfileDocument,
 };
 const documents: Documents = {
     "\n  mutation Register($input: RegisterInputDto!) {\n    register(input: $input) {\n      success\n      message\n      data {\n        id\n        name\n        email\n      }\n    }\n  }\n": types.RegisterDocument,
     "\n  mutation Login($input: LoginInputDto!) {\n    login(input: $input) {\n      success\n      message\n      data {\n        accessToken\n        user {\n          id\n          name\n          email\n        }\n      }\n    }\n  }\n": types.LoginDocument,
     "\n  mutation LoginGoogle($idToken: String!) {\n    loginGoogle(idToken: $idToken) {\n      success\n      message\n      data {\n        accessToken\n        user {\n          id\n          name\n          email\n        }\n      }\n    }\n  }\n": types.LoginGoogleDocument,
     "\n  query GetMe {\n    getMe {\n      id\n      name\n      email\n      avatar\n    }\n  }\n": types.GetMeDocument,
+    "\n  mutation Logout {\n    logout\n  }\n": types.LogoutDocument,
     "\n  query GetMessages($cursor: String, $limit: Float, $roomId: String!) {\n    getMessages(cursor: $cursor, limit: $limit, roomId: $roomId) {\n      items {\n        id\n        content\n        senderId\n        roomId\n        attachments\n        reactions {\n          emoji\n          userIds\n        }\n      }\n      hasMore\n      nextCursor\n    }\n  }\n": types.GetMessagesDocument,
     "\n  mutation SendMessage($input: MessageInput!) {\n    sendMessage(input: $input) {\n      id  \n      content\n      senderId\n      roomId\n      attachments\n      reactions {\n        emoji\n        userIds\n      }\n    }\n  }\n": types.SendMessageDocument,
     "\n  mutation AddEmojiMessage($input: AddEmojiMessageInput!) {\n    addEmojiMessage(input: $input) {\n      id\n      content\n      senderId\n      roomId\n      attachments\n      reactions {\n        emoji\n        userIds\n      }\n    }\n  }\n": types.AddEmojiMessageDocument,
@@ -46,6 +49,7 @@ const documents: Documents = {
     "\n  mutation UpdateMemberLastReadMessage($roomId: String!, $messageId: String!) {\n    updateMemberLastReadMessage(roomId: $roomId, messageId: $messageId)\n  }\n": types.UpdateMemberLastReadMessageDocument,
     "\n  query GetUsers($search: String) {\n    getUsers(search: $search) {\n      id\n      name\n      email\n      avatar\n    }\n  }\n": types.GetUsersDocument,
     "\n  mutation CreateRoomChatNotFriend($otherUserId: String!) {\n    createRoomChatNotFriend(otherUserId: $otherUserId) {\n      id\n      title\n      typeRoom\n      avatar\n      lastMessageId {\n        id\n        content\n        senderId\n        createdAt\n      }\n      members {\n        userId\n        role\n        status\n      }\n    }\n  }\n": types.CreateRoomChatNotFriendDocument,
+    "\n  mutation UpdateProfile($input: UpdateProfileInputDto!) {\n    updateProfile(input: $input) {\n      success\n      message\n      data {\n        id\n        name\n        email\n        avatar\n      }\n    }\n  }\n": types.UpdateProfileDocument,
 };
 
 /**
@@ -78,6 +82,10 @@ export function graphql(source: "\n  mutation LoginGoogle($idToken: String!) {\n
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query GetMe {\n    getMe {\n      id\n      name\n      email\n      avatar\n    }\n  }\n"): (typeof documents)["\n  query GetMe {\n    getMe {\n      id\n      name\n      email\n      avatar\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation Logout {\n    logout\n  }\n"): (typeof documents)["\n  mutation Logout {\n    logout\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -122,6 +130,10 @@ export function graphql(source: "\n  query GetUsers($search: String) {\n    getU
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation CreateRoomChatNotFriend($otherUserId: String!) {\n    createRoomChatNotFriend(otherUserId: $otherUserId) {\n      id\n      title\n      typeRoom\n      avatar\n      lastMessageId {\n        id\n        content\n        senderId\n        createdAt\n      }\n      members {\n        userId\n        role\n        status\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation CreateRoomChatNotFriend($otherUserId: String!) {\n    createRoomChatNotFriend(otherUserId: $otherUserId) {\n      id\n      title\n      typeRoom\n      avatar\n      lastMessageId {\n        id\n        content\n        senderId\n        createdAt\n      }\n      members {\n        userId\n        role\n        status\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdateProfile($input: UpdateProfileInputDto!) {\n    updateProfile(input: $input) {\n      success\n      message\n      data {\n        id\n        name\n        email\n        avatar\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateProfile($input: UpdateProfileInputDto!) {\n    updateProfile(input: $input) {\n      success\n      message\n      data {\n        id\n        name\n        email\n        avatar\n      }\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

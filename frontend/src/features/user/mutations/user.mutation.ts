@@ -33,3 +33,17 @@ export const CREATE_ROOM_CHAT_NOT_FRIEND_MUTATION = graphql(`
   }
 `);
 
+export const UPDATE_PROFILE_MUTATION = graphql(`
+  mutation UpdateProfile($input: UpdateProfileInputDto!) {
+    updateProfile(input: $input) {
+      success
+      message
+      data {
+        id
+        name
+        email
+        avatar
+      }
+    }
+  }
+`);

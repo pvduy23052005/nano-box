@@ -77,6 +77,7 @@ type Mutation {
   createRoomChatNotFriend(otherUserId: String!): RoomOutput!
   login(input: LoginInputDto!): LoginPayload!
   loginGoogle(idToken: String!): LoginPayload!
+  logout: Boolean!
   markAllNotificationsAsRead: Boolean!
   markNotificationAsRead(id: String!): Boolean!
   register(input: RegisterInputDto!): RegisterPayload!
