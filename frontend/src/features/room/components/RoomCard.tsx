@@ -96,9 +96,6 @@ export default function RoomCard({
               {initials}
             </AvatarFallback>
           </Avatar>
-          {isUnread && (
-            <span className="absolute bottom-0 right-0 size-3 rounded-full bg-slate-400 ring-2 ring-card" />
-          )}
         </div>
         <span
           className={cn(

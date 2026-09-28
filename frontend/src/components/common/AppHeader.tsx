@@ -53,16 +53,15 @@ export default function AppHeader() {
     <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background/80 px-2 sm:px-4">
       <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground cursor-pointer" />
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1">
         <div>
           <Button
             variant="ghost"
-            size="sm"
             onClick={() => setIsOpen((prev) => !prev)}
             className="relative rounded-full hover:bg-accent/70 transition-colors cursor-pointer"
             aria-label="Thông báo"
           >
-            <Bell className="size-4 text-muted-foreground hover:text-foreground transition-colors" />
+            <Bell className="size-5 text-muted-foreground hover:text-foreground transition-colors" />
             {unreadCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground shadow-sm animate-in zoom-in-50">
                 {unreadCount > 99 ? "99+" : unreadCount}

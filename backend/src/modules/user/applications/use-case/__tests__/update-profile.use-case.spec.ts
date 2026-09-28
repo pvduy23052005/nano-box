@@ -38,7 +38,9 @@ describe('UpdateProfileUseCase', () => {
       it('nên cập nhật cả tên và avatar rồi lưu vào cơ sở dữ liệu', async () => {
         const existingUser = makePersistedUser();
         userRepository.findById.mockResolvedValue(existingUser);
-        userRepository.save.mockImplementation((entity) => Promise.resolve(entity));
+        userRepository.save.mockImplementation((entity) =>
+          Promise.resolve(entity),
+        );
 
         const input = {
           name: 'Nguyen Van B',
@@ -52,7 +54,9 @@ describe('UpdateProfileUseCase', () => {
 
         const savedEntity: UserEntity = userRepository.save.mock.calls[0][0];
         expect(savedEntity.getName()).toBe('Nguyen Van B');
-        expect(savedEntity.getAvatar()).toBe('http://example.com/new-avatar.png');
+        expect(savedEntity.getAvatar()).toBe(
+          'http://example.com/new-avatar.png',
+        );
 
         expect(result).toEqual({
           id: 'user-id-1',
@@ -65,7 +69,9 @@ describe('UpdateProfileUseCase', () => {
       it('nên chỉ cập nhật tên khi không truyền avatar', async () => {
         const existingUser = makePersistedUser();
         userRepository.findById.mockResolvedValue(existingUser);
-        userRepository.save.mockImplementation((entity) => Promise.resolve(entity));
+        userRepository.save.mockImplementation((entity) =>
+          Promise.resolve(entity),
+        );
 
         const input = {
           name: 'Nguyen Van B',
@@ -87,7 +93,9 @@ describe('UpdateProfileUseCase', () => {
       it('nên chỉ cập nhật avatar khi không truyền tên', async () => {
         const existingUser = makePersistedUser();
         userRepository.findById.mockResolvedValue(existingUser);
-        userRepository.save.mockImplementation((entity) => Promise.resolve(entity));
+        userRepository.save.mockImplementation((entity) =>
+          Promise.resolve(entity),
+        );
 
         const input = {
           avatar: 'http://example.com/only-avatar.png',
@@ -100,7 +108,9 @@ describe('UpdateProfileUseCase', () => {
 
         const savedEntity: UserEntity = userRepository.save.mock.calls[0][0];
         expect(savedEntity.getName()).toBe('Nguyen Van A');
-        expect(savedEntity.getAvatar()).toBe('http://example.com/only-avatar.png');
+        expect(savedEntity.getAvatar()).toBe(
+          'http://example.com/only-avatar.png',
+        );
 
         expect(result.name).toBe('Nguyen Van A');
         expect(result.avatar).toBe('http://example.com/only-avatar.png');

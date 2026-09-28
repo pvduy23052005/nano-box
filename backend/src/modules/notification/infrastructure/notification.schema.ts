@@ -20,7 +20,7 @@ export class NotificationMetadataSchema {
 })
 export class Notification {
   @Prop({ required: true, trim: true, index: true })
-  recipient_id: string; 
+  recipient_id: string;
 
   @Prop({ required: true, trim: true })
   sender_id: string;

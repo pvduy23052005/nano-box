@@ -10,7 +10,7 @@ export class AuthResolver {
   constructor(
     private readonly loginUseCase: LoginUseCase,
     private readonly loginGoogleUseCase: LoginGoogleUseCase,
-  ) { }
+  ) {}
 
   @Mutation(() => LoginPayload)
   async login(
