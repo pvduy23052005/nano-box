@@ -1,14 +1,15 @@
-import { User, UserSchema } from './infrastructure/databases/user.schema';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UserResolver } from './presentation/graphql/user.resolver';
-import { RegisterUseCase } from './applications/use-case/register.use-case';
-import { UserRepositoryAdapter } from './applications/ports/user.port';
 import { IpasswordHasher } from './applications/ports/password-hasher.port';
-import { UserRepository } from './infrastructure/databases/user.repository';
-import { PasswordHasher } from './infrastructure/externals/password-hasher.external';
+import { UserRepositoryAdapter } from './applications/ports/user.port';
 import { GetMeUseCase } from './applications/use-case/get-me.use-case';
 import { GetUsersUseCase } from './applications/use-case/get-users.use-case';
+import { RegisterUseCase } from './applications/use-case/register.use-case';
+import { UpdateProfileUseCase } from './applications/use-case/update-profile.use-case';
+import { UserRepository } from './infrastructure/databases/user.repository';
+import { User, UserSchema } from './infrastructure/databases/user.schema';
+import { PasswordHasher } from './infrastructure/externals/password-hasher.external';
+import { UserResolver } from './presentation/graphql/user.resolver';
 
 @Module({
   imports: [
@@ -44,6 +45,12 @@ import { GetUsersUseCase } from './applications/use-case/get-users.use-case';
         new GetUsersUseCase(userRepository),
       inject: [UserRepositoryAdapter],
     },
+    {
+      provide: UpdateProfileUseCase,
+      useFactory: (userRepository: UserRepositoryAdapter) =>
+        new UpdateProfileUseCase(userRepository),
+      inject: [UserRepositoryAdapter],
+    },
   ],
   exports: [
     MongooseModule,
@@ -51,6 +58,7 @@ import { GetUsersUseCase } from './applications/use-case/get-users.use-case';
     UserRepositoryAdapter,
     IpasswordHasher,
     GetMeUseCase,
+    UpdateProfileUseCase,
   ],
 })
 export class UserModule {}

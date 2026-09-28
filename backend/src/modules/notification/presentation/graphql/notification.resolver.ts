@@ -1,12 +1,5 @@
 import { UseGuards } from '@nestjs/common';
-import {
-  Args,
-  Float,
-  Int,
-  Mutation,
-  Query,
-  Resolver,
-} from '@nestjs/graphql';
+import { Args, Float, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { CurrentUser } from 'src/common/customs/current-user.decorator';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import {
@@ -28,7 +21,7 @@ export class NotificationResolver {
     private readonly markNotificationAsReadUseCase: MarkNotificationAsReadUseCase,
     private readonly markAllNotificationsAsReadUseCase: MarkAllNotificationsAsReadUseCase,
     private readonly getMeUseCase: GetMeUseCase,
-  ) { }
+  ) {}
 
   @Query(() => NotificationsPagePayload)
   async getNotifications(
@@ -91,5 +84,4 @@ export class NotificationResolver {
   ): Promise<boolean> {
     return this.markAllNotificationsAsReadUseCase.execute(recipientId);
   }
-
 }

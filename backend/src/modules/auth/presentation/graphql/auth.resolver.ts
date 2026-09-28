@@ -55,4 +55,15 @@ export class AuthResolver {
       data: result,
     };
   }
+
+  @Mutation(() => Boolean)
+  logout(@Context('res') res: Response): boolean {
+    const isProd = process.env.NODE_ENV === 'production';
+    res.clearCookie('accessToken', {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+    });
+    return true;
+  }
 }

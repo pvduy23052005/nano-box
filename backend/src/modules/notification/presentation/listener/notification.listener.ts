@@ -16,7 +16,7 @@ export class NotificationListener {
   constructor(
     private readonly createNotificationUseCase: CreateNotificationUseCase,
     private readonly websocketService: WebsocketService,
-  ) { }
+  ) {}
 
   @OnEvent(NOTIFICATION_EVENTS.MESSAGE_REACTION)
   async handleMessageReaction(
@@ -35,7 +35,8 @@ export class NotificationListener {
       if (!isReacted) return;
 
       const title = `${reactorName}`;
-      const content = `${reactorName} đã thả ${emoji} vào tin nhắn của bạn`.trim();
+      const content =
+        `${reactorName} đã thả ${emoji} vào tin nhắn của bạn`.trim();
 
       const recipientId = message.senderId;
 
@@ -53,7 +54,7 @@ export class NotificationListener {
         },
       });
 
-      // emit event socket 
+      // emit event socket
       this.websocketService.server
         ?.to(recipientId)
         ?.emit(NOTIFICATION_SOCKET_EVENTS.RECEIVE_NOTIFICATION, notification);
