@@ -82,6 +82,7 @@ type Mutation {
   register(input: RegisterInputDto!): RegisterPayload!
   sendMessage(input: MessageInput!): ChatPayload!
   updateMemberLastReadMessage(messageId: String!, roomId: String!): Boolean!
+  updateProfile(input: UpdateProfileInputDto!): UpdateProfilePayload!
 }
 
 type NotificationMetadataOutput {
@@ -163,6 +164,17 @@ type RoomOutput {
 enum RoomType {
   GROUP
   SINGLE
+}
+
+input UpdateProfileInputDto {
+  avatar: String
+  name: String
+}
+
+type UpdateProfilePayload {
+  data: UserProfilePayload
+  message: String!
+  success: Boolean!
 }
 
 type User {

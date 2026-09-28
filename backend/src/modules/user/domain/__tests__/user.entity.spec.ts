@@ -194,5 +194,55 @@ describe('UserEntity', () => {
       }
     });
 
+    it('nên cập nhật cả tên và avatar qua object props', () => {
+      const user = makeRestoredUser();
+
+      user.updateProfile({
+        name: 'Tran Van C',
+        avatar: 'http://example.com/new-avatar.png',
+      });
+
+      expect(user.getName()).toBe('Tran Van C');
+      expect(user.getAvatar()).toBe('http://example.com/new-avatar.png');
+    });
+
+    it('nên cập nhật chỉ avatar khi không truyền name', () => {
+      const user = makeRestoredUser();
+
+      user.updateProfile({
+        avatar: 'http://example.com/only-avatar.png',
+      });
+
+      expect(user.getName()).toBe('Nguyen Van A');
+      expect(user.getAvatar()).toBe('http://example.com/only-avatar.png');
+    });
+
+    it('nên cập nhật chỉ name khi không truyền avatar', () => {
+      const user = makeRestoredUser();
+
+      user.updateProfile({
+        name: 'Tran Van D',
+      });
+
+      expect(user.getName()).toBe('Tran Van D');
+      expect(user.getAvatar()).toBe('http://example.com/avatar.png');
+    });
+
+    it('nên ném lỗi DomainValidationException khi name trong object là chuỗi rỗng', () => {
+      const user = makeRestoredUser();
+
+      expect(() => user.updateProfile({ name: '' })).toThrow(
+        DomainValidationException,
+      );
+
+      try {
+        user.updateProfile({ name: '' });
+      } catch (error) {
+        const validationError = error as DomainValidationException;
+        expect(validationError.errors).toEqual({
+          name: 'Tên không được để trống',
+        });
+      }
+    });
   });
 });

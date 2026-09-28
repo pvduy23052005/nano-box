@@ -4,3 +4,8 @@ export interface UserProfile {
   email: string;
   avatar: string;
 }
+
+export interface UpdateProfileInput {
+  name?: string;
+  avatar?: string;
+}

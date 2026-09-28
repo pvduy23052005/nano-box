@@ -66,13 +66,14 @@ export class UserRepository implements UserRepositoryAdapter {
   }
 
   async findAll(search?: string): Promise<UserEntity[]> {
-    const query: any = {};
-    if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-      ];
-    }
+    const query: Record<string, unknown> = search
+      ? {
+          $or: [
+            { name: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } },
+          ],
+        }
+      : {};
     const users = await this.userModel.find(query).lean().exec();
     return users.map((user) => this.toEntity(user));
   }

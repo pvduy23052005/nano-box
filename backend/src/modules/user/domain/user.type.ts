@@ -11,3 +11,8 @@ export interface UserProps {
   status?: UserStatus;
   avatar: string;
 }
+
+export interface UpdateProfileProps {
+  name?: string;
+  avatar?: string;
+}

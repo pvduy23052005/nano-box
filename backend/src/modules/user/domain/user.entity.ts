@@ -1,5 +1,5 @@
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
-import { UserProps, UserStatus } from './user.type';
+import { UpdateProfileProps, UserProps, UserStatus } from './user.type';
 
 export class UserEntity {
   private id?: string;
@@ -65,11 +65,39 @@ export class UserEntity {
     this.status = UserStatus.ACTIVE;
   }
 
-  public updateProfile(name: string): void {
-    if (!name.trim()) {
-      throw new DomainValidationException('name', 'Tên không được để trống');
+  public updateProfile(
+    nameOrProps: string | UpdateProfileProps,
+    avatar?: string,
+  ): void {
+    let name: string | undefined;
+    let newAvatar: string | undefined;
+
+    if (typeof nameOrProps === 'string') {
+      name = nameOrProps;
+      newAvatar = avatar;
+    } else {
+      name = nameOrProps.name;
+      newAvatar = nameOrProps.avatar;
     }
-    this.name = name;
+
+    const errors: Record<string, string> = {};
+
+    if (name !== undefined) {
+      if (!name || !name.trim()) {
+        errors.name = 'Tên không được để trống';
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      throw new DomainValidationException(errors);
+    }
+
+    if (name !== undefined) {
+      this.name = name.trim();
+    }
+    if (newAvatar !== undefined) {
+      this.avatar = newAvatar;
+    }
   }
 
   public getId(): string | undefined {

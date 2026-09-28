@@ -1,13 +1,16 @@
 import { UseGuards } from '@nestjs/common';
-import { AuthGuard } from 'src/common/guards/auth.guard';
 import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
-import { RegisterInputDto } from '../dto/register.input';
-import { RegisterPayload } from '../dto/register.payload';
-import { RegisterUseCase } from '../../applications/use-case/register.use-case';
-import { UserProfilePayload } from '../dto/profile.payload';
+import { AuthGuard } from 'src/common/guards/auth.guard';
+import { CurrentUser } from 'src/common/customs/current-user.decorator';
 import { GetMeUseCase } from '../../applications/use-case/get-me.use-case';
 import { GetUsersUseCase } from '../../applications/use-case/get-users.use-case';
-import { CurrentUser } from 'src/common/customs/current-user.decorator';
+import { RegisterUseCase } from '../../applications/use-case/register.use-case';
+import { UpdateProfileUseCase } from '../../applications/use-case/update-profile.use-case';
+import { UserProfilePayload } from '../dto/profile.payload';
+import { RegisterInputDto } from '../dto/register.input';
+import { RegisterPayload } from '../dto/register.payload';
+import { UpdateProfileInputDto } from '../dto/update-profile.input';
+import { UpdateProfilePayload } from '../dto/update-profile.payload';
 
 @Resolver(() => RegisterPayload)
 export class UserResolver {
@@ -15,6 +18,7 @@ export class UserResolver {
     private readonly registerUseCase: RegisterUseCase,
     private readonly getMeUseCase: GetMeUseCase,
     private readonly getUsersUseCase: GetUsersUseCase,
+    private readonly updateProfileUseCase: UpdateProfileUseCase,
   ) {}
 
   @Query(() => UserProfilePayload)
@@ -38,4 +42,20 @@ export class UserResolver {
       data: result,
     };
   }
+
+  @Mutation(() => UpdateProfilePayload)
+  @UseGuards(AuthGuard)
+  async updateProfile(
+    @CurrentUser('id') userId: string,
+    @Args('input') input: UpdateProfileInputDto,
+  ): Promise<UpdateProfilePayload> {
+    const result = await this.updateProfileUseCase.execute(userId, input);
+
+    return {
+      success: true,
+      message: 'Cập nhật thông tin thành công',
+      data: result,
+    };
+  }
 }
+
