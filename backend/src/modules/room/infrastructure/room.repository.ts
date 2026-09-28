@@ -6,6 +6,10 @@ import { Model, Types } from 'mongoose';
 import { RoomProps } from '../domain/room.type';
 import { MemberStatus, RoomType } from '../domain/chat.enum';
 import { RoomMapper } from './room.mapper';
+import {
+  User,
+  UserDocument,
+} from '../../user/infrastructure/databases/user.schema';
 
 const ROOM_POPULATE_OPTIONS = [
   {
@@ -22,6 +26,8 @@ export class RoomRepository implements RoomRepositoryAdapter {
   constructor(
     @InjectModel(Room.name)
     private readonly roomModel: Model<RoomDocument>,
+    @InjectModel(User.name)
+    private readonly userModel: Model<UserDocument>,
   ) {}
 
   async save(room: RoomEntity): Promise<RoomProps> {
@@ -35,26 +41,62 @@ export class RoomRepository implements RoomRepositoryAdapter {
   async findRoomsByUserIdAndStatus(
     userId: string,
     status: MemberStatus,
+    search?: string,
   ): Promise<RoomProps[]> {
     const userObjectId = Types.ObjectId.isValid(userId)
       ? new Types.ObjectId(userId)
       : userId;
 
-    const rooms = await this.roomModel
-      .find({
-        members: {
-          $elemMatch: {
-            user_id: userObjectId,
-            status: status,
+    const filter: Record<string, any> = {
+      members: {
+        $elemMatch: {
+          user_id: userObjectId,
+          status: status,
+        },
+      },
+    };
+
+    const cleanSearch = search?.trim();
+    if (cleanSearch) {
+      const matchingUsers = await this.userModel
+        .find({
+          name: { $regex: cleanSearch, $options: 'i' },
+          _id: { $ne: userObjectId },
+        })
+        .select('_id')
+        .lean()
+        .exec();
+
+      const matchingUserIds = matchingUsers.map((u) => u._id);
+
+      filter.$or = [
+        { title: { $regex: cleanSearch, $options: 'i' } },
+        {
+          members: {
+            $elemMatch: {
+              user_id: { $in: matchingUserIds },
+            },
           },
         },
-      })
+      ];
+    }
+
+    const rooms = await this.roomModel
+      .find(filter)
       .sort({ updated_at: -1 })
       .populate(ROOM_POPULATE_OPTIONS)
       .lean()
       .exec();
 
-    return rooms.map((room) => RoomMapper.toProps(room, userId));
+    const mappedRooms = rooms.map((room) => RoomMapper.toProps(room, userId));
+
+    if (cleanSearch) {
+      return mappedRooms.filter((room) =>
+        room.title?.toLowerCase().includes(cleanSearch.toLowerCase()),
+      );
+    }
+
+    return mappedRooms;
   }
 
   async checkRoomExist(

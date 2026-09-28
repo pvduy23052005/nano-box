@@ -1,12 +1,12 @@
 import { graphql } from "@/src/types/graphql";
 
 export const GET_ROOMS_BY_STATUS_QUERY = graphql(`
-  query GetRoomsByStatus($status: MemberStatus!) {
-    getRoomsByStatus(status: $status) {
+  query GetRoomsByStatus($status: MemberStatus!, $search: String) {
+    getRoomsByStatus(status: $status, search: $search) {
       id
       title
       typeRoom
-      lastMessageId{
+      lastMessageId {
         id
         content
         senderId

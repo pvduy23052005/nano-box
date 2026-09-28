@@ -1,18 +1,25 @@
 import { useEffect } from "react";
 import { useQuery } from "@apollo/client/react";
-import { MemberStatus, GetRoomsByStatusQuery } from "@/src/types/graphql/graphql";
+import { GetRoomsByStatusQuery } from "@/src/types/graphql/graphql";
 import { GET_ROOMS_BY_STATUS_QUERY } from "../room.mutation";
 import { useReadReceiptStore } from "../../chat/stores/useReadReceiptStore";
 type RoomItem = NonNullable<GetRoomsByStatusQuery["getRoomsByStatus"]>[number];
+import { MemberStatus } from "../types/room.type";
 
 const EMPTY_ROOMS: RoomItem[] = [];
 
-export const useGetRooms = (status: MemberStatus = "ACCEPTED") => {
+export const useGetRooms = (
+  status: MemberStatus = MemberStatus.ACCEPTED,
+  search?: string,
+) => {
   const initializeRoomReads = useReadReceiptStore(
     (state) => state.initializeRoomReads,
   );
   const { data, loading, error, refetch } = useQuery(GET_ROOMS_BY_STATUS_QUERY, {
-    variables: { status },
+    variables: {
+      status,
+      search: search?.trim() ? search.trim() : undefined,
+    },
     fetchPolicy: "cache-and-network",
   });
 

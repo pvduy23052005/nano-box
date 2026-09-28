@@ -35,8 +35,13 @@ export class RoomResolver {
   async getRoomsByStatus(
     @CurrentUser('id') myId: string,
     @Args('status', { type: () => MemberStatus }) status: MemberStatus,
+    @Args('search', { type: () => String, nullable: true }) search?: string,
   ) {
-    const rooms = await this.getRoomsByStatusUseCase.execute(myId, status);
+    const rooms = await this.getRoomsByStatusUseCase.execute(
+      myId,
+      status,
+      search,
+    );
 
     return rooms.map((result) => RoomMapper.toOutput(result));
   }
