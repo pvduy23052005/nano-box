@@ -18,7 +18,8 @@ import { useGetRooms } from "../../room/hooks/useGetRooms";
 import { useReceiveRoom } from "../../room/socket/useReceiveRoom";
 import { useRoomStore, ChatRoom } from "../../room/stores/useRoomStore";
 import { MemberStatus } from "../../room/types/room.type";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
+import { useDebounce } from "@/src/hooks/useDebounce";
 
 export enum RoomTypeSearch {
   FRIEND = "friends",
@@ -29,18 +30,20 @@ export default function ChatSidebar() {
   const [activeTab, setActiveTab] = useState<RoomTypeSearch>(
     RoomTypeSearch.FRIEND,
   );
+  const [searchValue, setSearchValue] = useState("");
+  const debouncedSearch = useDebounce(searchValue.trim(), 350);
 
   const {
     rooms: friendRooms,
     loading: loadingFriends,
     error: errorFriends,
-  } = useGetRooms(MemberStatus.ACCEPTED);
+  } = useGetRooms(MemberStatus.ACCEPTED, debouncedSearch);
 
   const {
     rooms: strangerRooms,
     loading: loadingStrangers,
     error: errorStrangers,
-  } = useGetRooms(MemberStatus.WAITTING);
+  } = useGetRooms(MemberStatus.WAITTING, debouncedSearch);
 
   useReceiveRoom();
 
@@ -62,13 +65,27 @@ export default function ChatSidebar() {
         <div className="p-1.5 pb-0 sm:p-2 border-b flex flex-col">
           <div className="hidden sm:block">
             <InputGroup className="h-7">
-              <InputGroupAddon>
+              <InputGroupAddon align="inline-start">
                 <Search className="size-3.5" />
               </InputGroupAddon>
               <InputGroupInput
                 className="h-6 py-0 text-xs"
-                placeholder="Tìm kiếm cuộc trò truyện..."
+                placeholder="Tìm kiếm cuộc trò chuyện..."
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
               />
+              {searchValue && (
+                <InputGroupAddon align="inline-end">
+                  <button
+                    type="button"
+                    onClick={() => setSearchValue("")}
+                    className="cursor-pointer text-muted-foreground hover:text-foreground p-0.5"
+                    title="Xóa tìm kiếm"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </InputGroupAddon>
+              )}
             </InputGroup>
           </div>
 
@@ -96,6 +113,11 @@ export default function ChatSidebar() {
             rooms={friendRooms as ChatRoom[]}
             isLoading={loadingFriends}
             error={!!errorFriends}
+            emptyMessage={
+              debouncedSearch
+                ? "Không tìm thấy cuộc trò chuyện nào"
+                : "Chưa có cuộc trò chuyện"
+            }
           />
         </TabsContent>
 
@@ -107,6 +129,11 @@ export default function ChatSidebar() {
             rooms={strangerRooms as ChatRoom[]}
             isLoading={loadingStrangers}
             error={!!errorStrangers}
+            emptyMessage={
+              debouncedSearch
+                ? "Không tìm thấy cuộc trò chuyện nào"
+                : "Không có tin nhắn từ người lạ"
+            }
           />
         </TabsContent>
       </Tabs>

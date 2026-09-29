@@ -6,6 +6,10 @@ import {
   MessageSchema,
 } from '../chat/infrastructure/database/message.schema';
 import {
+  User,
+  UserSchema,
+} from '../user/infrastructure/databases/user.schema';
+import {
   RoomResolver,
   RoomMemberResolver,
 } from './presentation/graphql/room.graphql';
@@ -21,6 +25,7 @@ import { UserModule } from '../user/user.module';
     MongooseModule.forFeature([
       { name: Room.name, schema: RoomSchema },
       { name: Message.name, schema: MessageSchema },
+      { name: User.name, schema: UserSchema },
     ]),
     UserModule,
   ],

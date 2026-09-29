@@ -8,6 +8,7 @@ export abstract class RoomRepositoryAdapter {
   abstract findRoomsByUserIdAndStatus(
     userId: string,
     status: MemberStatus,
+    search?: string,
   ): Promise<RoomProps[]>;
 
   abstract checkRoomExist(

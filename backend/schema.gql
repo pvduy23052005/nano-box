@@ -122,7 +122,7 @@ type Query {
   getMe: UserProfilePayload!
   getMessages(cursor: String, limit: Float, roomId: String!): MessagesPagePayload!
   getNotifications(cursor: String, limit: Float): NotificationsPagePayload!
-  getRoomsByStatus(status: MemberStatus!): [RoomOutput!]!
+  getRoomsByStatus(search: String, status: MemberStatus!): [RoomOutput!]!
   getUnreadNotificationCount: Int!
   getUsers(search: String): [UserProfilePayload!]!
 }
