@@ -5,10 +5,7 @@ import {
   Message,
   MessageSchema,
 } from '../chat/infrastructure/database/message.schema';
-import {
-  User,
-  UserSchema,
-} from '../user/infrastructure/databases/user.schema';
+import { User, UserSchema } from '../user/infrastructure/databases/user.schema';
 import {
   RoomResolver,
   RoomMemberResolver,

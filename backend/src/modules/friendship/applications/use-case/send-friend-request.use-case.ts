@@ -1,0 +1,49 @@
+import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
+import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
+import { FriendshipEntity } from '../../domain/friendship.entity';
+import { FriendshipProps } from '../../domain/friendship.type';
+import { FriendshipRepositoryAdapter } from '../ports/friendship.port';
+
+export class SendFriendRequestUseCase {
+  constructor(
+    private readonly friendshipRepository: FriendshipRepositoryAdapter,
+    private readonly userRepository: UserRepositoryAdapter,
+  ) {}
+
+  async execute(
+    requesterId: string,
+    addresseeId: string,
+  ): Promise<FriendshipProps> {
+    const addressee = await this.userRepository.findById(addresseeId);
+    if (!addressee) {
+      throw new DomainValidationException(
+        'addresseeId',
+        'Người dùng nhận lời mời không tồn tại',
+      );
+    }
+
+    const existing = await this.friendshipRepository.findBetweenUsers(
+      requesterId,
+      addresseeId,
+    );
+
+    if (existing?.isAccepted()) {
+      throw new DomainValidationException('status', 'Hai người đã là bạn bè');
+    }
+
+    if (existing?.isPending()) {
+      if (existing.getRequesterId() === requesterId) {
+        throw new DomainValidationException(
+          'status',
+          'Bạn đã gửi lời mời kết bạn cho người này rồi',
+        );
+      }
+
+      existing.accept(requesterId);
+      return await this.friendshipRepository.save(existing);
+    }
+
+    const friendship = FriendshipEntity.create(requesterId, addresseeId);
+    return await this.friendshipRepository.save(friendship);
+  }
+}
