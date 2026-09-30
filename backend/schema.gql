@@ -118,6 +118,7 @@ type Mutation {
   markAllNotificationsAsRead: Boolean!
   markNotificationAsRead(id: String!): Boolean!
   register(input: RegisterInputDto!): RegisterPayload!
+  rejectFriendRequest(friendId: String!): RejectFriendRequestPayload!
   sendFriendRequest(addresseeId: String!): SendFriendRequestPayload!
   sendMessage(input: MessageInput!): ChatPayload!
   updateMemberLastReadMessage(messageId: String!, roomId: String!): Boolean!
@@ -180,6 +181,12 @@ input RegisterInputDto {
 
 type RegisterPayload {
   data: UserProfilePayload
+  message: String!
+  success: Boolean!
+}
+
+type RejectFriendRequestPayload {
+  data: FriendshipDataPayload
   message: String!
   success: Boolean!
 }
