@@ -9,6 +9,12 @@ input AddEmojiMessageInput {
   userName: String
 }
 
+type CancelFriendRequestPayload {
+  data: FriendshipDataPayload
+  message: String!
+  success: Boolean!
+}
+
 type ChatPayload {
   attachments: [String!]
   content: String!
@@ -104,6 +110,7 @@ type MessagesPagePayload {
 
 type Mutation {
   addEmojiMessage(input: AddEmojiMessageInput!): ChatPayload!
+  cancelFriendRequest(friendId: String!): CancelFriendRequestPayload!
   createRoomChatNotFriend(otherUserId: String!): RoomOutput!
   login(input: LoginInputDto!): LoginPayload!
   loginGoogle(idToken: String!): LoginPayload!

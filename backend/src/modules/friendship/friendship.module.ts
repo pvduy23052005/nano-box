@@ -5,6 +5,7 @@ import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.
 import { FriendshipRepositoryAdapter } from './applications/ports/friendship.port';
 import { GetReceivedFriendRequestsUseCase } from './applications/use-case/get-received-friend-requests.use-case';
 import { SendFriendRequestUseCase } from './applications/use-case/send-friend-request.use-case';
+import { CancelFriendRequestUseCase } from './applications/use-case/cancel-friend-request.use-case';
 import { FriendshipRepository } from './infrastructure/friendship.repository';
 import {
   Friendship,
@@ -39,11 +40,18 @@ import { FriendshipResolver } from './presentation/graphql/friendship.resolver';
         new GetReceivedFriendRequestsUseCase(friendshipRepository),
       inject: [FriendshipRepositoryAdapter],
     },
+    {
+      provide: CancelFriendRequestUseCase,
+      useFactory: (friendshipRepository: FriendshipRepositoryAdapter) =>
+        new CancelFriendRequestUseCase(friendshipRepository),
+      inject: [FriendshipRepositoryAdapter],
+    },
   ],
   exports: [
     FriendshipRepositoryAdapter,
     SendFriendRequestUseCase,
     GetReceivedFriendRequestsUseCase,
+    CancelFriendRequestUseCase,
   ],
 })
 export class FriendshipModule {}

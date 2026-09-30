@@ -34,6 +34,11 @@ export class SendFriendRequestPayload extends BasePayload(
 ) {}
 
 @ObjectType()
+export class CancelFriendRequestPayload extends BasePayload(
+  FriendshipDataPayload,
+) {}
+
+@ObjectType()
 export class FriendSenderPayload {
   @Field(() => String)
   id: string;
