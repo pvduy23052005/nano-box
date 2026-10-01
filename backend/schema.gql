@@ -2,6 +2,12 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type AcceptFriendRequestPayload {
+  data: FriendshipDataPayload
+  message: String!
+  success: Boolean!
+}
+
 input AddEmojiMessageInput {
   emoji: String!
   messageId: String!
@@ -109,6 +115,7 @@ type MessagesPagePayload {
 }
 
 type Mutation {
+  acceptFriendRequest(friendId: String!): AcceptFriendRequestPayload!
   addEmojiMessage(input: AddEmojiMessageInput!): ChatPayload!
   cancelFriendRequest(friendId: String!): CancelFriendRequestPayload!
   createRoomChatNotFriend(otherUserId: String!): RoomOutput!

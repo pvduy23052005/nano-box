@@ -14,7 +14,7 @@ describe('GetReceivedFriendRequestsUseCase', () => {
       findById: jest.fn(),
       findBetweenUsers: jest.fn(),
       findPendingReceived: jest.fn(),
-    } as unknown as jest.Mocked<FriendshipRepositoryAdapter>;
+    };
 
     useCase = new GetReceivedFriendRequestsUseCase(mockFriendshipRepo);
   });

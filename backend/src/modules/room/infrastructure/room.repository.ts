@@ -200,4 +200,26 @@ export class RoomRepository implements RoomRepositoryAdapter {
 
     return result.modifiedCount > 0;
   }
+
+  async acceptAllMembers(roomId: string): Promise<RoomProps | null> {
+    if (!Types.ObjectId.isValid(roomId)) {
+      return null;
+    }
+
+    const updated = await this.roomModel
+      .findByIdAndUpdate(
+        roomId,
+        {
+          $set: {
+            'members.$[].status': MemberStatus.ACCEPTED,
+          },
+        },
+        { returnDocument: 'after' },
+      )
+      .populate(ROOM_POPULATE_OPTIONS)
+      .lean()
+      .exec();
+
+    return updated ? RoomMapper.toProps(updated) : null;
+  }
 }

@@ -3,11 +3,13 @@ import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.
 import { FriendshipEntity } from '../../domain/friendship.entity';
 import { FriendshipProps } from '../../domain/friendship.type';
 import { FriendshipRepositoryAdapter } from '../ports/friendship.port';
+import { EnsureFriendRoomUseCase } from 'src/modules/room/application/use-cases/ensure-friend-room.use-case';
 
 export class SendFriendRequestUseCase {
   constructor(
     private readonly friendshipRepository: FriendshipRepositoryAdapter,
     private readonly userRepository: UserRepositoryAdapter,
+    private readonly ensureFriendRoomUseCase: EnsureFriendRoomUseCase,
   ) {}
 
   async execute(
@@ -40,7 +42,9 @@ export class SendFriendRequestUseCase {
       }
 
       existing.accept(requesterId);
-      return await this.friendshipRepository.save(existing);
+      const saved = await this.friendshipRepository.save(existing);
+      await this.ensureFriendRoomUseCase.execute(requesterId, addresseeId);
+      return saved;
     }
 
     const friendship = FriendshipEntity.create(requesterId, addresseeId);

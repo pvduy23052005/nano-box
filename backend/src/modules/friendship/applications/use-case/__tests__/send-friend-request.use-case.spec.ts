@@ -8,11 +8,13 @@ import {
 } from '../../../domain/friendship.type';
 import { FriendshipRepositoryAdapter } from '../../ports/friendship.port';
 import { SendFriendRequestUseCase } from '../send-friend-request.use-case';
+import { EnsureFriendRoomUseCase } from 'src/modules/room/application/use-cases/ensure-friend-room.use-case';
 
 describe('SendFriendRequestUseCase', () => {
   let useCase: SendFriendRequestUseCase;
   let mockFriendshipRepo: jest.Mocked<FriendshipRepositoryAdapter>;
   let mockUserRepo: jest.Mocked<UserRepositoryAdapter>;
+  let mockEnsureFriendRoomUseCase: jest.Mocked<EnsureFriendRoomUseCase>;
 
   const requesterId = 'user-requester-id';
   const addresseeId = 'user-addressee-id';
@@ -37,9 +39,17 @@ describe('SendFriendRequestUseCase', () => {
       findByEmail: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
-    } as unknown as jest.Mocked<UserRepositoryAdapter>;
+    };
 
-    useCase = new SendFriendRequestUseCase(mockFriendshipRepo, mockUserRepo);
+    mockEnsureFriendRoomUseCase = {
+      execute: jest.fn(),
+    } as unknown as jest.Mocked<EnsureFriendRoomUseCase>;
+
+    useCase = new SendFriendRequestUseCase(
+      mockFriendshipRepo,
+      mockUserRepo,
+      mockEnsureFriendRoomUseCase,
+    );
   });
 
   it('nên gửi lời mời kết bạn thành công khi chưa từng có quan hệ trước đó', async () => {
@@ -94,6 +104,10 @@ describe('SendFriendRequestUseCase', () => {
     expect(existing.getStatus()).toBe(FriendshipStatus.ACCEPTED);
     expect(mockFriendshipRepo.save).toHaveBeenCalledWith(existing);
     expect(result.status).toBe(FriendshipStatus.ACCEPTED);
+    expect(mockEnsureFriendRoomUseCase.execute).toHaveBeenCalledWith(
+      requesterId,
+      addresseeId,
+    );
   });
 
   it('nên ném lỗi khi chính người gửi đã gửi lời mời trước đó và đang PENDING', async () => {
