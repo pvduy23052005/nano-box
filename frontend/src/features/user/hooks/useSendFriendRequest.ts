@@ -2,15 +2,25 @@ import { useState } from "react";
 import { useMutation } from "@apollo/client/react";
 import { toast } from "sonner";
 import { SEND_FRIEND_REQUEST_MUTATION } from "../mutations/user.mutation";
+import { useSentRequestsStore } from "../stores/useSentRequestsStore";
+
+export interface SendFriendTarget {
+  id: string;
+  name?: string;
+  email?: string;
+  avatar?: string | null;
+}
 
 export const useSendFriendRequest = () => {
   const [sendFriendRequestMutation] = useMutation(SEND_FRIEND_REQUEST_MUTATION);
   const [sendingUserId, setSendingUserId] = useState<string | null>(null);
-  const [sentUserIds, setSentUserIds] = useState<Set<string>>(new Set());
 
-  const sendFriendRequest = async (addresseeId: string) => {
+  const { sentRequests, addSentRequest, isSent } = useSentRequestsStore();
+
+  const sendFriendRequest = async (target: string | SendFriendTarget) => {
+    const addresseeId = typeof target === "string" ? target : target.id;
     if (sendingUserId) return;
-    if (sentUserIds.has(addresseeId)) {
+    if (isSent(addresseeId)) {
       toast.info("Bạn đã gửi lời mời kết bạn cho người này rồi");
       return;
     }
@@ -23,7 +33,16 @@ export const useSendFriendRequest = () => {
 
       const result = response.data?.sendFriendRequest;
       if (result?.success) {
-        setSentUserIds((prev) => new Set(prev).add(addresseeId));
+        addSentRequest(
+          typeof target === "string"
+            ? { id: target, name: "Người dùng" }
+            : {
+                id: target.id,
+                name: target.name || "Người dùng",
+                email: target.email,
+                avatar: target.avatar,
+              }
+        );
         toast.success(result.message || "Gửi lời mời kết bạn thành công");
         return result.data;
       } else {
@@ -44,8 +63,8 @@ export const useSendFriendRequest = () => {
   return {
     sendFriendRequest,
     sendingUserId,
-    sentUserIds,
+    sentRequests,
     isSending: (userId: string) => sendingUserId === userId,
-    isSent: (userId: string) => sentUserIds.has(userId),
+    isSent,
   };
 };

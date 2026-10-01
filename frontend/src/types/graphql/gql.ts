@@ -32,6 +32,10 @@ type Documents = {
     "\n  mutation CreateRoomChatNotFriend($otherUserId: String!) {\n    createRoomChatNotFriend(otherUserId: $otherUserId) {\n      id\n      title\n      typeRoom\n      avatar\n      lastMessageId {\n        id\n        content\n        senderId\n        createdAt\n      }\n      members {\n        userId\n        role\n        status\n      }\n    }\n  }\n": typeof types.CreateRoomChatNotFriendDocument,
     "\n  mutation UpdateProfile($input: UpdateProfileInputDto!) {\n    updateProfile(input: $input) {\n      success\n      message\n      data {\n        id\n        name\n        email\n        avatar\n      }\n    }\n  }\n": typeof types.UpdateProfileDocument,
     "\n  mutation SendFriendRequest($addresseeId: String!) {\n    sendFriendRequest(addresseeId: $addresseeId) {\n      success\n      message\n      data {\n        id\n        requesterId\n        addresseeId\n        status\n        createdAt\n        updatedAt\n      }\n    }\n  }\n": typeof types.SendFriendRequestDocument,
+    "\n  query GetReceivedFriendRequests {\n    getReceivedFriendRequests {\n      id\n      createdAt\n      sender {\n        id\n        name\n        email\n        avatar\n      }\n    }\n  }\n": typeof types.GetReceivedFriendRequestsDocument,
+    "\n  mutation AcceptFriendRequest($friendId: String!) {\n    acceptFriendRequest(friendId: $friendId) {\n      success\n      message\n      data {\n        id\n        requesterId\n        addresseeId\n        status\n      }\n    }\n  }\n": typeof types.AcceptFriendRequestDocument,
+    "\n  mutation RejectFriendRequest($friendId: String!) {\n    rejectFriendRequest(friendId: $friendId) {\n      success\n      message\n      data {\n        id\n        requesterId\n        addresseeId\n        status\n      }\n    }\n  }\n": typeof types.RejectFriendRequestDocument,
+    "\n  mutation CancelFriendRequest($friendId: String!) {\n    cancelFriendRequest(friendId: $friendId) {\n      success\n      message\n      data {\n        id\n        requesterId\n        addresseeId\n        status\n      }\n    }\n  }\n": typeof types.CancelFriendRequestDocument,
 };
 const documents: Documents = {
     "\n  mutation Register($input: RegisterInputDto!) {\n    register(input: $input) {\n      success\n      message\n      data {\n        id\n        name\n        email\n      }\n    }\n  }\n": types.RegisterDocument,
@@ -52,6 +56,10 @@ const documents: Documents = {
     "\n  mutation CreateRoomChatNotFriend($otherUserId: String!) {\n    createRoomChatNotFriend(otherUserId: $otherUserId) {\n      id\n      title\n      typeRoom\n      avatar\n      lastMessageId {\n        id\n        content\n        senderId\n        createdAt\n      }\n      members {\n        userId\n        role\n        status\n      }\n    }\n  }\n": types.CreateRoomChatNotFriendDocument,
     "\n  mutation UpdateProfile($input: UpdateProfileInputDto!) {\n    updateProfile(input: $input) {\n      success\n      message\n      data {\n        id\n        name\n        email\n        avatar\n      }\n    }\n  }\n": types.UpdateProfileDocument,
     "\n  mutation SendFriendRequest($addresseeId: String!) {\n    sendFriendRequest(addresseeId: $addresseeId) {\n      success\n      message\n      data {\n        id\n        requesterId\n        addresseeId\n        status\n        createdAt\n        updatedAt\n      }\n    }\n  }\n": types.SendFriendRequestDocument,
+    "\n  query GetReceivedFriendRequests {\n    getReceivedFriendRequests {\n      id\n      createdAt\n      sender {\n        id\n        name\n        email\n        avatar\n      }\n    }\n  }\n": types.GetReceivedFriendRequestsDocument,
+    "\n  mutation AcceptFriendRequest($friendId: String!) {\n    acceptFriendRequest(friendId: $friendId) {\n      success\n      message\n      data {\n        id\n        requesterId\n        addresseeId\n        status\n      }\n    }\n  }\n": types.AcceptFriendRequestDocument,
+    "\n  mutation RejectFriendRequest($friendId: String!) {\n    rejectFriendRequest(friendId: $friendId) {\n      success\n      message\n      data {\n        id\n        requesterId\n        addresseeId\n        status\n      }\n    }\n  }\n": types.RejectFriendRequestDocument,
+    "\n  mutation CancelFriendRequest($friendId: String!) {\n    cancelFriendRequest(friendId: $friendId) {\n      success\n      message\n      data {\n        id\n        requesterId\n        addresseeId\n        status\n      }\n    }\n  }\n": types.CancelFriendRequestDocument,
 };
 
 /**
@@ -140,6 +148,22 @@ export function graphql(source: "\n  mutation UpdateProfile($input: UpdateProfil
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation SendFriendRequest($addresseeId: String!) {\n    sendFriendRequest(addresseeId: $addresseeId) {\n      success\n      message\n      data {\n        id\n        requesterId\n        addresseeId\n        status\n        createdAt\n        updatedAt\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation SendFriendRequest($addresseeId: String!) {\n    sendFriendRequest(addresseeId: $addresseeId) {\n      success\n      message\n      data {\n        id\n        requesterId\n        addresseeId\n        status\n        createdAt\n        updatedAt\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query GetReceivedFriendRequests {\n    getReceivedFriendRequests {\n      id\n      createdAt\n      sender {\n        id\n        name\n        email\n        avatar\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetReceivedFriendRequests {\n    getReceivedFriendRequests {\n      id\n      createdAt\n      sender {\n        id\n        name\n        email\n        avatar\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation AcceptFriendRequest($friendId: String!) {\n    acceptFriendRequest(friendId: $friendId) {\n      success\n      message\n      data {\n        id\n        requesterId\n        addresseeId\n        status\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation AcceptFriendRequest($friendId: String!) {\n    acceptFriendRequest(friendId: $friendId) {\n      success\n      message\n      data {\n        id\n        requesterId\n        addresseeId\n        status\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation RejectFriendRequest($friendId: String!) {\n    rejectFriendRequest(friendId: $friendId) {\n      success\n      message\n      data {\n        id\n        requesterId\n        addresseeId\n        status\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation RejectFriendRequest($friendId: String!) {\n    rejectFriendRequest(friendId: $friendId) {\n      success\n      message\n      data {\n        id\n        requesterId\n        addresseeId\n        status\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation CancelFriendRequest($friendId: String!) {\n    cancelFriendRequest(friendId: $friendId) {\n      success\n      message\n      data {\n        id\n        requesterId\n        addresseeId\n        status\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation CancelFriendRequest($friendId: String!) {\n    cancelFriendRequest(friendId: $friendId) {\n      success\n      message\n      data {\n        id\n        requesterId\n        addresseeId\n        status\n      }\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

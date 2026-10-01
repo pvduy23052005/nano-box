@@ -63,7 +63,7 @@ export default function UserCard({
           disabled={isSendingFriend || isFriendRequestSent || isCreating}
           className={`size-8 cursor-pointer transition-colors ${
             isFriendRequestSent
-              ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800"
+              ? "text-emerald-600 bg-emerald-50 border-emerald-200"
               : "text-muted-foreground hover:text-foreground hover:bg-muted"
           }`}
           onClick={(e) => {
