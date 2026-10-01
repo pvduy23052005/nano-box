@@ -47,3 +47,21 @@ export const UPDATE_PROFILE_MUTATION = graphql(`
     }
   }
 `);
+
+export const SEND_FRIEND_REQUEST_MUTATION = graphql(`
+  mutation SendFriendRequest($addresseeId: String!) {
+    sendFriendRequest(addresseeId: $addresseeId) {
+      success
+      message
+      data {
+        id
+        requesterId
+        addresseeId
+        status
+        createdAt
+        updatedAt
+      }
+    }
+  }
+`);
+

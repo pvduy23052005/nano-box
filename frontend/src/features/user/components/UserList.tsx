@@ -2,6 +2,7 @@
 
 import { useUsers } from "../hooks/useUsers";
 import { useCreateRoomChatNotFriend } from "../hooks/useCreateRoom";
+import { useSendFriendRequest } from "../hooks/useSendFriendRequest";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { Spinner } from "../../../components/ui/spinner";
 import UserCard from "./UserCard";
@@ -14,6 +15,7 @@ export default function UserList({ searchQuery = "" }: UserListProps) {
   const { users, loading, error } = useUsers(searchQuery);
   const { createRoomChatNotFriend, creatingUserId } =
     useCreateRoomChatNotFriend();
+  const { sendFriendRequest, isSending, isSent } = useSendFriendRequest();
   const { user: currentUser } = useAuthStore();
 
   if (loading) {
@@ -57,8 +59,10 @@ export default function UserList({ searchQuery = "" }: UserListProps) {
           key={user.id}
           user={user}
           isCreating={creatingUserId === user.id}
+          isSendingFriend={isSending(user.id)}
+          isFriendRequestSent={isSent(user.id)}
           onStartChat={handleStartChat}
-          onAddFriend={() => {}}
+          onAddFriend={sendFriendRequest}
         />
       ))}
     </div>

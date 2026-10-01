@@ -31,6 +31,7 @@ type Documents = {
     "\n  query GetUsers($search: String) {\n    getUsers(search: $search) {\n      id\n      name\n      email\n      avatar\n    }\n  }\n": typeof types.GetUsersDocument,
     "\n  mutation CreateRoomChatNotFriend($otherUserId: String!) {\n    createRoomChatNotFriend(otherUserId: $otherUserId) {\n      id\n      title\n      typeRoom\n      avatar\n      lastMessageId {\n        id\n        content\n        senderId\n        createdAt\n      }\n      members {\n        userId\n        role\n        status\n      }\n    }\n  }\n": typeof types.CreateRoomChatNotFriendDocument,
     "\n  mutation UpdateProfile($input: UpdateProfileInputDto!) {\n    updateProfile(input: $input) {\n      success\n      message\n      data {\n        id\n        name\n        email\n        avatar\n      }\n    }\n  }\n": typeof types.UpdateProfileDocument,
+    "\n  mutation SendFriendRequest($addresseeId: String!) {\n    sendFriendRequest(addresseeId: $addresseeId) {\n      success\n      message\n      data {\n        id\n        requesterId\n        addresseeId\n        status\n        createdAt\n        updatedAt\n      }\n    }\n  }\n": typeof types.SendFriendRequestDocument,
 };
 const documents: Documents = {
     "\n  mutation Register($input: RegisterInputDto!) {\n    register(input: $input) {\n      success\n      message\n      data {\n        id\n        name\n        email\n      }\n    }\n  }\n": types.RegisterDocument,
@@ -50,6 +51,7 @@ const documents: Documents = {
     "\n  query GetUsers($search: String) {\n    getUsers(search: $search) {\n      id\n      name\n      email\n      avatar\n    }\n  }\n": types.GetUsersDocument,
     "\n  mutation CreateRoomChatNotFriend($otherUserId: String!) {\n    createRoomChatNotFriend(otherUserId: $otherUserId) {\n      id\n      title\n      typeRoom\n      avatar\n      lastMessageId {\n        id\n        content\n        senderId\n        createdAt\n      }\n      members {\n        userId\n        role\n        status\n      }\n    }\n  }\n": types.CreateRoomChatNotFriendDocument,
     "\n  mutation UpdateProfile($input: UpdateProfileInputDto!) {\n    updateProfile(input: $input) {\n      success\n      message\n      data {\n        id\n        name\n        email\n        avatar\n      }\n    }\n  }\n": types.UpdateProfileDocument,
+    "\n  mutation SendFriendRequest($addresseeId: String!) {\n    sendFriendRequest(addresseeId: $addresseeId) {\n      success\n      message\n      data {\n        id\n        requesterId\n        addresseeId\n        status\n        createdAt\n        updatedAt\n      }\n    }\n  }\n": types.SendFriendRequestDocument,
 };
 
 /**
@@ -134,6 +136,10 @@ export function graphql(source: "\n  mutation CreateRoomChatNotFriend($otherUser
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation UpdateProfile($input: UpdateProfileInputDto!) {\n    updateProfile(input: $input) {\n      success\n      message\n      data {\n        id\n        name\n        email\n        avatar\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateProfile($input: UpdateProfileInputDto!) {\n    updateProfile(input: $input) {\n      success\n      message\n      data {\n        id\n        name\n        email\n        avatar\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation SendFriendRequest($addresseeId: String!) {\n    sendFriendRequest(addresseeId: $addresseeId) {\n      success\n      message\n      data {\n        id\n        requesterId\n        addresseeId\n        status\n        createdAt\n        updatedAt\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation SendFriendRequest($addresseeId: String!) {\n    sendFriendRequest(addresseeId: $addresseeId) {\n      success\n      message\n      data {\n        id\n        requesterId\n        addresseeId\n        status\n        createdAt\n        updatedAt\n      }\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

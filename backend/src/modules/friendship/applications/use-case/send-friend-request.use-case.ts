@@ -24,30 +24,30 @@ export class SendFriendRequestUseCase {
       );
     }
 
-    const existing = await this.friendshipRepository.findBetweenUsers(
+    const friendship = await this.friendshipRepository.findBetweenUsers(
       requesterId,
       addresseeId,
     );
 
-    if (existing?.isAccepted()) {
+    if (friendship?.isAccepted()) {
       throw new DomainValidationException('status', 'Hai người đã là bạn bè');
     }
 
-    if (existing?.isPending()) {
-      if (existing.getRequesterId() === requesterId) {
+    if (friendship?.isPending()) {
+      if (friendship.getRequesterId() === requesterId) {
         throw new DomainValidationException(
           'status',
           'Bạn đã gửi lời mời kết bạn cho người này rồi',
         );
       }
 
-      existing.accept(requesterId);
-      const saved = await this.friendshipRepository.save(existing);
+      friendship.accept(requesterId);
+      const saved = await this.friendshipRepository.save(friendship);
       await this.ensureFriendRoomUseCase.execute(requesterId, addresseeId);
       return saved;
     }
 
-    const friendship = FriendshipEntity.create(requesterId, addresseeId);
-    return await this.friendshipRepository.save(friendship);
+    const newFriendship = FriendshipEntity.create(requesterId, addresseeId);
+    return await this.friendshipRepository.save(newFriendship);
   }
 }
