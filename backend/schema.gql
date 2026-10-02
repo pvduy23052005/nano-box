@@ -134,7 +134,7 @@ type Mutation {
 
 type NotificationMetadataOutput {
   messageId: String
-  roomId: String!
+  roomId: String
 }
 
 type NotificationPayload {
@@ -152,6 +152,7 @@ type NotificationPayload {
 }
 
 enum NotificationType {
+  FRIEND_REQUEST
   NEW_MESSAGE
   NEW_ROOM
   REACTION

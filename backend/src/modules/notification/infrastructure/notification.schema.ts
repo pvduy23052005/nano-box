@@ -4,8 +4,8 @@ import { NotificationType } from '../domain/notification.type';
 
 @Schema({ _id: false })
 export class NotificationMetadataSchema {
-  @Prop({ required: true })
-  room_id: string;
+  @Prop()
+  room_id?: string;
 
   @Prop()
   message_id?: string;

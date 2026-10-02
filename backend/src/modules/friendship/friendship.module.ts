@@ -16,6 +16,7 @@ import {
   FriendshipSchema,
 } from './infrastructure/friendship.schema';
 import { FriendshipResolver } from './presentation/graphql/friendship.resolver';
+import { FriendshipListener } from './presentation/listener/friendship.listener';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { FriendshipResolver } from './presentation/graphql/friendship.resolver';
   ],
   providers: [
     FriendshipResolver,
+    FriendshipListener,
     {
       provide: FriendshipRepositoryAdapter,
       useClass: FriendshipRepository,

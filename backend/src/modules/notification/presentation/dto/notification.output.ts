@@ -7,8 +7,8 @@ registerEnumType(NotificationType, {
 
 @ObjectType()
 export class NotificationMetadataOutput {
-  @Field()
-  roomId: string;
+  @Field({ nullable: true })
+  roomId?: string;
 
   @Field({ nullable: true })
   messageId?: string;

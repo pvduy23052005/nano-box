@@ -41,6 +41,7 @@ export type MessageInput = {
 };
 
 export type NotificationType =
+  | 'FRIEND_REQUEST'
   | 'NEW_MESSAGE'
   | 'NEW_ROOM'
   | 'REACTION';
@@ -121,7 +122,7 @@ export type GetNotificationsQueryVariables = Exact<{
 }>;
 
 
-export type GetNotificationsQuery = { getNotifications: { hasMore: boolean, nextCursor: string | null, unreadCount: number, items: Array<{ id: string, recipientId: string, senderId: string, senderName: string | null, senderAvatar: string | null, type: NotificationType, title: string, content: string, isRead: boolean, createdAt: unknown, metadata: { roomId: string, messageId: string | null } }> } };
+export type GetNotificationsQuery = { getNotifications: { hasMore: boolean, nextCursor: string | null, unreadCount: number, items: Array<{ id: string, recipientId: string, senderId: string, senderName: string | null, senderAvatar: string | null, type: NotificationType, title: string, content: string, isRead: boolean, createdAt: unknown, metadata: { roomId: string | null, messageId: string | null } }> } };
 
 export type GetUnreadNotificationCountQueryVariables = Exact<{ [key: string]: never; }>;
 

@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useMutation } from "@apollo/client/react";
 import { toast } from "sonner";
-import { REJECT_FRIEND_REQUEST_MUTATION } from "../mutations/user.mutation";
+import {
+  GET_RECEIVED_FRIEND_REQUESTS_QUERY,
+  REJECT_FRIEND_REQUEST_MUTATION,
+} from "../mutations/user.mutation";
 
 export interface UseRejectFriendRequestOptions {
   onSuccess?: () => unknown;
@@ -17,11 +20,37 @@ export const useRejectFriendRequest = (options?: UseRejectFriendRequestOptions) 
     try {
       const response = await rejectMutation({
         variables: { friendId },
+        optimisticResponse: {
+          rejectFriendRequest: {
+            success: true,
+            message: "Từ chối lời mời kết bạn thành công",
+            data: {
+              id: `temp-${friendId}`,
+              requesterId: friendId,
+              addresseeId: "",
+              status: "REJECTED",
+            },
+          },
+        },
+        update(cache) {
+          cache.updateQuery(
+            { query: GET_RECEIVED_FRIEND_REQUESTS_QUERY },
+            (prev) => {
+              if (!prev?.getReceivedFriendRequests) return prev;
+              return {
+                ...prev,
+                getReceivedFriendRequests: prev.getReceivedFriendRequests.filter(
+                  (request) => request.sender.id !== friendId
+                ),
+              };
+            }
+          );
+        },
       });
 
       const result = response.data?.rejectFriendRequest;
       if (result?.success) {
-        toast.success(result.message || "Từ chối lời mời kết bạn thành công");
+        // toast.success(result.message || "Từ chối lời mời kết bạn thành công");
         await options?.onSuccess?.();
         return result.data;
       } else {

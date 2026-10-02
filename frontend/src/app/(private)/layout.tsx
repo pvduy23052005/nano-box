@@ -4,6 +4,7 @@ import { SidebarProvider } from "@/src/components/ui/sidebar";
 import AuthProvider from "@/src/features/auth/context/authProvider";
 import { SocketProvider } from "@/src/providers/SocketProvider";
 import ChatSocketListener from "@/src/features/chat/socket/ChatSocketListener";
+import UserSocketListener from "@/src/features/user/socket/UserSocketListener";
 
 export default function LayoutMain({
   children,
@@ -14,6 +15,7 @@ export default function LayoutMain({
     <AuthProvider>
       <SocketProvider>
         <ChatSocketListener />
+        <UserSocketListener />
         <SidebarProvider defaultOpen={false}>
           <AppSidebar />
           <main className="flex flex-col flex-1 overflow-hidden h-screen">

@@ -4,6 +4,7 @@ export const NOTIFICATION_EVENTS = {
   MESSAGE_CREATED: 'message.created',
   MESSAGE_REACTION: 'message.reaction',
   ROOM_CREATED: 'room.created',
+  FRIEND_REQUEST: 'friend.request',
 } as const;
 
 export const NOTIFICATION_SOCKET_EVENTS = {
@@ -24,4 +25,11 @@ export interface MessageReactionEventPayload {
   reactorName?: string;
   reactorAvatar?: string;
   emoji: string;
+}
+
+export interface FriendRequestEventPayload {
+  requesterId: string;
+  addresseeId: string;
+  friendshipId: string;
+  createdAt: Date;
 }

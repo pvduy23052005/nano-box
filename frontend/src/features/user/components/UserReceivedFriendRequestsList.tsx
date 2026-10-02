@@ -16,13 +16,9 @@ import { useAcceptFriendRequest } from "../hooks/useAcceptFriendRequest";
 import { useRejectFriendRequest } from "../hooks/useRejectFriendRequest";
 
 export default function ReceivedFriendRequestsList() {
-  const { requests, loading, error, refetch } = useGetReceivedFriendRequests();
-  const { acceptRequest, isAccepting } = useAcceptFriendRequest({
-    onSuccess: refetch,
-  });
-  const { rejectRequest, isRejecting } = useRejectFriendRequest({
-    onSuccess: refetch,
-  });
+  const { requests, loading, error } = useGetReceivedFriendRequests();
+  const { acceptRequest, isAccepting } = useAcceptFriendRequest();
+  const { rejectRequest, isRejecting } = useRejectFriendRequest();
 
   if (loading) {
     return <UserLoading count={6} />;
@@ -45,13 +41,10 @@ export default function ReceivedFriendRequestsList() {
       {requests.map((request) => {
         const { sender } = request;
         const accepting = isAccepting(sender.id);
-        const rejecting = isRejecting(sender.id);
-        const disabled = accepting || rejecting;
-
-        return (
+        const rejecting = isRejecting(sender.id); const disabled = accepting || rejecting; return (
           <div
             key={request.id}
-            className="p-3 bg-card shadow-sm hover:border-primary/40 hover:shadow-md flex flex-row items-center justify-between gap-2 transition-all rounded-xl border"
+            className="p-3 bg-card shadow-sm hover:border-primary/40 hover:shadow-md flex flex-row items-center justify-between gap-2 transition-all rounded-xl"
           >
             <div className="flex items-center gap-3.5 min-w-0">
               <div className="relative shrink-0">

@@ -15,6 +15,10 @@ import { GetReceivedFriendRequestsUseCase } from '../../applications/use-case/ge
 import { CancelFriendRequestUseCase } from '../../applications/use-case/cancel-friend-request.use-case';
 import { RejectFriendRequestUseCase } from '../../applications/use-case/reject-friend-request.use-case';
 import { AcceptFriendRequestUseCase } from '../../applications/use-case/accept-friend-request.use-case';
+import { WebsocketService } from 'src/infrastructure/websocket/ws.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { FRIENDSHIP_SOCKET_EVENTS } from '../gateway/friendship.event';
+import { NOTIFICATION_EVENTS } from 'src/modules/notification/presentation/listener/notification.event';
 
 @Resolver()
 @UseGuards(AuthGuard)
@@ -25,6 +29,8 @@ export class FriendshipResolver {
     private readonly cancelFriendRequestUseCase: CancelFriendRequestUseCase,
     private readonly rejectFriendRequestUseCase: RejectFriendRequestUseCase,
     private readonly acceptFriendRequestUseCase: AcceptFriendRequestUseCase,
+    private readonly websocketService: WebsocketService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   @Query(() => [GetReceivedFriendRequestPayload])
@@ -50,6 +56,26 @@ export class FriendshipResolver {
       result.status === FriendshipStatus.ACCEPTED
         ? 'Hai bạn đã trở thành bạn bè'
         : 'Gửi lời mời kết bạn thành công';
+
+    if (result.status === FriendshipStatus.PENDING) {
+      this.eventEmitter.emit(NOTIFICATION_EVENTS.FRIEND_REQUEST, {
+        requesterId: userId,
+        addresseeId,
+        friendshipId: result.id || '',
+        createdAt: result.createdAt,
+      });
+    } else if (result.status === FriendshipStatus.ACCEPTED) {
+      this.websocketService.server
+        .to(addresseeId)
+        .emit(FRIENDSHIP_SOCKET_EVENTS.FRIEND_REQUEST_ACCEPTED, {
+          id: result.id || '',
+          requesterId: result.addresseeId,
+          addresseeId: result.requesterId,
+          status: result.status,
+          createdAt: result.createdAt,
+          updatedAt: result.updatedAt,
+        });
+    }
 
     return {
       success: true,
