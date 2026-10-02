@@ -18,7 +18,6 @@ export interface UserItem {
 export interface UserCardProps {
   user: UserItem;
   isCreating?: boolean;
-  isSendingFriend?: boolean;
   isFriendRequestSent?: boolean;
   onStartChat: (id: string) => void;
   onAddFriend?: (id: string) => void;
@@ -27,7 +26,6 @@ export interface UserCardProps {
 export default function UserCard({
   user,
   isCreating = false,
-  isSendingFriend = false,
   isFriendRequestSent = false,
   onStartChat,
   onAddFriend,
@@ -60,7 +58,7 @@ export default function UserCard({
         <Button
           variant="outline"
           size="icon"
-          disabled={isSendingFriend || isFriendRequestSent || isCreating}
+          disabled={isFriendRequestSent || isCreating}
           className={`size-8 cursor-pointer transition-colors ${
             isFriendRequestSent
               ? "text-emerald-600 bg-emerald-50 border-emerald-200"
@@ -68,21 +66,17 @@ export default function UserCard({
           }`}
           onClick={(e) => {
             e.stopPropagation();
-            if (!isFriendRequestSent && !isSendingFriend) {
+            if (!isFriendRequestSent) {
               onAddFriend?.(user.id);
             }
           }}
           title={
             isFriendRequestSent
               ? "Đã gửi lời mời kết bạn"
-              : isSendingFriend
-              ? "Đang gửi lời mời..."
               : "Kết bạn"
           }
         >
-          {isSendingFriend ? (
-            <Spinner className="size-3.5" />
-          ) : isFriendRequestSent ? (
+          {isFriendRequestSent ? (
             <UserCheck className="size-4" />
           ) : (
             <UserPlus className="size-4" />

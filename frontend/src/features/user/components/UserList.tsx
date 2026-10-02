@@ -16,17 +16,17 @@ export default function UserList({ searchQuery = "" }: UserListProps) {
   const { users, loading, error } = useUsers(searchQuery);
   const { createRoomChatNotFriend, creatingUserId } =
     useCreateRoomChatNotFriend();
-  const { sendFriendRequest, isSending, isSent } = useSendFriendRequest();
+  const { sendFriendRequest, isSent } = useSendFriendRequest();
   const { user: currentUser } = useAuthStore();
 
   const handleStartChat = async (userId: string) => {
     if (creatingUserId) return;
-    const targetUser = displayUsers.find((u) => u.id === userId);
+    const targetUser = displayUsers.find((user) => user.id === userId);
     try {
       await createRoomChatNotFriend(targetUser || userId);
     } catch {}
   };
-  const displayUsers = users.filter((u) => u.id !== currentUser?.id);
+  const displayUsers = users.filter((user) => user.id !== currentUser?.id);
 
   if (loading) {
     return <UserLoading count={6} />;
@@ -60,7 +60,6 @@ export default function UserList({ searchQuery = "" }: UserListProps) {
           key={user.id}
           user={user}
           isCreating={creatingUserId === user.id}
-          isSendingFriend={isSending(user.id)}
           isFriendRequestSent={isSent(user.id)}
           onStartChat={handleStartChat}
           onAddFriend={() => sendFriendRequest(user)}

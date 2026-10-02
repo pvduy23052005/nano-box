@@ -6,7 +6,6 @@ import {
   AvatarImage,
 } from "../../../components/ui/avatar";
 import { Button } from "../../../components/ui/button";
-import { Spinner } from "../../../components/ui/spinner";
 import { Typography } from "@/src/components/ui/typography";
 import UserLoading from "./UserLoading";
 import UserEmptyState from "./UserEmptyState";
@@ -17,8 +16,8 @@ import { useRejectFriendRequest } from "../hooks/useRejectFriendRequest";
 
 export default function ReceivedFriendRequestsList() {
   const { requests, loading, error } = useGetReceivedFriendRequests();
-  const { acceptRequest, isAccepting } = useAcceptFriendRequest();
-  const { rejectRequest, isRejecting } = useRejectFriendRequest();
+  const { acceptRequest } = useAcceptFriendRequest();
+  const { rejectRequest } = useRejectFriendRequest();
 
   if (loading) {
     return <UserLoading count={6} />;
@@ -40,8 +39,8 @@ export default function ReceivedFriendRequestsList() {
     <div className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
       {requests.map((request) => {
         const { sender } = request;
-        const accepting = isAccepting(sender.id);
-        const rejecting = isRejecting(sender.id); const disabled = accepting || rejecting; return (
+
+        return (
           <div
             key={request.id}
             className="p-3 bg-card shadow-sm hover:border-primary/40 hover:shadow-md flex flex-row items-center justify-between gap-2 transition-all rounded-xl"
@@ -76,32 +75,22 @@ export default function ReceivedFriendRequestsList() {
             <div className="flex items-center gap-1.5 shrink-0">
               <Button
                 size="sm"
-                disabled={disabled}
                 className="text-xs h-8 px-2.5 bg-primary text-white hover:bg-primary/90 cursor-pointer shadow-xs"
                 onClick={() => acceptRequest(sender.id)}
                 title="Chấp nhận"
               >
-                {accepting ? (
-                  <Spinner className="size-3.5 mr-1" />
-                ) : (
-                  <Check className="size-3.5 mr-1" />
-                )}
+                <Check className="size-3.5 mr-1" />
                 <span>Đồng ý</span>
               </Button>
 
               <Button
                 variant="outline"
                 size="sm"
-                disabled={disabled}
                 className="text-xs h-8 px-2.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
                 onClick={() => rejectRequest(sender.id)}
                 title="Từ chối"
               >
-                {rejecting ? (
-                  <Spinner className="size-3.5 mr-1" />
-                ) : (
-                  <X className="size-3.5 mr-1" />
-                )}
+                <X className="size-3.5 mr-1" />
                 <span>Từ chối</span>
               </Button>
             </div>
