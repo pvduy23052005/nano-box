@@ -5,10 +5,7 @@ import {
   Message,
   MessageSchema,
 } from '../chat/infrastructure/database/message.schema';
-import {
-  User,
-  UserSchema,
-} from '../user/infrastructure/databases/user.schema';
+import { User, UserSchema } from '../user/infrastructure/databases/user.schema';
 import {
   RoomResolver,
   RoomMemberResolver,
@@ -18,6 +15,7 @@ import { RoomRepository } from './infrastructure/room.repository';
 import { CreateSingleRoomUseCase } from './application/use-cases/create-single-room';
 import { GetRoomsByStatusUseCase } from './application/use-cases/get-rooms-by-status';
 import { UpdateMemberLastReadMessageUseCase } from './application/use-cases/update-member-last-read-message';
+import { EnsureFriendRoomUseCase } from './application/use-cases/ensure-friend-room.use-case';
 import { UserModule } from '../user/user.module';
 
 @Module({
@@ -54,11 +52,18 @@ import { UserModule } from '../user/user.module';
         new UpdateMemberLastReadMessageUseCase(roomRepository),
       inject: [RoomRepositoryAdapter],
     },
+    {
+      provide: EnsureFriendRoomUseCase,
+      useFactory: (roomRepository: RoomRepositoryAdapter) =>
+        new EnsureFriendRoomUseCase(roomRepository),
+      inject: [RoomRepositoryAdapter],
+    },
   ],
   exports: [
     CreateSingleRoomUseCase,
     GetRoomsByStatusUseCase,
     UpdateMemberLastReadMessageUseCase,
+    EnsureFriendRoomUseCase,
     RoomRepositoryAdapter,
   ],
 })

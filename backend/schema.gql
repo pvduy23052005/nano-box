@@ -2,11 +2,23 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type AcceptFriendRequestPayload {
+  data: FriendshipDataPayload
+  message: String!
+  success: Boolean!
+}
+
 input AddEmojiMessageInput {
   emoji: String!
   messageId: String!
   userAvatar: String
   userName: String
+}
+
+type CancelFriendRequestPayload {
+  data: FriendshipDataPayload
+  message: String!
+  success: Boolean!
 }
 
 type ChatPayload {
@@ -23,6 +35,36 @@ type ChatPayload {
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+type FriendSenderPayload {
+  avatar: String
+  email: String!
+  id: String!
+  name: String!
+}
+
+type FriendshipDataPayload {
+  addresseeId: String!
+  createdAt: DateTime
+  id: String!
+  requesterId: String!
+  status: FriendshipStatus!
+  updatedAt: DateTime
+}
+
+"""Trạng thái mối quan hệ bạn bè"""
+enum FriendshipStatus {
+  ACCEPTED
+  CANCELLED
+  PENDING
+  REJECTED
+}
+
+type GetReceivedFriendRequestPayload {
+  createdAt: DateTime
+  id: String!
+  sender: FriendSenderPayload!
+}
 
 type LastMessageOutput {
   content: String
@@ -73,7 +115,9 @@ type MessagesPagePayload {
 }
 
 type Mutation {
+  acceptFriendRequest(friendId: String!): AcceptFriendRequestPayload!
   addEmojiMessage(input: AddEmojiMessageInput!): ChatPayload!
+  cancelFriendRequest(friendId: String!): CancelFriendRequestPayload!
   createRoomChatNotFriend(otherUserId: String!): RoomOutput!
   login(input: LoginInputDto!): LoginPayload!
   loginGoogle(idToken: String!): LoginPayload!
@@ -81,6 +125,8 @@ type Mutation {
   markAllNotificationsAsRead: Boolean!
   markNotificationAsRead(id: String!): Boolean!
   register(input: RegisterInputDto!): RegisterPayload!
+  rejectFriendRequest(friendId: String!): RejectFriendRequestPayload!
+  sendFriendRequest(addresseeId: String!): SendFriendRequestPayload!
   sendMessage(input: MessageInput!): ChatPayload!
   updateMemberLastReadMessage(messageId: String!, roomId: String!): Boolean!
   updateProfile(input: UpdateProfileInputDto!): UpdateProfilePayload!
@@ -88,7 +134,7 @@ type Mutation {
 
 type NotificationMetadataOutput {
   messageId: String
-  roomId: String!
+  roomId: String
 }
 
 type NotificationPayload {
@@ -106,6 +152,7 @@ type NotificationPayload {
 }
 
 enum NotificationType {
+  FRIEND_REQUEST
   NEW_MESSAGE
   NEW_ROOM
   REACTION
@@ -122,6 +169,7 @@ type Query {
   getMe: UserProfilePayload!
   getMessages(cursor: String, limit: Float, roomId: String!): MessagesPagePayload!
   getNotifications(cursor: String, limit: Float): NotificationsPagePayload!
+  getReceivedFriendRequests: [GetReceivedFriendRequestPayload!]!
   getRoomsByStatus(search: String, status: MemberStatus!): [RoomOutput!]!
   getUnreadNotificationCount: Int!
   getUsers(search: String): [UserProfilePayload!]!
@@ -141,6 +189,12 @@ input RegisterInputDto {
 
 type RegisterPayload {
   data: UserProfilePayload
+  message: String!
+  success: Boolean!
+}
+
+type RejectFriendRequestPayload {
+  data: FriendshipDataPayload
   message: String!
   success: Boolean!
 }
@@ -165,6 +219,12 @@ type RoomOutput {
 enum RoomType {
   GROUP
   SINGLE
+}
+
+type SendFriendRequestPayload {
+  data: FriendshipDataPayload
+  message: String!
+  success: Boolean!
 }
 
 input UpdateProfileInputDto {

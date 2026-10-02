@@ -2,8 +2,10 @@
 
 import { useUsers } from "../hooks/useUsers";
 import { useCreateRoomChatNotFriend } from "../hooks/useCreateRoom";
+import { useSendFriendRequest } from "../hooks/useSendFriendRequest";
 import { useAuthStore } from "../../auth/store/useAuthStore";
-import { Spinner } from "../../../components/ui/spinner";
+import UserLoading from "./UserLoading";
+import UserEmptyState from "./UserEmptyState";
 import UserCard from "./UserCard";
 
 export interface UserListProps {
@@ -14,41 +16,42 @@ export default function UserList({ searchQuery = "" }: UserListProps) {
   const { users, loading, error } = useUsers(searchQuery);
   const { createRoomChatNotFriend, creatingUserId } =
     useCreateRoomChatNotFriend();
+  const { sendFriendRequest, isSent } = useSendFriendRequest();
   const { user: currentUser } = useAuthStore();
 
+  const handleStartChat = async (userId: string) => {
+    if (creatingUserId) return;
+    const targetUser = displayUsers.find((user) => user.id === userId);
+    try {
+      await createRoomChatNotFriend(targetUser || userId);
+    } catch {}
+  };
+  const displayUsers = users.filter((user) => user.id !== currentUser?.id);
+
   if (loading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner className="size-8" />
-      </div>
-    );
+    return <UserLoading count={6} />;
   }
 
   if (error) {
     return (
-      <div className="flex h-64 items-center justify-center text-red-500">
+      <div className="flex h-64 items-center justify-center text-destructive text-sm">
         Lỗi khi tải danh sách người dùng.
       </div>
     );
   }
 
-  const displayUsers = users.filter((u) => u.id !== currentUser?.id);
-
   if (!displayUsers || displayUsers.length === 0) {
     return (
-      <div className="flex h-64 mt-10 items-center justify-center text-muted-foreground">
-        Không tìm thấy người dùng nào phù hợp.
-      </div>
+      <UserEmptyState
+        tab="all"
+        description={
+          searchQuery
+            ? `Không tìm thấy người dùng nào khớp với "${searchQuery}". Hãy thử tìm kiếm bằng từ khóa khác.`
+            : "Chưa có người dùng nào khác trong hệ thống."
+        }
+      />
     );
   }
-
-  const handleStartChat = async (userId: string) => {
-    if (creatingUserId) return;
-    const targetUser = displayUsers.find((u) => u.id === userId);
-    try {
-      await createRoomChatNotFriend(targetUser || userId);
-    } catch {}
-  };
 
   return (
     <div className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
@@ -57,8 +60,9 @@ export default function UserList({ searchQuery = "" }: UserListProps) {
           key={user.id}
           user={user}
           isCreating={creatingUserId === user.id}
+          isFriendRequestSent={isSent(user.id)}
           onStartChat={handleStartChat}
-          onAddFriend={() => {}}
+          onAddFriend={() => sendFriendRequest(user)}
         />
       ))}
     </div>

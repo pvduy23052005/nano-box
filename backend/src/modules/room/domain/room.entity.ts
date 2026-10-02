@@ -52,6 +52,34 @@ export class RoomEntity {
     });
   }
 
+  public static createFriendRoom(user1Id: string, user2Id: string): RoomEntity {
+    const errors: Record<string, string> = {};
+
+    if (!user1Id) {
+      errors.user1Id = 'user1Id is required';
+    }
+    if (!user2Id) {
+      errors.user2Id = 'user2Id is required';
+    }
+    if (Object.keys(errors).length > 0) {
+      throw new Error(JSON.stringify(errors));
+    }
+
+    const members: RoomMember[] = [
+      RoomMember.createMember(user1Id),
+      RoomMember.createMember(user2Id),
+    ];
+
+    return new RoomEntity({
+      id: randomUUID(),
+      title: null,
+      typeRoom: RoomType.SINGLE,
+      lastMessageId: null,
+      avatar: null,
+      members: members,
+    });
+  }
+
   public static restore(data: RoomProps): RoomEntity {
     return new RoomEntity({
       id: data.id,

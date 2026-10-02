@@ -5,7 +5,7 @@ import {
 } from "../../../components/ui/avatar";
 import { Spinner } from "../../../components/ui/spinner";
 import { Button } from "../../../components/ui/button";
-import { MessageSquare, UserPlus } from "lucide-react";
+import { MessageSquare, UserCheck, UserPlus } from "lucide-react";
 import { Typography } from "@/src/components/ui/typography";
 
 export interface UserItem {
@@ -18,6 +18,7 @@ export interface UserItem {
 export interface UserCardProps {
   user: UserItem;
   isCreating?: boolean;
+  isFriendRequestSent?: boolean;
   onStartChat: (id: string) => void;
   onAddFriend?: (id: string) => void;
 }
@@ -25,6 +26,7 @@ export interface UserCardProps {
 export default function UserCard({
   user,
   isCreating = false,
+  isFriendRequestSent = false,
   onStartChat,
   onAddFriend,
 }: UserCardProps) {
@@ -56,14 +58,29 @@ export default function UserCard({
         <Button
           variant="outline"
           size="icon"
-          className="size-8 cursor-pointer text-muted-foreground hover:text-foreground hover:bg-muted"
+          disabled={isFriendRequestSent || isCreating}
+          className={`size-8 cursor-pointer transition-colors ${
+            isFriendRequestSent
+              ? "text-emerald-600 bg-emerald-50 border-emerald-200"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+          }`}
           onClick={(e) => {
             e.stopPropagation();
-            onAddFriend?.(user.id);
+            if (!isFriendRequestSent) {
+              onAddFriend?.(user.id);
+            }
           }}
-          title="Kết bạn"
+          title={
+            isFriendRequestSent
+              ? "Đã gửi lời mời kết bạn"
+              : "Kết bạn"
+          }
         >
-          <UserPlus className="size-4" />
+          {isFriendRequestSent ? (
+            <UserCheck className="size-4" />
+          ) : (
+            <UserPlus className="size-4" />
+          )}
         </Button>
 
         <Button

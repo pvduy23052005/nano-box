@@ -54,7 +54,8 @@ export const handleGlobalError = (
       errMsg.includes("NetworkError") ||
       errMsg.includes("attempting to fetch resource")
     ) {
-      toast.error("Không thể kết nối đến máy chủ");
+      // toast.error("Đang bảo trì hệ thống");
+      console.error("[Network Server Error]", errMsg);
     } else {
       toast.error(`Lỗi hệ thống: ${errMsg}`);
     }

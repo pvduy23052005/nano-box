@@ -13,6 +13,7 @@ import { UploadModule } from './infrastructure/upload/upload.module';
 import { RoomModule } from './modules/room/room.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { FriendshipModule } from './modules/friendship/friendship.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { NotificationModule } from './modules/notification/notification.module';
     ChatModule,
     RoomModule,
     NotificationModule,
+    FriendshipModule,
   ],
   controllers: [],
   providers: [],
