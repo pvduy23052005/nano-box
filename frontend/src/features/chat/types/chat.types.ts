@@ -8,7 +8,9 @@ export interface Message {
   content: string;
   senderId: string;
   roomId: string;
-  avatar?: string;
+  avatar?: string | null;
+  senderAvatar?: string | null;
+  senderName?: string | null;
   isMe: boolean;
   attachments?: string[] | null;
   readBy?: string[] | null;
@@ -20,7 +22,9 @@ export interface MessageGroup {
   id: string;
   isMe: boolean;
   senderId: string;
-  avatar?: string;
+  avatar?: string | null;
+  senderAvatar?: string | null;
+  senderName?: string | null;
   messages: Message[];
 }
 

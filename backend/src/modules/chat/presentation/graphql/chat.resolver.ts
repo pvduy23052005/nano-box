@@ -12,7 +12,6 @@ import { UploadService } from 'src/infrastructure/upload/upload.service';
 import { CHAT_SOCKET_EVENTS } from '../gateway/event.type';
 import { UseGuards, Logger } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
-
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { NOTIFICATION_EVENTS } from 'src/modules/notification/presentation/listener/notification.event';
 
@@ -49,10 +48,14 @@ export class ChatResolver {
         id: msg.id as string,
         content: msg.content,
         senderId: msg.senderId,
+        senderAvatar: msg.senderAvatar ?? msg.avatar ?? null,
+        senderName: msg.senderName ?? null,
+        avatar: msg.senderAvatar ?? msg.avatar ?? null,
         roomId: msg.roomId,
         attachments: msg.attachments || [],
         readBy: msg.readBy || [],
         reactions: msg.reactions || [],
+        createdAt: msg.createdAt ? new Date(msg.createdAt) : null,
       })),
       nextCursor: result.nextCursor ?? null,
       hasMore: result.hasmore,
@@ -64,6 +67,7 @@ export class ChatResolver {
     @Args('input') input: MessageInput,
     @CurrentUser('id') userId: string,
   ) {
+    console.log(input);
     const attachments: string[] = [];
     const tempKeysToDelete: string[] = [];
 
@@ -80,6 +84,8 @@ export class ChatResolver {
     const { message, memberIds } = await this.sendMessageUseCase.execute({
       content: input.content,
       senderId: userId,
+      senderAvatar: input.senderAvatar,
+      senderName: input.senderName,
       roomId: input.roomId,
       attachments,
     });
@@ -90,7 +96,6 @@ export class ChatResolver {
       ).catch((err) => this.logger.warn(`Failed to delete temp files: ${err}`));
     }
 
-    // emit event socket
     const server = this.webSocketService.server;
     if (server && memberIds.length) {
       server
@@ -119,7 +124,6 @@ export class ChatResolver {
         .emit(CHAT_SOCKET_EVENTS.UPDATE_MESSAGE_REACTION, message);
     }
 
-    // emit event event driven for notification only on reaction
     this.eventEmitter.emit(NOTIFICATION_EVENTS.MESSAGE_REACTION, {
       message,
       memberIds,

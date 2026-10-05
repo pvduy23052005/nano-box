@@ -22,11 +22,17 @@ interface RawMessageRecord {
   attachments?: string[];
   sender_id?: string;
   senderId?: string;
+  sender_avatar?: string | null;
+  senderAvatar?: string | null;
+  sender_name?: string | null;
+  senderName?: string | null;
   room_id?: string;
   roomId?: string;
   read_by?: string[];
   readBy?: string[];
   reactions?: RawReactionRecord[];
+  created_at?: Date | null;
+  createdAt?: Date | null;
 }
 
 @Injectable()
@@ -42,6 +48,8 @@ export class MessageRepository implements MessageRepositoryAdapter {
       attachments: message.getAttachments(),
       room_id: message.getRoomId(),
       read_by: message.getReadBy(),
+      sender_avatar: message.getSenderAvatar() ?? null,
+      sender_name: message.getSenderName() ?? null,
       reactions:
         message.getReactions()?.map((reaction) => ({
           emoji: reaction.emoji,
@@ -66,14 +74,21 @@ export class MessageRepository implements MessageRepositoryAdapter {
     const readBy = record.read_by ?? record.readBy ?? [];
     const rawReactions = record.reactions ?? [];
     const reactions = Array.isArray(rawReactions) ? rawReactions : [];
+    const senderAvatar = record.sender_avatar ?? record.senderAvatar ?? null;
+    const senderName = record.sender_name ?? record.senderName ?? null;
+    const createdAt = record.created_at ?? record.createdAt ?? null;
 
     return {
       id: record._id?.toString() ?? '',
       senderId: String(senderId),
+      senderAvatar,
+      senderName,
+      avatar: senderAvatar,
       roomId: String(roomId),
       content: record.content ?? '',
       attachments: Array.isArray(record.attachments) ? record.attachments : [],
       readBy: Array.isArray(readBy) ? readBy : [],
+      createdAt,
       reactions: reactions.map((reaction) => ({
         emoji: reaction.emoji ?? '',
         userIds: Array.isArray(reaction.user_ids ?? reaction.userIds)

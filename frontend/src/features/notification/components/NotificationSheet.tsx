@@ -7,9 +7,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from "@/src/components/ui/sheet";
-import { Badge } from "@/src/components/ui/badge";
 import { useReceiveNotification } from "../socket/useReceiveNotification";
 import { NotificationItem } from "../types/notification.types";
 import NotificationCard from "./NotificationCard";
@@ -33,7 +31,6 @@ export default function NotificationSheet({
   isOpen,
   setIsOpen,
   notifications,
-  unreadCount,
   isLoading,
   isLoadingMore,
   hasMore,

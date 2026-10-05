@@ -124,4 +124,45 @@ describe('SendMessageUseCase', () => {
       'msg-1',
     );
   });
+
+  it('should save senderAvatar and senderName passed in messageData', async () => {
+    roomRepository.findById.mockResolvedValue({
+      id: 'room-1',
+      title: null,
+      typeRoom: RoomType.SINGLE,
+      lastMessageId: null,
+      avatar: null,
+      members: [
+        {
+          userId: 'user-1',
+          role: MemberRole.MEMBER,
+          status: MemberStatus.ACCEPTED,
+        },
+      ],
+    });
+
+    const mockSavedMessage = {
+      id: 'msg-2',
+      roomId: 'room-1',
+      senderId: 'user-1',
+      senderAvatar: 'https://example.com/avatar.jpg',
+      senderName: 'User One',
+      content: 'Hello with avatar',
+      attachments: [],
+      readBy: [],
+    };
+
+    messageRepository.save.mockResolvedValue(mockSavedMessage);
+
+    const result = await sendMessageUseCase.execute({
+      roomId: 'room-1',
+      senderId: 'user-1',
+      senderAvatar: 'https://example.com/avatar.jpg',
+      senderName: 'User One',
+      content: 'Hello with avatar',
+    });
+
+    expect(result.message.senderAvatar).toBe('https://example.com/avatar.jpg');
+    expect(result.message.senderName).toBe('User One');
+  });
 });

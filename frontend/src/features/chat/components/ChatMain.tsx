@@ -106,6 +106,9 @@ export default function ChatMain() {
           (!lastGroup.senderId || !message.senderId || lastGroup.senderId === message.senderId);
 
         if (isSameSender) {
+          if (!lastGroup.avatar && (message.senderAvatar || message.avatar)) {
+            lastGroup.avatar = message.senderAvatar || message.avatar;
+          }
           lastGroup.messages.push(message);
         } else {
           const groupId = `group-${message.senderId || (message.isMe ? "me" : "other")}-${message.createdAt || index}-${index}`;
@@ -113,7 +116,9 @@ export default function ChatMain() {
             id: groupId,
             isMe: message.isMe,
             senderId: message.senderId,
-            avatar: message.avatar,
+            avatar: message.senderAvatar || message.avatar,
+            senderAvatar: message.senderAvatar || message.avatar,
+            senderName: message.senderName,
             messages: [message],
           });
         }

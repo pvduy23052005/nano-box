@@ -7,6 +7,9 @@ export const GET_MESSAGE_QUERY = graphql(`
         id
         content
         senderId
+        senderAvatar
+        senderName
+        avatar
         roomId
         attachments
         reactions {
@@ -26,6 +29,9 @@ export const SEND_MESSAGE_MUTATION = graphql(`
       id  
       content
       senderId
+      senderAvatar
+      senderName
+      avatar
       roomId
       attachments
       reactions {
@@ -42,6 +48,9 @@ export const ADD_EMOJI_MESSAGE_MUTATION = graphql(`
       id
       content
       senderId
+      senderAvatar
+      senderName
+      avatar
       roomId
       attachments
       reactions {

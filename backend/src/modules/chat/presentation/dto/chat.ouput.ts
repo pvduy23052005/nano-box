@@ -20,6 +20,15 @@ export class ChatPayload {
   @Field(() => String)
   senderId: string;
 
+  @Field(() => String, { nullable: true })
+  senderAvatar?: string | null;
+
+  @Field(() => String, { nullable: true })
+  senderName?: string | null;
+
+  @Field(() => String, { nullable: true })
+  avatar?: string | null;
+
   @Field(() => String)
   roomId: string;
 
@@ -31,4 +40,7 @@ export class ChatPayload {
 
   @Field(() => [ReactionPayload], { nullable: true, defaultValue: [] })
   reactions?: ReactionPayload[];
+
+  @Field(() => Date, { nullable: true })
+  createdAt?: Date | null;
 }

@@ -15,7 +15,12 @@ export class MessageInput {
   @Field({ nullable: true })
   @IsString()
   @IsOptional()
-  senderName: string;
+  senderName?: string;
+
+  @Field({ nullable: true })
+  @IsString()
+  @IsOptional()
+  senderAvatar?: string;
 
   @Field(() => [String], { nullable: true })
   @IsOptional()

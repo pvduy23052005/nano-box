@@ -22,6 +22,12 @@ export class Message {
   @Prop({ required: true, trim: true, index: true })
   sender_id: string;
 
+  @Prop({ type: String, default: null })
+  sender_avatar?: string | null;
+
+  @Prop({ type: String, default: null })
+  sender_name?: string | null;
+
   @Prop({ required: true, index: true })
   room_id: string;
 
