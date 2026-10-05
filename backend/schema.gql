@@ -31,6 +31,11 @@ type ChatPayload {
   senderId: String!
 }
 
+input CreateGroupRoomInput {
+  memberIds: [String!]!
+  title: String!
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
@@ -118,6 +123,7 @@ type Mutation {
   acceptFriendRequest(friendId: String!): AcceptFriendRequestPayload!
   addEmojiMessage(input: AddEmojiMessageInput!): ChatPayload!
   cancelFriendRequest(friendId: String!): CancelFriendRequestPayload!
+  createGroupRoom(input: CreateGroupRoomInput!): RoomOutput!
   createRoomChatNotFriend(otherUserId: String!): RoomOutput!
   login(input: LoginInputDto!): LoginPayload!
   loginGoogle(idToken: String!): LoginPayload!
@@ -166,6 +172,7 @@ type NotificationsPagePayload {
 }
 
 type Query {
+  getFriends(search: String): [UserProfilePayload!]!
   getMe: UserProfilePayload!
   getMessages(cursor: String, limit: Float, roomId: String!): MessagesPagePayload!
   getNotifications(cursor: String, limit: Float): NotificationsPagePayload!

@@ -3,6 +3,7 @@ import {
   FriendshipProps,
   ReceivedFriendRequestProps,
 } from '../../domain/friendship.type';
+import { UserProfile } from 'src/modules/user/applications/dto/user.dto';
 
 export abstract class FriendshipRepositoryAdapter {
   abstract save(friendship: FriendshipEntity): Promise<FriendshipProps>;
@@ -17,4 +18,11 @@ export abstract class FriendshipRepositoryAdapter {
   abstract findPendingReceived(
     userId: string,
   ): Promise<ReceivedFriendRequestProps[]>;
+
+  abstract findFriends(userId: string, search?: string): Promise<UserProfile[]>;
+
+  abstract checkAllAreFriends(
+    userId: string,
+    memberIds: string[],
+  ): Promise<boolean>;
 }

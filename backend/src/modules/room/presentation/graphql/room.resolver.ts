@@ -7,28 +7,37 @@ import {
   ResolveField,
   Parent,
 } from '@nestjs/graphql';
+import {
+  NOTIFICATION_EVENTS,
+  type RoomCreatedEventPayload,
+} from 'src/modules/notification/presentation/listener/notification.event';
 import { CurrentUser } from 'src/common/customs/current-user.decorator';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { RoomOutput, RoomMemberOutput } from '../dto/room.output';
 import { CreateSingleRoomUseCase } from '../../application/use-cases/create-single-room';
 import { GetRoomsByStatusUseCase } from '../../application/use-cases/get-rooms-by-status';
 import { UpdateMemberLastReadMessageUseCase } from '../../application/use-cases/update-member-last-read-message';
-import { GetMeUseCase } from '../../../../modules/user/applications/use-case/get-me.use-case';
-import { UserProfilePayload } from '../../../../modules/user/presentation/dto/profile.payload';
+import { GetMeUseCase } from '../../../user/applications/use-case/get-me.use-case';
+import { UserProfilePayload } from '../../../user/presentation/dto/profile.payload';
 import { MemberStatus } from '../../domain/chat.enum';
 import { WebsocketService } from 'src/infrastructure/websocket/ws.service';
 import { ROOM_SOCKET_EVENTS } from '../gateway/event.type';
 import { RoomMapper } from '../../infrastructure/room.mapper';
+import { CreateGroupRoomUseCase } from '../../application/use-cases/create-group-room';
+import { CreateGroupRoomInput } from '../dto/create.input';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Resolver()
 @UseGuards(AuthGuard)
 export class RoomResolver {
   constructor(
     private readonly createSingleRoomUseCase: CreateSingleRoomUseCase,
+    private readonly createGroupRoomUseCase: CreateGroupRoomUseCase,
     private readonly getRoomsByStatusUseCase: GetRoomsByStatusUseCase,
     private readonly updateMemberLastReadMessageUseCase: UpdateMemberLastReadMessageUseCase,
     private readonly websocketService: WebsocketService,
     private readonly getMeUseCase: GetMeUseCase,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   @Query(() => [RoomOutput])
@@ -78,6 +87,47 @@ export class RoomResolver {
       ?.emit(ROOM_SOCKET_EVENTS.SERVER_SEND_ROOM, roomData);
 
     return RoomMapper.toOutput(result);
+  }
+
+  @Mutation(() => RoomOutput)
+  async createGroupRoom(
+    @CurrentUser('id') myId: string,
+    @Args('input') input: CreateGroupRoomInput,
+  ): Promise<RoomOutput> {
+    const result = await this.createGroupRoomUseCase.execute(myId, input);
+    const roomOutput = RoomMapper.toOutput(result);
+
+    const recipientIds = result.members
+      .map((member) => member.userId)
+      .filter((userId) => userId && userId !== myId);
+
+    if (recipientIds.length > 0) {
+      this.websocketService.server
+        ?.to(recipientIds)
+        ?.emit(ROOM_SOCKET_EVENTS.SERVER_SEND_ROOM, roomOutput);
+    }
+
+    let creatorName: string | undefined;
+    let creatorAvatar: string | undefined;
+    try {
+      const sender = await this.getMeUseCase.execute(myId);
+      creatorName = sender?.name;
+      creatorAvatar = sender?.avatar;
+    } catch {
+      // fallback to result values
+    }
+
+    const payload: RoomCreatedEventPayload = {
+      roomId: result.id,
+      roomTitle: result.title || input.title,
+      creatorId: myId,
+      creatorName,
+      creatorAvatar,
+      memberIds: recipientIds,
+    };
+    this.eventEmitter.emit(NOTIFICATION_EVENTS.ROOM_CREATED, payload);
+
+    return roomOutput;
   }
 
   @Mutation(() => Boolean)
