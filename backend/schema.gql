@@ -23,12 +23,21 @@ type CancelFriendRequestPayload {
 
 type ChatPayload {
   attachments: [String!]
+  avatar: String
   content: String!
+  createdAt: DateTime
   id: String!
   reactions: [ReactionPayload!]
   readBy: [String!]
   roomId: String!
+  senderAvatar: String
   senderId: String!
+  senderName: String
+}
+
+input CreateGroupRoomInput {
+  memberIds: [String!]!
+  title: String!
 }
 
 """
@@ -104,6 +113,7 @@ enum MemberStatus {
 input MessageInput {
   content: String
   roomId: String!
+  senderAvatar: String
   senderName: String
   tempKeys: [String!]
 }
@@ -118,6 +128,7 @@ type Mutation {
   acceptFriendRequest(friendId: String!): AcceptFriendRequestPayload!
   addEmojiMessage(input: AddEmojiMessageInput!): ChatPayload!
   cancelFriendRequest(friendId: String!): CancelFriendRequestPayload!
+  createGroupRoom(input: CreateGroupRoomInput!): RoomOutput!
   createRoomChatNotFriend(otherUserId: String!): RoomOutput!
   login(input: LoginInputDto!): LoginPayload!
   loginGoogle(idToken: String!): LoginPayload!
@@ -166,6 +177,7 @@ type NotificationsPagePayload {
 }
 
 type Query {
+  getFriends(search: String): [UserProfilePayload!]!
   getMe: UserProfilePayload!
   getMessages(cursor: String, limit: Float, roomId: String!): MessagesPagePayload!
   getNotifications(cursor: String, limit: Float): NotificationsPagePayload!
@@ -209,6 +221,7 @@ type RoomMemberOutput {
 
 type RoomOutput {
   avatar: String
+  groupAvatars: [String]
   id: String!
   lastMessageId: LastMessageOutput
   members: [RoomMemberOutput!]

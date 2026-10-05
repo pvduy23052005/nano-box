@@ -32,7 +32,14 @@ export class SendMessageUseCase {
       });
     }
 
-    const newMessage = MessageEntity.create(messageData);
+    const senderAvatar = messageData.senderAvatar ?? messageData.avatar ?? null;
+    const senderName = messageData.senderName ?? null;
+
+    const newMessage = MessageEntity.create({
+      ...messageData,
+      senderAvatar,
+      senderName,
+    });
     const savedMessage = await this.messageRepository.save(newMessage);
 
     if (savedMessage.id) {

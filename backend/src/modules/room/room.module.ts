@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Room, RoomSchema } from './infrastructure/room.schema';
 import {
@@ -9,14 +9,17 @@ import { User, UserSchema } from '../user/infrastructure/databases/user.schema';
 import {
   RoomResolver,
   RoomMemberResolver,
-} from './presentation/graphql/room.graphql';
+} from './presentation/graphql/room.resolver';
 import { RoomRepositoryAdapter } from './application/ports/room.ports';
 import { RoomRepository } from './infrastructure/room.repository';
 import { CreateSingleRoomUseCase } from './application/use-cases/create-single-room';
+import { CreateGroupRoomUseCase } from './application/use-cases/create-group-room';
 import { GetRoomsByStatusUseCase } from './application/use-cases/get-rooms-by-status';
 import { UpdateMemberLastReadMessageUseCase } from './application/use-cases/update-member-last-read-message';
 import { EnsureFriendRoomUseCase } from './application/use-cases/ensure-friend-room.use-case';
 import { UserModule } from '../user/user.module';
+import { FriendshipModule } from '../friendship/friendship.module';
+import { FriendshipRepositoryAdapter } from '../friendship/applications/ports/friendship.port';
 
 @Module({
   imports: [
@@ -26,6 +29,7 @@ import { UserModule } from '../user/user.module';
       { name: User.name, schema: UserSchema },
     ]),
     UserModule,
+    forwardRef(() => FriendshipModule),
   ],
   providers: [
     RoomResolver,
@@ -39,6 +43,14 @@ import { UserModule } from '../user/user.module';
       useFactory: (roomRepository: RoomRepositoryAdapter) =>
         new CreateSingleRoomUseCase(roomRepository),
       inject: [RoomRepositoryAdapter],
+    },
+    {
+      provide: CreateGroupRoomUseCase,
+      useFactory: (
+        roomRepository: RoomRepositoryAdapter,
+        friendshipRepository: FriendshipRepositoryAdapter,
+      ) => new CreateGroupRoomUseCase(roomRepository, friendshipRepository),
+      inject: [RoomRepositoryAdapter, FriendshipRepositoryAdapter],
     },
     {
       provide: GetRoomsByStatusUseCase,
@@ -61,6 +73,7 @@ import { UserModule } from '../user/user.module';
   ],
   exports: [
     CreateSingleRoomUseCase,
+    CreateGroupRoomUseCase,
     GetRoomsByStatusUseCase,
     UpdateMemberLastReadMessageUseCase,
     EnsureFriendRoomUseCase,

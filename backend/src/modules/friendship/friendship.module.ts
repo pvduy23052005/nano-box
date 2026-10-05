@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from 'src/modules/user/user.module';
 import { RoomModule } from 'src/modules/room/room.module';
@@ -10,11 +10,13 @@ import { SendFriendRequestUseCase } from './applications/use-case/send-friend-re
 import { CancelFriendRequestUseCase } from './applications/use-case/cancel-friend-request.use-case';
 import { RejectFriendRequestUseCase } from './applications/use-case/reject-friend-request.use-case';
 import { AcceptFriendRequestUseCase } from './applications/use-case/accept-friend-request.use-case';
+import { GetFriendsUseCase } from './applications/use-case/get-friends.use-case';
 import { FriendshipRepository } from './infrastructure/friendship.repository';
 import {
   Friendship,
   FriendshipSchema,
 } from './infrastructure/friendship.schema';
+import { User, UserSchema } from '../user/infrastructure/databases/user.schema';
 import { FriendshipResolver } from './presentation/graphql/friendship.resolver';
 import { FriendshipListener } from './presentation/listener/friendship.listener';
 
@@ -22,9 +24,10 @@ import { FriendshipListener } from './presentation/listener/friendship.listener'
   imports: [
     MongooseModule.forFeature([
       { name: Friendship.name, schema: FriendshipSchema },
+      { name: User.name, schema: UserSchema },
     ]),
     UserModule,
-    RoomModule,
+    forwardRef(() => RoomModule),
   ],
   providers: [
     FriendshipResolver,
@@ -81,6 +84,12 @@ import { FriendshipListener } from './presentation/listener/friendship.listener'
         ),
       inject: [FriendshipRepositoryAdapter, EnsureFriendRoomUseCase],
     },
+    {
+      provide: GetFriendsUseCase,
+      useFactory: (friendshipRepository: FriendshipRepositoryAdapter) =>
+        new GetFriendsUseCase(friendshipRepository),
+      inject: [FriendshipRepositoryAdapter],
+    },
   ],
   exports: [
     FriendshipRepositoryAdapter,
@@ -89,6 +98,7 @@ import { FriendshipListener } from './presentation/listener/friendship.listener'
     CancelFriendRequestUseCase,
     RejectFriendRequestUseCase,
     AcceptFriendRequestUseCase,
+    GetFriendsUseCase,
   ],
 })
 export class FriendshipModule {}

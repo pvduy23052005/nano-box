@@ -1,13 +1,13 @@
-import { useMutation, useApolloClient } from "@apollo/client/react";
-import { toast } from "sonner";
-import { ADD_EMOJI_MESSAGE_MUTATION, GET_MESSAGE_QUERY } from "../mutation/mutation";
-import { useAuthStore } from "../../auth/store/useAuthStore";
-import { useRoomStore } from "../../room/stores/useRoomStore";
 import {
   computeOptimisticReactions,
   getMessageFromCache,
   updateMessageReactionInCache,
 } from "../utils/chatCache";
+import { toast } from "sonner";
+import { useMutation, useApolloClient } from "@apollo/client/react";
+import { ADD_EMOJI_MESSAGE_MUTATION, GET_MESSAGE_QUERY } from "../mutation/mutation";
+import { useAuthStore } from "../../auth/store/useAuthStore";
+import { useRoomStore } from "../../room/stores/useRoomStore";
 
 export const useAddEmojiMessage = () => {
   const { user } = useAuthStore();
@@ -47,6 +47,9 @@ export const useAddEmojiMessage = () => {
             id: messageId,
             content: currentMsg?.content ?? "",
             senderId: currentMsg?.senderId ?? "",
+            senderAvatar: currentMsg?.senderAvatar ?? currentMsg?.avatar ?? null,
+            senderName: currentMsg?.senderName ?? null,
+            avatar: currentMsg?.avatar ?? currentMsg?.senderAvatar ?? null,
             roomId: targetRoomId,
             attachments: currentMsg?.attachments ?? [],
             reactions: optimisticReactions.map((reaction) => ({

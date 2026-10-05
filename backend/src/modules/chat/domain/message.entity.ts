@@ -4,20 +4,26 @@ import { DomainValidationException } from 'src/common/customs/domain-validation.
 export class MessageEntity {
   private id?: string;
   private senderId: string;
+  private senderAvatar?: string | null;
+  private senderName?: string | null;
   private roomId: string;
   private content: string;
   private attachments: string[];
   private reactions: MessageReactionType[];
   private readBy: string[];
+  private createdAt?: Date | string | null;
 
   private constructor(props: MessageType) {
     this.id = props.id;
     this.senderId = props.senderId;
+    this.senderAvatar = props.senderAvatar ?? props.avatar ?? null;
+    this.senderName = props.senderName ?? null;
     this.roomId = props.roomId;
     this.content = props.content || '';
     this.attachments = props.attachments || [];
     this.reactions = props.reactions || [];
     this.readBy = props.readBy || [];
+    this.createdAt = props.createdAt ?? null;
   }
 
   public static create(props: Omit<MessageType, 'id'>): MessageEntity {
@@ -94,5 +100,14 @@ export class MessageEntity {
   }
   public getReadBy(): string[] {
     return this.readBy;
+  }
+  public getSenderAvatar(): string | null | undefined {
+    return this.senderAvatar;
+  }
+  public getSenderName(): string | null | undefined {
+    return this.senderName;
+  }
+  public getCreatedAt(): Date | string | null | undefined {
+    return this.createdAt;
   }
 }

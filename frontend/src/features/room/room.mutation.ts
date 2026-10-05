@@ -13,6 +13,7 @@ export const GET_ROOMS_BY_STATUS_QUERY = graphql(`
         createdAt
       }
       avatar
+      groupAvatars
       members {
         userId
         lastReadMessageId
@@ -26,3 +27,28 @@ export const UPDATE_MEMBER_LAST_READ_MESSAGE_MUTATION = graphql(`
     updateMemberLastReadMessage(roomId: $roomId, messageId: $messageId)
   }
 `);
+
+export const CREATE_GROUP_ROOM_MUTATION = graphql(`
+  mutation CreateGroupRoom($input: CreateGroupRoomInput!) {
+    createGroupRoom(input: $input) {
+      id
+      title
+      typeRoom
+      lastMessageId {
+        id
+        content
+        senderId
+        createdAt
+      }
+      avatar
+      groupAvatars
+      members {
+        userId
+        role
+        status
+        lastReadMessageId
+      }
+    }
+  }
+`);
+

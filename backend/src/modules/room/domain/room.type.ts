@@ -21,4 +21,5 @@ export interface RoomProps {
   lastMessageId: string | null | LastMessageProps;
   avatar: string | null;
   members: RoomMemberProps[];
+  groupAvatars?: string[] | null;
 }

@@ -7,6 +7,8 @@ import {
 } from "@/src/components/ui/avatar";
 import { Typography } from "@/src/components/ui/typography";
 import { useRoomStore } from "../../room/stores/useRoomStore";
+import { RoomType } from "../../room/types/room.type";
+import { GroupAvatar } from "../../room/components/GroupAvatar";
 
 export default function ChatHeader() {
   const { activeRoom } = useRoomStore();
@@ -26,10 +28,19 @@ export default function ChatHeader() {
 
   return (
     <header className="hidden sm:flex h-12 border-b items-center gap-2 p-2 shadow-sm">
-      <Avatar className="size-8">
-        <AvatarImage src={activeRoom.avatar || ""} alt={displayName} />
-        <AvatarFallback>{initials}</AvatarFallback>
-      </Avatar>
+      {activeRoom.typeRoom === RoomType.GROUP ? (
+        <GroupAvatar
+          avatars={activeRoom.groupAvatars}
+          singleAvatar={activeRoom.avatar}
+          title={displayName}
+          size="sm"
+        />
+      ) : (
+        <Avatar className="size-8">
+          <AvatarImage src={activeRoom.avatar || ""} alt={displayName} />
+          <AvatarFallback>{initials}</AvatarFallback>
+        </Avatar>
+      )}
       <div className="flex flex-col">
         <Typography variant="small" className="font-medium leading-none">
           {displayName}

@@ -2,6 +2,7 @@ import { RoomType } from './chat.enum';
 import { RoomMember } from './member.object';
 import { LastMessageProps, RoomProps } from './room.type';
 import { randomUUID } from 'node:crypto';
+import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 
 export class RoomEntity {
   private id: string;
@@ -77,6 +78,47 @@ export class RoomEntity {
       lastMessageId: null,
       avatar: null,
       members: members,
+    });
+  }
+
+  public static createGroupRoom(
+    creatorId: string,
+    title: string,
+    memberIds: string[],
+    avatar: string | null = null,
+  ): RoomEntity {
+    const cleanTitle = title?.trim();
+    const uniqueMemberIds = Array.from(
+      new Set((memberIds || []).filter((id) => id && id !== creatorId)),
+    );
+
+    const errors: Record<string, string> = {};
+    if (!creatorId) {
+      errors.creatorId = 'Người tạo phòng là bắt buộc';
+    }
+    if (!cleanTitle) {
+      errors.title = 'Tên phòng nhóm không được để trống';
+    }
+    if (uniqueMemberIds.length < 2) {
+      errors.memberIds =
+        'Phòng nhóm phải có ít nhất 2 thành viên khác ngoài bạn';
+    }
+    if (Object.keys(errors).length > 0) {
+      throw new DomainValidationException(errors);
+    }
+
+    const members: RoomMember[] = [
+      RoomMember.createSuperAdmin(creatorId),
+      ...uniqueMemberIds.map((id) => RoomMember.createMember(id)),
+    ];
+
+    return new RoomEntity({
+      id: randomUUID(),
+      title: cleanTitle,
+      typeRoom: RoomType.GROUP,
+      lastMessageId: null,
+      avatar,
+      members,
     });
   }
 

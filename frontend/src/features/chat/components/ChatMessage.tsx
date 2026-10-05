@@ -60,6 +60,7 @@ export interface ChatMessageGroupProps extends MessageGroup {
 export default function ChatMessage({
   isMe,
   avatar,
+  senderName,
   messages,
   isLastGroup,
   isSeen,
@@ -97,14 +98,26 @@ export default function ChatMessage({
     }
   };
 
+  const initials = senderName
+    ? senderName.trim().slice(0, 2).toUpperCase()
+    : "U";
+
   return (
     <>
       <Message align={isMe ? "end" : "start"}>
         {!isMe && (
           <MessageAvatar>
-            <Avatar>
-              <AvatarImage src={avatar ? avatar : "/logo.svg"} />
-              <AvatarFallback>user</AvatarFallback>
+            <Avatar className="size-8 rounded-full after:hidden">
+              {avatar ? (
+                <AvatarImage
+                  src={avatar}
+                  alt={senderName ?? "Avatar"}
+                  className="object-cover size-full rounded-full"
+                />
+              ) : null}
+              <AvatarFallback className="bg-emerald-50 text-emerald-700 text-xs font-semibold">
+                {initials}
+              </AvatarFallback>
             </Avatar>
           </MessageAvatar>
         )}

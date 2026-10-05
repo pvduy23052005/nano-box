@@ -8,6 +8,7 @@ import {
   NOTIFICATION_SOCKET_EVENTS,
   type MessageReactionEventPayload,
   type FriendRequestEventPayload,
+  type RoomCreatedEventPayload,
 } from './notification.event';
 import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
 @Injectable()
@@ -96,6 +97,74 @@ export class NotificationListener {
         ?.emit(NOTIFICATION_SOCKET_EVENTS.RECEIVE_NOTIFICATION, notification);
     } catch (error) {
       this.logger.error('Error handling friend.request event', error);
+    }
+  }
+
+  @OnEvent(NOTIFICATION_EVENTS.ROOM_CREATED)
+  async handleRoomCreated(payload: RoomCreatedEventPayload): Promise<void> {
+    try {
+      const {
+        roomId,
+        roomTitle,
+        creatorId,
+        creatorName,
+        creatorAvatar,
+        memberIds,
+      } = payload;
+
+      if (!roomId || !creatorId || !memberIds?.length) return;
+
+      let senderName = creatorName;
+      let senderAvatar = creatorAvatar;
+
+      if (!senderName) {
+        const creator = await this.userRepository.findById(creatorId);
+        if (creator) {
+          senderName = creator.getName();
+          senderAvatar = creator.getAvatar();
+        }
+      }
+
+      const displaySenderName = senderName;
+      const title = roomTitle;
+      const content = `${displaySenderName} đã thêm bạn vào nhóm "${title}".`;
+
+      const recipients = memberIds.filter((id) => id && id !== creatorId);
+
+      const results = await Promise.allSettled(
+        recipients.map(async (recipientId) => {
+          const notification = await this.createNotificationUseCase.execute({
+            recipientId,
+            senderId: creatorId,
+            senderName: displaySenderName,
+            senderAvatar,
+            type: NotificationType.NEW_ROOM,
+            title,
+            content,
+            metadata: {
+              roomId,
+            },
+          });
+
+          this.websocketService.server
+            ?.to(recipientId)
+            ?.emit(
+              NOTIFICATION_SOCKET_EVENTS.RECEIVE_NOTIFICATION,
+              notification,
+            );
+        }),
+      );
+
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          this.logger.error(
+            `Error creating room.created notification for ${recipients[index]}`,
+            result.reason,
+          );
+        }
+      });
+    } catch (error) {
+      this.logger.error('Error handling room.created event', error);
     }
   }
 }

@@ -11,6 +11,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Friendship, FriendshipDocument } from './friendship.schema';
 import { FriendshipRepositoryAdapter } from '../applications/ports/friendship.port';
 
+import {
+  User,
+  UserDocument,
+} from '../../user/infrastructure/databases/user.schema';
+import { UserProfile } from 'src/modules/user/applications/dto/user.dto';
+
 interface PopulatedRequester {
   _id: Types.ObjectId | string;
   name?: string;
@@ -23,6 +29,8 @@ export class FriendshipRepository implements FriendshipRepositoryAdapter {
   constructor(
     @InjectModel(Friendship.name)
     private readonly friendshipModel: Model<FriendshipDocument>,
+    @InjectModel(User.name)
+    private readonly userModel: Model<UserDocument>,
   ) {}
 
   async save(friendship: FriendshipEntity): Promise<FriendshipProps> {
@@ -144,5 +152,95 @@ export class FriendshipRepository implements FriendshipRepositoryAdapter {
         },
         createdAt: doc.created_at,
       }));
+  }
+
+  async findFriends(userId: string, search?: string): Promise<UserProfile[]> {
+    if (!userId || !Types.ObjectId.isValid(userId)) {
+      return [];
+    }
+
+    const friendships = await this.friendshipModel
+      .find({
+        status: FriendshipStatus.ACCEPTED,
+        $or: [{ requester_id: userId }, { addressee_id: userId }],
+      })
+      .select('requester_id addressee_id')
+      .lean()
+      .exec();
+
+    if (!friendships || friendships.length === 0) {
+      return [];
+    }
+
+    const friendIds = friendships.map((friendship) =>
+      friendship.requester_id.toString() === userId
+        ? friendship.addressee_id.toString()
+        : friendship.requester_id.toString(),
+    );
+
+    const cleanSearch = search?.trim();
+    const users = await this.userModel
+      .find({
+        _id: { $in: friendIds },
+        ...(cleanSearch
+          ? { name: { $regex: cleanSearch, $options: 'i' } }
+          : {}),
+      })
+      .select('name email avatar')
+      .lean()
+      .exec();
+
+    return users.map((user) => ({
+      id: user._id.toString(),
+      name: user.name ?? '',
+      email: user.email ?? '',
+      avatar: user.avatar ?? '',
+    }));
+  }
+
+  async checkAllAreFriends(
+    userId: string,
+    memberIds: string[],
+  ): Promise<boolean> {
+    if (!userId || !memberIds || memberIds.length === 0) {
+      return false;
+    }
+
+    const uniqueMemberIds = Array.from(
+      new Set(memberIds.filter((id) => id && id !== userId)),
+    );
+
+    if (uniqueMemberIds.length === 0) {
+      return false;
+    }
+
+    const friendships = await this.friendshipModel
+      .find({
+        status: FriendshipStatus.ACCEPTED,
+        $or: [
+          {
+            requester_id: userId,
+            addressee_id: { $in: uniqueMemberIds },
+          },
+          {
+            requester_id: { $in: uniqueMemberIds },
+            addressee_id: userId,
+          },
+        ],
+      })
+      .select('requester_id addressee_id')
+      .lean()
+      .exec();
+
+    const foundFriendIds = new Set<string>();
+    for (const friendship of friendships) {
+      const friendId =
+        friendship.requester_id.toString() === userId
+          ? friendship.addressee_id.toString()
+          : friendship.requester_id.toString();
+      foundFriendIds.add(friendId);
+    }
+
+    return uniqueMemberIds.every((id) => foundFriendIds.has(id));
   }
 }

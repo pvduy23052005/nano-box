@@ -19,6 +19,8 @@ import { WebsocketService } from 'src/infrastructure/websocket/ws.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FRIENDSHIP_SOCKET_EVENTS } from '../gateway/friendship.event';
 import { NOTIFICATION_EVENTS } from 'src/modules/notification/presentation/listener/notification.event';
+import { GetFriendsUseCase } from '../../applications/use-case/get-friends.use-case';
+import { UserProfilePayload } from 'src/modules/user/presentation/dto/profile.payload';
 
 @Resolver()
 @UseGuards(AuthGuard)
@@ -29,6 +31,7 @@ export class FriendshipResolver {
     private readonly cancelFriendRequestUseCase: CancelFriendRequestUseCase,
     private readonly rejectFriendRequestUseCase: RejectFriendRequestUseCase,
     private readonly acceptFriendRequestUseCase: AcceptFriendRequestUseCase,
+    private readonly getFriendsUseCase: GetFriendsUseCase,
     private readonly websocketService: WebsocketService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
@@ -40,6 +43,14 @@ export class FriendshipResolver {
     const result = await this.getReceivedFriendRequestsUseCase.execute(userId);
 
     return result;
+  }
+
+  @Query(() => [UserProfilePayload])
+  async getFriends(
+    @CurrentUser('id') userId: string,
+    @Args('search', { nullable: true }) search?: string,
+  ): Promise<UserProfilePayload[]> {
+    return await this.getFriendsUseCase.execute(userId, search);
   }
 
   @Mutation(() => SendFriendRequestPayload)

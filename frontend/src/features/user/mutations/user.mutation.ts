@@ -125,4 +125,16 @@ export const CANCEL_FRIEND_REQUEST_MUTATION = graphql(`
   }
 `);
 
+export const GET_FRIENDS_QUERY = graphql(`
+  query GetFriends($search: String) {
+    getFriends(search: $search) {
+      id
+      name
+      email
+      avatar
+    }
+  }
+`);
+
+
 
