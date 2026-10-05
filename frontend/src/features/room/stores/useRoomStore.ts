@@ -15,6 +15,7 @@ export interface ChatRoom {
     lastReadMessageId?: string | null;
   }> | null;
   avatar: string | null;
+  groupAvatars?: (string | null)[] | null;
 }
 
 interface RoomState {

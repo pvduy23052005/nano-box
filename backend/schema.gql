@@ -216,6 +216,7 @@ type RoomMemberOutput {
 
 type RoomOutput {
   avatar: String
+  groupAvatars: [String]
   id: String!
   lastMessageId: LastMessageOutput
   members: [RoomMemberOutput!]

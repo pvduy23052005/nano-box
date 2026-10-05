@@ -16,6 +16,7 @@ export interface CachedRoomItem {
   typeRoom: RoomType;
   lastMessageId?: LastMessageCacheItem;
   avatar?: string | null;
+  groupAvatars?: (string | null)[] | null;
   members?: Array<{
     userId: string;
     lastReadMessageId?: string | null;
@@ -41,6 +42,7 @@ export const appendRoomToCache = (
       }
       : null,
     avatar: newRoom.avatar ?? null,
+    groupAvatars: newRoom.groupAvatars ?? null,
     members: newRoom.members
       ? newRoom.members.map((m) => ({
           userId: m.userId,

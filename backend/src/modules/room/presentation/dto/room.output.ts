@@ -58,4 +58,7 @@ export class RoomOutput {
 
   @Field(() => String, { nullable: true })
   avatar: string | null;
+
+  @Field(() => [String], { nullable: 'itemsAndList' })
+  groupAvatars?: string[] | null;
 }

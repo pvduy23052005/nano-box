@@ -13,6 +13,7 @@ export const GET_ROOMS_BY_STATUS_QUERY = graphql(`
         createdAt
       }
       avatar
+      groupAvatars
       members {
         userId
         lastReadMessageId
@@ -40,6 +41,7 @@ export const CREATE_GROUP_ROOM_MUTATION = graphql(`
         createdAt
       }
       avatar
+      groupAvatars
       members {
         userId
         role

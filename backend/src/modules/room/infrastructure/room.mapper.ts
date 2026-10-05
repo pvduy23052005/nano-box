@@ -101,12 +101,28 @@ export class RoomMapper {
       }
     }
 
+    let groupAvatars: string[] | null = null;
+    if (
+      typeRoom === RoomType.GROUP &&
+      rawRoom.members &&
+      rawRoom.members.length > 0
+    ) {
+      const avatars: string[] = [];
+      for (const member of rawRoom.members) {
+        if (isPopulatedUser(member.user_id)) {
+          avatars.push(member.user_id.avatar || '/images/default-avatar.webp');
+        }
+      }
+      groupAvatars = avatars.length > 0 ? avatars : null;
+    }
+
     return {
       id: rawRoom._id.toString(),
       title,
       typeRoom,
       lastMessageId,
       avatar,
+      groupAvatars,
       members: (rawRoom.members || []).map((member) => ({
         userId: getMemberUserId(member.user_id),
         role: member.role,
@@ -175,6 +191,7 @@ export class RoomMapper {
         lastReadMessageId: member.lastReadMessageId ?? null,
       })),
       avatar: overrides?.avatar !== undefined ? overrides.avatar : room.avatar,
+      groupAvatars: room.groupAvatars ?? null,
     };
   }
 }

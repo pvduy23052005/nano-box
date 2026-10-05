@@ -12,6 +12,8 @@ import { ChatRoom } from "../stores/useRoomStore";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { useReadReceiptStore } from "@/src/features/chat/stores/useReadReceiptStore";
 import { formatMessageTime } from "@/src/utils/formatTime";
+import { RoomType } from "../types/room.type";
+import { GroupAvatar } from "./GroupAvatar";
 
 interface RoomCardProps {
   room: ChatRoom;
@@ -86,16 +88,25 @@ export default function RoomCard({
     >
       <div className="relative shrink-0 flex flex-col items-center gap-1.5 w-14 sm:w-auto">
         <div className="relative">
-          <Avatar className="size-11 rounded-full after:hidden">
-            <AvatarImage
-              src={room.avatar || ""}
-              alt={displayName}
-              className="rounded-full object-cover"
+          {room.typeRoom === RoomType.GROUP ? (
+            <GroupAvatar
+              avatars={room.groupAvatars}
+              singleAvatar={room.avatar}
+              title={displayName}
+              size="md"
             />
-            <AvatarFallback className="rounded-full bg-emerald-50 text-emerald-700 text-sm font-semibold">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
+          ) : (
+            <Avatar className="size-11 rounded-full after:hidden">
+              <AvatarImage
+                src={room.avatar || ""}
+                alt={displayName}
+                className="rounded-full object-cover"
+              />
+              <AvatarFallback className="rounded-full bg-emerald-50 text-emerald-700 text-sm font-semibold">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+          )}
         </div>
         <span
           className={cn(
