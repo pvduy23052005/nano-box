@@ -1,24 +1,17 @@
 import { UseGuards } from '@nestjs/common';
-import {
-  Args,
-  Mutation,
-  Query,
-  Resolver,
-  ResolveField,
-  Parent,
-} from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import {
   NOTIFICATION_EVENTS,
   type RoomCreatedEventPayload,
 } from 'src/modules/notification/presentation/listener/notification.event';
 import { CurrentUser } from 'src/common/customs/current-user.decorator';
 import { AuthGuard } from 'src/common/guards/auth.guard';
-import { RoomOutput, RoomMemberOutput } from '../dto/room.output';
+import { RoomOutput } from '../dto/room.output';
 import { CreateSingleRoomUseCase } from '../../application/use-cases/create-single-room';
 import { GetRoomsByStatusUseCase } from '../../application/use-cases/get-rooms-by-status';
+import { GetRoomDetailUseCase } from '../../application/use-cases/get-room-detail.use-case';
 import { UpdateMemberLastReadMessageUseCase } from '../../application/use-cases/update-member-last-read-message';
 import { GetMeUseCase } from '../../../user/applications/use-case/get-me.use-case';
-import { UserProfilePayload } from '../../../user/presentation/dto/profile.payload';
 import { MemberStatus } from '../../domain/chat.enum';
 import { WebsocketService } from 'src/infrastructure/websocket/ws.service';
 import { ROOM_SOCKET_EVENTS } from '../gateway/event.type';
@@ -34,6 +27,7 @@ export class RoomResolver {
     private readonly createSingleRoomUseCase: CreateSingleRoomUseCase,
     private readonly createGroupRoomUseCase: CreateGroupRoomUseCase,
     private readonly getRoomsByStatusUseCase: GetRoomsByStatusUseCase,
+    private readonly getRoomDetailUseCase: GetRoomDetailUseCase,
     private readonly updateMemberLastReadMessageUseCase: UpdateMemberLastReadMessageUseCase,
     private readonly websocketService: WebsocketService,
     private readonly getMeUseCase: GetMeUseCase,
@@ -53,6 +47,15 @@ export class RoomResolver {
     );
 
     return rooms.map((result) => RoomMapper.toOutput(result));
+  }
+
+  @Query(() => RoomOutput)
+  async getRoomDetail(
+    @CurrentUser('id') myId: string,
+    @Args('roomId') roomId: string,
+  ): Promise<RoomOutput> {
+    const room = await this.getRoomDetailUseCase.execute(roomId, myId);
+    return RoomMapper.toOutput(room);
   }
 
   @Mutation(() => RoomOutput)
@@ -154,19 +157,5 @@ export class RoomResolver {
     }
 
     return isSuccess;
-  }
-}
-
-@Resolver(() => RoomMemberOutput)
-export class RoomMemberResolver {
-  constructor(private readonly getMeUseCase: GetMeUseCase) {}
-
-  @ResolveField(() => UserProfilePayload, { name: 'user', nullable: true })
-  async getUser(@Parent() member: RoomMemberOutput) {
-    try {
-      return await this.getMeUseCase.execute(member.userId);
-    } catch {
-      return null;
-    }
   }
 }

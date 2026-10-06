@@ -52,3 +52,22 @@ export const CREATE_GROUP_ROOM_MUTATION = graphql(`
   }
 `);
 
+export const GET_ROOM_DETAIL_QUERY = graphql(`
+  query GetRoomDetail($roomId: String!) {
+    getRoomDetail(roomId: $roomId) {
+      id
+      title
+      typeRoom
+      avatar
+      groupAvatars
+      members {
+        role
+        user {
+          id
+          name
+          avatar
+        }
+      }
+    }
+  }
+`);

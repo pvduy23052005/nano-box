@@ -6,15 +6,13 @@ import {
   MessageSchema,
 } from '../chat/infrastructure/database/message.schema';
 import { User, UserSchema } from '../user/infrastructure/databases/user.schema';
-import {
-  RoomResolver,
-  RoomMemberResolver,
-} from './presentation/graphql/room.resolver';
+import { RoomResolver } from './presentation/graphql/room.resolver';
 import { RoomRepositoryAdapter } from './application/ports/room.ports';
 import { RoomRepository } from './infrastructure/room.repository';
 import { CreateSingleRoomUseCase } from './application/use-cases/create-single-room';
 import { CreateGroupRoomUseCase } from './application/use-cases/create-group-room';
 import { GetRoomsByStatusUseCase } from './application/use-cases/get-rooms-by-status';
+import { GetRoomDetailUseCase } from './application/use-cases/get-room-detail.use-case';
 import { UpdateMemberLastReadMessageUseCase } from './application/use-cases/update-member-last-read-message';
 import { EnsureFriendRoomUseCase } from './application/use-cases/ensure-friend-room.use-case';
 import { UserModule } from '../user/user.module';
@@ -33,7 +31,6 @@ import { FriendshipRepositoryAdapter } from '../friendship/applications/ports/fr
   ],
   providers: [
     RoomResolver,
-    RoomMemberResolver,
     {
       provide: RoomRepositoryAdapter,
       useClass: RoomRepository,
@@ -59,6 +56,12 @@ import { FriendshipRepositoryAdapter } from '../friendship/applications/ports/fr
       inject: [RoomRepositoryAdapter],
     },
     {
+      provide: GetRoomDetailUseCase,
+      useFactory: (roomRepository: RoomRepositoryAdapter) =>
+        new GetRoomDetailUseCase(roomRepository),
+      inject: [RoomRepositoryAdapter],
+    },
+    {
       provide: UpdateMemberLastReadMessageUseCase,
       useFactory: (roomRepository: RoomRepositoryAdapter) =>
         new UpdateMemberLastReadMessageUseCase(roomRepository),
@@ -75,6 +78,7 @@ import { FriendshipRepositoryAdapter } from '../friendship/applications/ports/fr
     CreateSingleRoomUseCase,
     CreateGroupRoomUseCase,
     GetRoomsByStatusUseCase,
+    GetRoomDetailUseCase,
     UpdateMemberLastReadMessageUseCase,
     EnsureFriendRoomUseCase,
     RoomRepositoryAdapter,

@@ -182,6 +182,7 @@ type Query {
   getMessages(cursor: String, limit: Float, roomId: String!): MessagesPagePayload!
   getNotifications(cursor: String, limit: Float): NotificationsPagePayload!
   getReceivedFriendRequests: [GetReceivedFriendRequestPayload!]!
+  getRoomDetail(roomId: String!): RoomOutput!
   getRoomsByStatus(search: String, status: MemberStatus!): [RoomOutput!]!
   getUnreadNotificationCount: Int!
   getUsers(search: String): [UserProfilePayload!]!
@@ -215,8 +216,14 @@ type RoomMemberOutput {
   lastReadMessageId: String
   role: MemberRole!
   status: MemberStatus!
-  user: UserProfilePayload
+  user: RoomMemberUserOutput
   userId: String!
+}
+
+type RoomMemberUserOutput {
+  avatar: String!
+  id: String!
+  name: String!
 }
 
 type RoomOutput {

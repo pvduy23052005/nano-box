@@ -1,10 +1,21 @@
 import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { RoomType, MemberRole, MemberStatus } from '../../domain/chat.enum';
-import { UserProfilePayload } from '../../../user/presentation/dto/profile.payload';
 
 registerEnumType(RoomType, { name: 'RoomType' });
 registerEnumType(MemberRole, { name: 'MemberRole' });
 registerEnumType(MemberStatus, { name: 'MemberStatus' });
+
+@ObjectType()
+export class RoomMemberUserOutput {
+  @Field()
+  id: string;
+
+  @Field()
+  name: string;
+
+  @Field()
+  avatar: string;
+}
 
 @ObjectType()
 export class RoomMemberOutput {
@@ -20,8 +31,8 @@ export class RoomMemberOutput {
   @Field(() => String, { nullable: true })
   lastReadMessageId?: string | null;
 
-  @Field(() => UserProfilePayload, { nullable: true })
-  user?: UserProfilePayload;
+  @Field(() => RoomMemberUserOutput, { nullable: true })
+  user?: RoomMemberUserOutput;
 }
 
 @ObjectType()
