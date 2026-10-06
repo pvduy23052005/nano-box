@@ -15,12 +15,11 @@ import { Button } from "@/src/components/ui/button";
 import { useEffect, useState } from "react";
 import RoomFriend from "../../room/components/RoomFriend";
 import RoomStranger from "../../room/components/RoomStranger";
-import CreateGroupRoomDialog from "../../room/components/CreateGroupRoomDialog";
 import { useGetRooms } from "../../room/hooks/useGetRooms";
 import { useReceiveRoom } from "../../room/socket/useReceiveRoom";
 import { useRoomStore, ChatRoom } from "../../room/stores/useRoomStore";
 import { MemberStatus } from "../../room/types/room.type";
-import { Plus, Search, Users, X } from "lucide-react";
+import { Plus, Search, X } from "lucide-react";
 import { useDebounce } from "@/src/hooks/useDebounce";
 
 export enum RoomTypeSearch {
@@ -34,7 +33,6 @@ export default function ChatSidebar() {
   );
   const [prevActiveRoomId, setPrevActiveRoomId] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState("");
-  const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
   const debouncedSearch = useDebounce(searchValue.trim(), 350);
 
   const {
@@ -51,7 +49,8 @@ export default function ChatSidebar() {
 
   useReceiveRoom();
 
-  const { activeRoomId, activeRoom, setActiveRoom } = useRoomStore();
+  const { activeRoomId, activeRoom, setActiveRoom, setIsCreateGroupOpen } =
+    useRoomStore();
 
   if (activeRoomId !== prevActiveRoomId) {
     setPrevActiveRoomId(activeRoomId);
@@ -153,18 +152,6 @@ export default function ChatSidebar() {
                 Người lạ
               </TabsTrigger>
             </TabsList>
-
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsCreateGroupOpen(true)}
-              className="size-7 sm:hidden cursor-pointer shrink-0 text-muted-foreground hover:text-foreground"
-              title="Tạo nhóm chat"
-              aria-label="Tạo nhóm chat"
-            >
-              <Users data-icon="inline-start" className="size-3.5" />
-            </Button>
           </div>
         </div>
 
@@ -200,13 +187,6 @@ export default function ChatSidebar() {
           />
         </TabsContent>
       </Tabs>
-
-      {isCreateGroupOpen && (
-        <CreateGroupRoomDialog
-          onClose={() => setIsCreateGroupOpen(false)}
-        />
-      )}
     </aside>
   );
 }
-

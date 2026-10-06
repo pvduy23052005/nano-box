@@ -1,16 +1,19 @@
 import {
   WebSocketGateway,
   WebSocketServer,
+  SubscribeMessage,
   OnGatewayInit,
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
+
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { parseCookie } from 'cookie';
 import { WebsocketService } from './ws.service';
+import { PresenceService } from './presence.service';
 import type { TokenPayload } from 'src/modules/auth/applications/dto/login.type';
-import type { AuthenticatedSocket } from './ws.type';
+import { type AuthenticatedSocket, PRESENCE_SOCKET_EVENTS } from './ws.type';
 
 @WebSocketGateway({
   cors: {
@@ -42,6 +45,7 @@ export class WebsocketGateway
   constructor(
     private readonly websocketService: WebsocketService,
     private readonly jwtService: JwtService,
+    private readonly presenceService: PresenceService,
   ) {}
 
   afterInit(server: Server) {
@@ -68,12 +72,51 @@ export class WebsocketGateway
   }
 
   handleConnection(client: AuthenticatedSocket) {
-    if (client.data.userId) {
-      void client.join(client.data.userId);
+    const userId = client.data.userId;
+    if (userId) {
+      void client.join(userId);
+
+      const isJustOnline = this.presenceService.addConnection(
+        userId,
+        client.id,
+      );
+
+      client.emit(
+        PRESENCE_SOCKET_EVENTS.INITIAL_ONLINE_USERS,
+        this.presenceService.getOnlineUserIds(),
+      );
+
+      if (isJustOnline) {
+        client.broadcast.emit(PRESENCE_SOCKET_EVENTS.USER_ONLINE, {
+          userId,
+        });
+      }
     }
   }
 
-  handleDisconnect(_client: AuthenticatedSocket) {}
+  @SubscribeMessage(PRESENCE_SOCKET_EVENTS.USER_LOGOUT)
+  handleLogout(client: AuthenticatedSocket) {
+    const userId = client.data.userId;
+    if (userId) {
+      this.presenceService.removeUserImmediately(userId, () => {
+        this.server.emit(PRESENCE_SOCKET_EVENTS.USER_OFFLINE, {
+          userId,
+        });
+      });
+      client.disconnect(true);
+    }
+  }
+
+  handleDisconnect(client: AuthenticatedSocket) {
+    const userId = client.data.userId;
+    if (userId) {
+      this.presenceService.removeConnection(userId, client.id, () => {
+        this.server.emit(PRESENCE_SOCKET_EVENTS.USER_OFFLINE, {
+          userId,
+        });
+      });
+    }
+  }
 
   private extractToken(client: AuthenticatedSocket | Socket): string | null {
     const authHeader = client.handshake?.headers?.authorization;

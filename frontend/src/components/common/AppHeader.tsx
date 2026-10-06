@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/src/features/auth/store/useAuthStore";
 import { useRoomStore } from "@/src/features/room/stores/useRoomStore";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { SidebarTrigger } from "../ui/sidebar";
 import { Button } from "../ui/button";
-import { Bell, CircleChevronDown, LogOut, UserPen } from "lucide-react";
+import { Bell, CircleChevronDown, LogOut, Plus, UserPen } from "lucide-react";
 import { useNotifications } from "@/src/features/notification/hooks/useNotifications";
 import { NotificationItem } from "@/src/features/notification/types/notification.types";
 import NotificationSheet from "@/src/features/notification/components/NotificationSheet";
@@ -15,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Spinner } from "../ui/spinner";
 import { useLogout } from "@/src/features/auth/hooks/useLogout";
 import EditProfileDialog from "@/src/features/user/components/EditProfileDialog";
+import CreateGroupRoomDialog from "@/src/features/room/components/CreateGroupRoomDialog";
 import { cn } from "@/src/lib/utils";
 
 export default function AppHeader() {
@@ -23,8 +24,15 @@ export default function AppHeader() {
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   const router = useRouter();
+  const pathname = usePathname();
+  const isChatPage = pathname?.startsWith("/chat");
+
   const user = useAuthStore((state) => state.user);
   const setActiveRoomId = useRoomStore((state) => state.setActiveRoomId);
+  const isCreateGroupOpen = useRoomStore((state) => state.isCreateGroupOpen);
+  const setIsCreateGroupOpen = useRoomStore(
+    (state) => state.setIsCreateGroupOpen,
+  );
   const { logout, isLoggingOut } = useLogout();
 
   const {
@@ -54,6 +62,20 @@ export default function AppHeader() {
       <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground cursor-pointer" />
 
       <div className="flex items-center gap-1">
+        {isChatPage && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsCreateGroupOpen(true)}
+            className="sm:hidden relative rounded-full hover:bg-accent/70 transition-colors cursor-pointer text-muted-foreground hover:text-foreground"
+            title="Tạo nhóm chat"
+            aria-label="Tạo nhóm chat"
+          >
+            <Plus className="size-5" />
+          </Button>
+        )}
+
         <div>
           <Button
             variant="ghost"
@@ -155,6 +177,10 @@ export default function AppHeader() {
 
         {isEditProfileOpen && (
           <EditProfileDialog onClose={() => setIsEditProfileOpen(false)} />
+        )}
+
+        {isCreateGroupOpen && (
+          <CreateGroupRoomDialog onClose={() => setIsCreateGroupOpen(false)} />
         )}
       </div>
     </header>

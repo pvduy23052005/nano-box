@@ -21,13 +21,16 @@ export interface ChatRoom {
 interface RoomState {
   activeRoomId: string | null;
   activeRoom: ChatRoom | null;
+  isCreateGroupOpen: boolean;
   setActiveRoom: (room: ChatRoom | null) => void;
   setActiveRoomId: (roomId: string | null) => void;
+  setIsCreateGroupOpen: (open: boolean) => void;
 }
 
 export const useRoomStore = create<RoomState>((set) => ({
   activeRoomId: null,
   activeRoom: null,
+  isCreateGroupOpen: false,
   setActiveRoom: (room) =>
     set({
       activeRoom: room,
@@ -36,5 +39,9 @@ export const useRoomStore = create<RoomState>((set) => ({
   setActiveRoomId: (roomId) =>
     set({
       activeRoomId: roomId,
+    }),
+  setIsCreateGroupOpen: (open) =>
+    set({
+      isCreateGroupOpen: open,
     }),
 }));
