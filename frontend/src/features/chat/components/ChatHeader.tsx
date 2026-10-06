@@ -6,12 +6,18 @@ import {
   AvatarImage,
 } from "@/src/components/ui/avatar";
 import { Typography } from "@/src/components/ui/typography";
+import { cn } from "@/src/lib/utils";
 import { useRoomStore } from "../../room/stores/useRoomStore";
 import { RoomType } from "../../room/types/room.type";
 import { GroupAvatar } from "../../room/components/GroupAvatar";
+import { useAuthStore } from "../../auth/store/useAuthStore";
+import { usePresenceStore } from "@/src/features/user/stores/usePresenceStore";
+
 
 export default function ChatHeader() {
   const { activeRoom } = useRoomStore();
+  const currentUserId = useAuthStore((state) => state.user?.id);
+  const onlineUsers = usePresenceStore((state) => state.onlineUsers);
 
   if (!activeRoom) {
     return (
@@ -25,10 +31,20 @@ export default function ChatHeader() {
 
   const displayName = activeRoom.title || "Cuộc trò chuyện";
   const initials = displayName.slice(0, 2).toUpperCase();
+  const isGroup = activeRoom.typeRoom === RoomType.GROUP;
+
+  const otherMemberId = activeRoom.members?.find(
+    (member) => member.userId !== currentUserId,
+  )?.userId;
+  const isOtherOnline = otherMemberId ? !!onlineUsers[otherMemberId] : false;
+
+  const onlineMembersCount = isGroup
+    ? (activeRoom.members?.filter((member) => !!onlineUsers[member.userId]).length ?? 0)
+    : 0;
 
   return (
     <header className="hidden sm:flex h-12 border-b items-center gap-2 p-2 shadow-sm">
-      {activeRoom.typeRoom === RoomType.GROUP ? (
+      {isGroup ? (
         <GroupAvatar
           avatars={activeRoom.groupAvatars}
           singleAvatar={activeRoom.avatar}
@@ -50,8 +66,31 @@ export default function ChatHeader() {
           variant="caption"
           className="flex items-center gap-1.5 mt-0.5 text-xs text-muted-foreground"
         >
-          <span className="size-2 rounded-full bg-emerald-500" />
-          Đang hoạt động
+          {isGroup ? (
+            <>
+              <span
+                className={cn(
+                  "size-2 rounded-full shrink-0",
+                  onlineMembersCount > 0
+                    ? "bg-emerald-500"
+                    : "bg-muted-foreground/40",
+                )}
+              />
+              {onlineMembersCount > 0
+                ? `${onlineMembersCount} thành viên trực tuyến`
+                : "Tất cả ngoại tuyến"}
+            </>
+          ) : (
+            <>
+              <span
+                className={cn(
+                  "size-2 rounded-full shrink-0",
+                  isOtherOnline ? "bg-emerald-500" : "bg-muted-foreground/40",
+                )}
+              />
+              {isOtherOnline ? "Đang hoạt động" : "Ngoại tuyến"}
+            </>
+          )}
         </Typography>
       </div>
     </header>

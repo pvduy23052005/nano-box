@@ -11,7 +11,9 @@ import DOMPurify from "isomorphic-dompurify";
 import { ChatRoom } from "../stores/useRoomStore";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { useReadReceiptStore } from "@/src/features/chat/stores/useReadReceiptStore";
+import { usePresenceStore } from "@/src/features/user/stores/usePresenceStore";
 import { formatMessageTime } from "@/src/utils/formatTime";
+
 import { RoomType } from "../types/room.type";
 import { GroupAvatar } from "./GroupAvatar";
 
@@ -35,6 +37,15 @@ export default function RoomCard({
   const displayName = room.title || "Cuộc trò chuyện";
   const initials = displayName.slice(0, 2).toUpperCase();
   const user = useAuthStore((state) => state.user);
+
+  const otherMemberId =
+    room.typeRoom !== RoomType.GROUP
+      ? room.members?.find((member) => member.userId !== user?.id)?.userId
+      : undefined;
+  const isOtherUserOnline = usePresenceStore((state) =>
+    otherMemberId ? !!state.onlineUsers[otherMemberId] : false,
+  );
+
   const myLastReadId = useReadReceiptStore(
     (state) => state.readByRoom[room.id]?.[user?.id ?? ""],
   );
@@ -96,16 +107,24 @@ export default function RoomCard({
               size="md"
             />
           ) : (
-            <Avatar className="size-11 rounded-full after:hidden">
-              <AvatarImage
-                src={room.avatar || ""}
-                alt={displayName}
-                className="rounded-full object-cover"
-              />
-              <AvatarFallback className="rounded-full bg-emerald-50 text-emerald-700 text-sm font-semibold">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
+            <>
+              <Avatar className="size-11 rounded-full after:hidden">
+                <AvatarImage
+                  src={room.avatar || ""}
+                  alt={displayName}
+                  className="rounded-full object-cover"
+                />
+                <AvatarFallback className="rounded-full bg-emerald-50 text-emerald-700 text-sm font-semibold">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              {isOtherUserOnline && (
+                <span
+                  title="Đang hoạt động"
+                  className="absolute bottom-0 right-0 size-3 rounded-full bg-emerald-500 ring-2 ring-card z-10"
+                />
+              )}
+            </>
           )}
         </div>
         <span

@@ -67,7 +67,6 @@ export class ChatResolver {
     @Args('input') input: MessageInput,
     @CurrentUser('id') userId: string,
   ) {
-    console.log(input);
     const attachments: string[] = [];
     const tempKeysToDelete: string[] = [];
 

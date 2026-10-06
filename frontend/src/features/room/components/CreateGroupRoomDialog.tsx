@@ -72,16 +72,18 @@ export default function CreateGroupRoomDialog({
 
   const handleToggleUser = (user: SelectedUser) => {
     setSelectedUsers((prev) => {
-      const exists = prev.some((u) => u.id === user.id);
+      const exists = prev.some((selectedUser) => selectedUser.id === user.id);
       if (exists) {
-        return prev.filter((u) => u.id !== user.id);
+        return prev.filter((selectedUser) => selectedUser.id !== user.id);
       }
       return [...prev, user];
     });
   };
 
   const handleRemoveSelectedUser = (userId: string) => {
-    setSelectedUsers((prev) => prev.filter((u) => u.id !== userId));
+    setSelectedUsers((prev) =>
+      prev.filter((selectedUser) => selectedUser.id !== userId),
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -100,12 +102,10 @@ export default function CreateGroupRoomDialog({
     try {
       await createGroupRoom({
         title: cleanTitle,
-        memberIds: selectedUsers.map((u) => u.id),
+        memberIds: selectedUsers.map((selectedUser) => selectedUser.id),
       });
       handleClose();
-    } catch {
-      // Toast notification is handled in useCreateGroupRoom
-    }
+    } catch {}
   };
 
   const isSubmitDisabled =

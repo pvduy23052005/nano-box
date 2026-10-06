@@ -6,11 +6,15 @@ import io, { Socket } from "socket.io-client";
 interface SocketContextType {
   socket: Socket | null;
   isConnected: boolean;
+  disconnect: () => void;
+  connect: () => void;
 }
 
 const SocketContext = createContext<SocketContextType>({
   socket: null,
   isConnected: false,
+  disconnect: () => {},
+  connect: () => {},
 });
 
 const getSocketUrl = (): string => {
@@ -32,6 +36,18 @@ const socketInstance =
       })
     : null;
 
+export const disconnectSocket = () => {
+  if (socketInstance?.connected) {
+    socketInstance.disconnect();
+  }
+};
+
+export const connectSocket = () => {
+  if (socketInstance && !socketInstance.connected) {
+    socketInstance.connect();
+  }
+};
+
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [isConnected, setIsConnected] = useState(
     socketInstance?.connected ?? false,
@@ -51,11 +67,19 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       socketInstance.off("connect", onConnect);
       socketInstance.off("disconnect", onDisconnect);
+      socketInstance.disconnect();
     };
   }, []);
 
   return (
-    <SocketContext.Provider value={{ socket: socketInstance, isConnected }}>
+    <SocketContext.Provider
+      value={{
+        socket: socketInstance,
+        isConnected,
+        disconnect: disconnectSocket,
+        connect: connectSocket,
+      }}
+    >
       {children}
     </SocketContext.Provider>
   );
