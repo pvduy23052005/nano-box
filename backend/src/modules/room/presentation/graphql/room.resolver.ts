@@ -19,9 +19,11 @@ import { RoomMapper } from '../../infrastructure/room.mapper';
 import { CreateGroupRoomUseCase } from '../../application/use-cases/create-group-room';
 import { UpdateRoomProfileUseCase } from '../../application/use-cases/update-room-profile.use-case';
 import { AddMemberToRoomUseCase } from '../../application/use-cases/add-member-to-room.use-case';
+import { RemoveMemberFromRoomUseCase } from '../../application/use-cases/remove-member-from-room.use-case';
 import { CreateGroupRoomInput } from '../dto/create.input';
 import { UpdateRoomProfileInput } from '../dto/update.input';
 import { AddMemberToRoomInput } from '../dto/add-member.input';
+import { RemoveMemberFromRoomInput } from '../dto/remove-member.input';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Resolver()
@@ -32,6 +34,7 @@ export class RoomResolver {
     private readonly createGroupRoomUseCase: CreateGroupRoomUseCase,
     private readonly updateRoomProfileUseCase: UpdateRoomProfileUseCase,
     private readonly addMemberToRoomUseCase: AddMemberToRoomUseCase,
+    private readonly removeMemberFromRoomUseCase: RemoveMemberFromRoomUseCase,
     private readonly getRoomsByStatusUseCase: GetRoomsByStatusUseCase,
     private readonly getRoomDetailUseCase: GetRoomDetailUseCase,
     private readonly updateMemberLastReadMessageUseCase: UpdateMemberLastReadMessageUseCase,
@@ -200,6 +203,35 @@ export class RoomResolver {
     const recipientIds = (result.members || [])
       .map((member) => member.userId)
       .filter(Boolean);
+
+    if (recipientIds.length > 0) {
+      this.websocketService.server
+        ?.to(recipientIds)
+        ?.emit(ROOM_SOCKET_EVENTS.SERVER_SEND_ROOM, roomOutput);
+      this.websocketService.server
+        ?.to(recipientIds)
+        ?.emit(ROOM_SOCKET_EVENTS.ROOM_UPDATED, roomOutput);
+    }
+
+    return roomOutput;
+  }
+
+  @Mutation(() => RoomOutput)
+  async removeMemberFromRoom(
+    @CurrentUser('id') myId: string,
+    @Args('input') input: RemoveMemberFromRoomInput,
+  ): Promise<RoomOutput> {
+    const result = await this.removeMemberFromRoomUseCase.execute(myId, input);
+    const roomOutput = RoomMapper.toOutput(result);
+
+    const recipientIds = Array.from(
+      new Set(
+        [
+          ...(result.members || []).map((member) => member.userId),
+          input.userId,
+        ].filter(Boolean),
+      ),
+    );
 
     if (recipientIds.length > 0) {
       this.websocketService.server

@@ -143,6 +143,7 @@ type Mutation {
   markNotificationAsRead(id: String!): Boolean!
   register(input: RegisterInputDto!): RegisterPayload!
   rejectFriendRequest(friendId: String!): RejectFriendRequestPayload!
+  removeMemberFromRoom(input: RemoveMemberFromRoomInput!): RoomOutput!
   sendFriendRequest(addresseeId: String!): SendFriendRequestPayload!
   sendMessage(input: MessageInput!): ChatPayload!
   updateMemberLastReadMessage(messageId: String!, roomId: String!): Boolean!
@@ -217,6 +218,11 @@ type RejectFriendRequestPayload {
   data: FriendshipDataPayload
   message: String!
   success: Boolean!
+}
+
+input RemoveMemberFromRoomInput {
+  roomId: String!
+  userId: String!
 }
 
 type RoomMemberOutput {

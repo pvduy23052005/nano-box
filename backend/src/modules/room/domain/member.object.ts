@@ -1,7 +1,7 @@
 import { MemberRole, MemberStatus } from './chat.enum';
 
 export class RoomMember {
-  private readonly _user_id: string;
+  private readonly _userId: string;
   private _role: MemberRole;
   private _status: MemberStatus;
   private _lastReadMessageId?: string | null;
@@ -12,7 +12,7 @@ export class RoomMember {
     status: MemberStatus,
     lastReadMessageId?: string | null,
   ) {
-    this._user_id = userId;
+    this._userId = userId;
     this._role = role;
     this._status = status;
     if (lastReadMessageId !== undefined) {
@@ -67,16 +67,53 @@ export class RoomMember {
     );
   }
 
-  get userId(): string {
-    return this._user_id;
+  public canBeRemovedBy(actor: RoomMember): {
+    allowed: boolean;
+    reason?: string;
+  } {
+    if (this._role === MemberRole.SUPER_ADMIN) {
+      return {
+        allowed: false,
+        reason: 'Không thể xóa Trưởng nhóm khỏi phòng',
+      };
+    }
+
+    if (actor.getRole() === MemberRole.ADMIN && this._role === MemberRole.ADMIN) {
+      return {
+        allowed: false,
+        reason: 'Quản trị viên không thể xóa Quản trị viên khác',
+      };
+    }
+
+    return { allowed: true };
   }
-  get role(): MemberRole {
+
+  public getUserId(): string {
+    return this._userId;
+  }
+
+  public getRole(): MemberRole {
     return this._role;
   }
-  get status(): MemberStatus {
+
+  public getStatus(): MemberStatus {
     return this._status;
   }
-  get lastReadMessageId(): string | null | undefined {
+
+  public getLastReadMessageId(): string | null | undefined {
     return this._lastReadMessageId;
+  }
+
+  get userId(): string {
+    return this.getUserId();
+  }
+  get role(): MemberRole {
+    return this.getRole();
+  }
+  get status(): MemberStatus {
+    return this.getStatus();
+  }
+  get lastReadMessageId(): string | null | undefined {
+    return this.getLastReadMessageId();
   }
 }

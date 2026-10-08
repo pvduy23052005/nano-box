@@ -17,6 +17,7 @@ import { UpdateMemberLastReadMessageUseCase } from './application/use-cases/upda
 import { EnsureFriendRoomUseCase } from './application/use-cases/ensure-friend-room.use-case';
 import { UpdateRoomProfileUseCase } from './application/use-cases/update-room-profile.use-case';
 import { AddMemberToRoomUseCase } from './application/use-cases/add-member-to-room.use-case';
+import { RemoveMemberFromRoomUseCase } from './application/use-cases/remove-member-from-room.use-case';
 import { UserModule } from '../user/user.module';
 import { FriendshipModule } from '../friendship/friendship.module';
 import { FriendshipRepositoryAdapter } from '../friendship/applications/ports/friendship.port';
@@ -89,6 +90,12 @@ import { FriendshipRepositoryAdapter } from '../friendship/applications/ports/fr
       ) => new AddMemberToRoomUseCase(roomRepository, friendshipRepository),
       inject: [RoomRepositoryAdapter, FriendshipRepositoryAdapter],
     },
+    {
+      provide: RemoveMemberFromRoomUseCase,
+      useFactory: (roomRepository: RoomRepositoryAdapter) =>
+        new RemoveMemberFromRoomUseCase(roomRepository),
+      inject: [RoomRepositoryAdapter],
+    },
   ],
   exports: [
     CreateSingleRoomUseCase,
@@ -99,6 +106,7 @@ import { FriendshipRepositoryAdapter } from '../friendship/applications/ports/fr
     EnsureFriendRoomUseCase,
     UpdateRoomProfileUseCase,
     AddMemberToRoomUseCase,
+    RemoveMemberFromRoomUseCase,
     RoomRepositoryAdapter,
   ],
 })

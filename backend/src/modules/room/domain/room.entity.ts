@@ -128,7 +128,7 @@ export class RoomEntity {
   }
 
   public getMember(userId: string): RoomMember | undefined {
-    return this.members.find((member) => member.userId === userId);
+    return this.members.find((member) => member.getUserId() === userId);
   }
 
   public isMember(userId: string): boolean {
@@ -228,6 +228,55 @@ export class RoomEntity {
     existingMember.changeRole(MemberRole.MEMBER);
   }
 
+  public removeMember(actorId: string, targetUserId: string): void {
+    const errors: Record<string, string> = {};
+
+    if (this.typeRoom !== RoomType.GROUP) {
+      errors.typeRoom = 'Chỉ có thể xóa thành viên khỏi phòng nhóm';
+    }
+
+    if (!this.isMember(actorId)) {
+      errors.member = 'Bạn không phải là thành viên của phòng này';
+    } else if (!this.isAdmin(actorId)) {
+      errors.role = 'Chỉ quản trị viên mới có quyền xóa thành viên';
+    }
+
+    const cleanTargetUserId = targetUserId?.trim().toString();
+    if (!cleanTargetUserId) {
+      errors.userId = 'ID thành viên cần xóa không được để trống';
+    } else if (actorId && actorId === cleanTargetUserId) {
+      errors.userId =
+        'Không thể tự xóa chính mình khỏi nhóm, hãy sử dụng chức năng rời nhóm';
+    }
+
+    const removedMember = cleanTargetUserId
+      ? this.getMember(cleanTargetUserId)
+      : undefined;
+
+    if (cleanTargetUserId && (!removedMember || !removedMember.isAccepted())) {
+      if (!errors.userId) {
+        errors.userId = 'Thành viên này không tồn tại trong phòng';
+      }
+    }
+
+    const actorMember = this.getMember(actorId);
+
+    if (actorMember && removedMember && !errors.role) {
+      const permission = removedMember.canBeRemovedBy(actorMember);
+      if (!permission.allowed && permission.reason) {
+        errors.role = permission.reason;
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      throw new DomainValidationException(errors);
+    }
+
+    this.members = this.members.filter(
+      (member) => member.getUserId() !== cleanTargetUserId,
+    );
+  }
+
   public static restore(data: RoomProps): RoomEntity {
     return new RoomEntity({
       id: data.id,
@@ -248,12 +297,13 @@ export class RoomEntity {
       avatar: this.avatar,
       members: this.members.map((member): RoomMemberProps => {
         const item: RoomMemberProps = {
-          userId: member.userId,
-          role: member.role,
-          status: member.status,
+          userId: member.getUserId(),
+          role: member.getRole(),
+          status: member.getStatus(),
         };
-        if (member.lastReadMessageId !== undefined) {
-          item.lastReadMessageId = member.lastReadMessageId;
+        const lastRead = member.getLastReadMessageId();
+        if (lastRead !== undefined) {
+          item.lastReadMessageId = lastRead;
         }
         return item;
       }),
