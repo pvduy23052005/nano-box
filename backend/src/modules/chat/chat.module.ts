@@ -15,16 +15,20 @@ import { ChatGateway } from './presentation/gateway/chat.gateway';
 import { UploadModule } from 'src/infrastructure/upload/upload.module';
 import { RoomModule } from '../room/room.module';
 import { RoomRepositoryAdapter } from '../room/application/ports/room.ports';
+import { UserModule } from '../user/user.module';
+import { ChatListener } from './presentation/listener/chat.listener';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Message.name, schema: MessageSchema }]),
     UploadModule,
     RoomModule,
+    UserModule,
   ],
   providers: [
     ChatResolver,
     ChatGateway,
+    ChatListener,
     {
       provide: MessageRepositoryAdapter,
       useClass: MessageRepository,
