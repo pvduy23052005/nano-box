@@ -20,6 +20,11 @@ input AddMemberToRoomInput {
   userId: String!
 }
 
+input AssignRoomAdminInput {
+  roomId: String!
+  userId: String!
+}
+
 type CancelFriendRequestPayload {
   data: FriendshipDataPayload
   message: String!
@@ -133,6 +138,7 @@ type Mutation {
   acceptFriendRequest(friendId: String!): AcceptFriendRequestPayload!
   addEmojiMessage(input: AddEmojiMessageInput!): ChatPayload!
   addMemberToRoom(input: AddMemberToRoomInput!): RoomOutput!
+  assignRoomAdmin(input: AssignRoomAdminInput!): RoomOutput!
   cancelFriendRequest(friendId: String!): CancelFriendRequestPayload!
   createGroupRoom(input: CreateGroupRoomInput!): RoomOutput!
   createRoomChatNotFriend(otherUserId: String!): RoomOutput!
@@ -144,6 +150,7 @@ type Mutation {
   register(input: RegisterInputDto!): RegisterPayload!
   rejectFriendRequest(friendId: String!): RejectFriendRequestPayload!
   removeMemberFromRoom(input: RemoveMemberFromRoomInput!): RoomOutput!
+  revokeRoomAdmin(input: RevokeRoomAdminInput!): RoomOutput!
   sendFriendRequest(addresseeId: String!): SendFriendRequestPayload!
   sendMessage(input: MessageInput!): ChatPayload!
   updateMemberLastReadMessage(messageId: String!, roomId: String!): Boolean!
@@ -221,6 +228,11 @@ type RejectFriendRequestPayload {
 }
 
 input RemoveMemberFromRoomInput {
+  roomId: String!
+  userId: String!
+}
+
+input RevokeRoomAdminInput {
   roomId: String!
   userId: String!
 }

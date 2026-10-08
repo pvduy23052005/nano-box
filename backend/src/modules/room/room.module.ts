@@ -18,6 +18,8 @@ import { EnsureFriendRoomUseCase } from './application/use-cases/ensure-friend-r
 import { UpdateRoomProfileUseCase } from './application/use-cases/update-room-profile.use-case';
 import { AddMemberToRoomUseCase } from './application/use-cases/add-member-to-room.use-case';
 import { RemoveMemberFromRoomUseCase } from './application/use-cases/remove-member-from-room.use-case';
+import { AssignRoomAdminUseCase } from './application/use-cases/assign-room-admin.use-case';
+import { RevokeRoomAdminUseCase } from './application/use-cases/revoke-room-admin.use-case';
 import { UserModule } from '../user/user.module';
 import { FriendshipModule } from '../friendship/friendship.module';
 import { FriendshipRepositoryAdapter } from '../friendship/applications/ports/friendship.port';
@@ -96,6 +98,18 @@ import { FriendshipRepositoryAdapter } from '../friendship/applications/ports/fr
         new RemoveMemberFromRoomUseCase(roomRepository),
       inject: [RoomRepositoryAdapter],
     },
+    {
+      provide: AssignRoomAdminUseCase,
+      useFactory: (roomRepository: RoomRepositoryAdapter) =>
+        new AssignRoomAdminUseCase(roomRepository),
+      inject: [RoomRepositoryAdapter],
+    },
+    {
+      provide: RevokeRoomAdminUseCase,
+      useFactory: (roomRepository: RoomRepositoryAdapter) =>
+        new RevokeRoomAdminUseCase(roomRepository),
+      inject: [RoomRepositoryAdapter],
+    },
   ],
   exports: [
     CreateSingleRoomUseCase,
@@ -107,6 +121,8 @@ import { FriendshipRepositoryAdapter } from '../friendship/applications/ports/fr
     UpdateRoomProfileUseCase,
     AddMemberToRoomUseCase,
     RemoveMemberFromRoomUseCase,
+    AssignRoomAdminUseCase,
+    RevokeRoomAdminUseCase,
     RoomRepositoryAdapter,
   ],
 })

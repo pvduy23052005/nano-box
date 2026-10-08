@@ -277,6 +277,90 @@ export class RoomEntity {
     );
   }
 
+  public assignAdmin(actorId: string, targetUserId: string): void {
+    const errors: Record<string, string> = {};
+
+    if (this.typeRoom !== RoomType.GROUP) {
+      errors.typeRoom = 'Chỉ có thể bổ nhiệm quản trị viên trong phòng nhóm';
+    }
+
+    if (!this.isMember(actorId)) {
+      errors.member = 'Bạn không phải là thành viên của phòng này';
+    }
+
+    const cleanTargetUserId = targetUserId?.trim().toString();
+    if (!cleanTargetUserId) {
+      errors.userId = 'ID thành viên cần bổ nhiệm không được để trống';
+    }
+
+    const targetMember = cleanTargetUserId
+      ? this.getMember(cleanTargetUserId)
+      : undefined;
+
+    if (cleanTargetUserId && (!targetMember || !targetMember.isAccepted())) {
+      if (!errors.userId) {
+        errors.userId = 'Thành viên này không tồn tại trong phòng';
+      }
+    }
+
+    const actorMember = this.getMember(actorId);
+
+    if (actorMember && targetMember) {
+      const permission = targetMember.canBeAssignedAdminBy(actorMember);
+      if (!permission.allowed && permission.reason) {
+        errors.role = permission.reason;
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      throw new DomainValidationException(errors);
+    }
+
+    targetMember?.changeRole(MemberRole.ADMIN);
+  }
+
+  public revokeAdmin(actorId: string, targetUserId: string): void {
+    const errors: Record<string, string> = {};
+
+    if (this.typeRoom !== RoomType.GROUP) {
+      errors.typeRoom = 'Chỉ có thể cắt chức quản trị viên trong phòng nhóm';
+    }
+
+    if (!this.isMember(actorId)) {
+      errors.member = 'Bạn không phải là thành viên của phòng này';
+    }
+
+    const cleanTargetUserId = targetUserId?.trim().toString();
+    if (!cleanTargetUserId) {
+      errors.userId = 'ID thành viên cần cắt chức không được để trống';
+    }
+
+    const targetMember = cleanTargetUserId
+      ? this.getMember(cleanTargetUserId)
+      : undefined;
+
+    if (cleanTargetUserId && (!targetMember || !targetMember.isAccepted())) {
+      if (!errors.userId) {
+        errors.userId = 'Thành viên này không tồn tại trong phòng';
+      }
+    }
+
+    const actorMember = this.getMember(actorId);
+
+    if (actorMember && targetMember) {
+      const permission = targetMember.canBeRevokedAdminBy(actorMember);
+      if (!permission.allowed && permission.reason) {
+        errors.role = permission.reason;
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      throw new DomainValidationException(errors);
+    }
+
+    targetMember?.changeRole(MemberRole.MEMBER);
+  }
+
   public static restore(data: RoomProps): RoomEntity {
     return new RoomEntity({
       id: data.id,

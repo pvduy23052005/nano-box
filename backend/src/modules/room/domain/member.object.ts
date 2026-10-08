@@ -88,6 +88,55 @@ export class RoomMember {
     return { allowed: true };
   }
 
+  public canBeAssignedAdminBy(actor: RoomMember): {
+    allowed: boolean;
+    reason?: string;
+  } {
+    if (actor.getRole() !== MemberRole.SUPER_ADMIN) {
+      return {
+        allowed: false,
+        reason: 'Chỉ trưởng nhóm mới có quyền bổ nhiệm quản trị viên',
+      };
+    }
+
+    if (this.isAdmin()) {
+      return {
+        allowed: false,
+        reason: 'Thành viên này đã là quản trị viên hoặc trưởng nhóm',
+      };
+    }
+
+    return { allowed: true };
+  }
+
+  public canBeRevokedAdminBy(actor: RoomMember): {
+    allowed: boolean;
+    reason?: string;
+  } {
+    if (actor.getRole() !== MemberRole.SUPER_ADMIN) {
+      return {
+        allowed: false,
+        reason: 'Chỉ trưởng nhóm mới có quyền cắt chức quản trị viên',
+      };
+    }
+
+    if (this._role === MemberRole.SUPER_ADMIN) {
+      return {
+        allowed: false,
+        reason: 'Không thể cắt chức Trưởng nhóm',
+      };
+    }
+
+    if (this._role !== MemberRole.ADMIN) {
+      return {
+        allowed: false,
+        reason: 'Thành viên này không phải là quản trị viên',
+      };
+    }
+
+    return { allowed: true };
+  }
+
   public getUserId(): string {
     return this._userId;
   }
