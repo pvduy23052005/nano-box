@@ -141,6 +141,7 @@ type Mutation {
   sendMessage(input: MessageInput!): ChatPayload!
   updateMemberLastReadMessage(messageId: String!, roomId: String!): Boolean!
   updateProfile(input: UpdateProfileInputDto!): UpdateProfilePayload!
+  updateRoomProfile(input: UpdateRoomProfileInput!): RoomOutput!
 }
 
 type NotificationMetadataOutput {
@@ -256,6 +257,12 @@ type UpdateProfilePayload {
   data: UserProfilePayload
   message: String!
   success: Boolean!
+}
+
+input UpdateRoomProfileInput {
+  avatar: String
+  roomId: String!
+  title: String!
 }
 
 type User {

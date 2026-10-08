@@ -17,7 +17,9 @@ import { WebsocketService } from 'src/infrastructure/websocket/ws.service';
 import { ROOM_SOCKET_EVENTS } from '../gateway/event.type';
 import { RoomMapper } from '../../infrastructure/room.mapper';
 import { CreateGroupRoomUseCase } from '../../application/use-cases/create-group-room';
+import { UpdateRoomProfileUseCase } from '../../application/use-cases/update-room-profile.use-case';
 import { CreateGroupRoomInput } from '../dto/create.input';
+import { UpdateRoomProfileInput } from '../dto/update.input';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Resolver()
@@ -26,6 +28,7 @@ export class RoomResolver {
   constructor(
     private readonly createSingleRoomUseCase: CreateSingleRoomUseCase,
     private readonly createGroupRoomUseCase: CreateGroupRoomUseCase,
+    private readonly updateRoomProfileUseCase: UpdateRoomProfileUseCase,
     private readonly getRoomsByStatusUseCase: GetRoomsByStatusUseCase,
     private readonly getRoomDetailUseCase: GetRoomDetailUseCase,
     private readonly updateMemberLastReadMessageUseCase: UpdateMemberLastReadMessageUseCase,
@@ -157,5 +160,29 @@ export class RoomResolver {
     }
 
     return isSuccess;
+  }
+
+  @Mutation(() => RoomOutput)
+  async updateRoomProfile(
+    @CurrentUser('id') myId: string,
+    @Args('input') input: UpdateRoomProfileInput,
+  ): Promise<RoomOutput> {
+    const result = await this.updateRoomProfileUseCase.execute(myId, input);
+    const roomOutput = RoomMapper.toOutput(result);
+
+    const recipientIds = (result.members || [])
+      .map((member) => member.userId)
+      .filter(Boolean);
+
+    if (recipientIds.length > 0) {
+      this.websocketService.server
+        ?.to(recipientIds)
+        ?.emit(ROOM_SOCKET_EVENTS.SERVER_SEND_ROOM, roomOutput);
+      this.websocketService.server
+        ?.to(recipientIds)
+        ?.emit(ROOM_SOCKET_EVENTS.ROOM_UPDATED, roomOutput);
+    }
+
+    return roomOutput;
   }
 }

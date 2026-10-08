@@ -15,6 +15,7 @@ import { GetRoomsByStatusUseCase } from './application/use-cases/get-rooms-by-st
 import { GetRoomDetailUseCase } from './application/use-cases/get-room-detail.use-case';
 import { UpdateMemberLastReadMessageUseCase } from './application/use-cases/update-member-last-read-message';
 import { EnsureFriendRoomUseCase } from './application/use-cases/ensure-friend-room.use-case';
+import { UpdateRoomProfileUseCase } from './application/use-cases/update-room-profile.use-case';
 import { UserModule } from '../user/user.module';
 import { FriendshipModule } from '../friendship/friendship.module';
 import { FriendshipRepositoryAdapter } from '../friendship/applications/ports/friendship.port';
@@ -73,6 +74,12 @@ import { FriendshipRepositoryAdapter } from '../friendship/applications/ports/fr
         new EnsureFriendRoomUseCase(roomRepository),
       inject: [RoomRepositoryAdapter],
     },
+    {
+      provide: UpdateRoomProfileUseCase,
+      useFactory: (roomRepository: RoomRepositoryAdapter) =>
+        new UpdateRoomProfileUseCase(roomRepository),
+      inject: [RoomRepositoryAdapter],
+    },
   ],
   exports: [
     CreateSingleRoomUseCase,
@@ -81,6 +88,7 @@ import { FriendshipRepositoryAdapter } from '../friendship/applications/ports/fr
     GetRoomDetailUseCase,
     UpdateMemberLastReadMessageUseCase,
     EnsureFriendRoomUseCase,
+    UpdateRoomProfileUseCase,
     RoomRepositoryAdapter,
   ],
 })

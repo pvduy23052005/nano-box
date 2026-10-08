@@ -122,6 +122,65 @@ export class RoomEntity {
     });
   }
 
+  public getMember(userId: string): RoomMember | undefined {
+    return this.members.find((member) => member.userId === userId);
+  }
+
+  public isMember(userId: string): boolean {
+    const member = this.getMember(userId);
+    return member ? member.isAccepted() : false;
+  }
+
+  public isAdmin(userId: string): boolean {
+    const member = this.getMember(userId);
+    return member ? member.isAccepted() && member.isAdmin() : false;
+  }
+
+  public updateGroupProfile(
+    updaterId: string,
+    title?: string | null,
+    avatar?: string | null,
+  ): void {
+    const errors: Record<string, string> = {};
+
+    if (this.typeRoom !== RoomType.GROUP) {
+      errors.typeRoom = 'Chỉ có thể cập nhật thông tin của phòng nhóm';
+    }
+
+    if (!this.isMember(updaterId)) {
+      errors.member = 'Bạn không phải là thành viên của phòng này';
+    } else if (!this.isAdmin(updaterId)) {
+      errors.role = 'Chỉ quản trị viên mới có quyền cập nhật thông tin phòng';
+    }
+
+    if (title === undefined && avatar === undefined) {
+      errors.update =
+        'Phải cung cấp ít nhất tiêu đề hoặc ảnh đại diện để cập nhật';
+    }
+
+    let cleanTitle: string | undefined;
+    if (title !== undefined) {
+      cleanTitle = title?.trim();
+      if (!cleanTitle) {
+        errors.title = 'Tên phòng nhóm không được để trống';
+      } else if (cleanTitle.length > 100) {
+        errors.title = 'Tên phòng nhóm không được vượt quá 100 ký tự';
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      throw new DomainValidationException(errors);
+    }
+
+    if (cleanTitle !== undefined) {
+      this.title = cleanTitle;
+    }
+
+    if (avatar !== undefined) {
+      this.avatar = avatar ? avatar.trim() : null;
+    }
+  }
+
   public static restore(data: RoomProps): RoomEntity {
     return new RoomEntity({
       id: data.id,

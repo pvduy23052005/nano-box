@@ -31,7 +31,39 @@ export class RoomRepository implements RoomRepositoryAdapter {
   ) {}
 
   async save(room: RoomEntity): Promise<RoomProps> {
+    const id = room.getId();
     const mongooseRoomData = RoomMapper.toPersistence(room);
+
+    if (id && Types.ObjectId.isValid(id)) {
+      const updateData: Partial<Room> = {
+        title: mongooseRoomData.title,
+        avatar: mongooseRoomData.avatar,
+        type_room: mongooseRoomData.type_room,
+      };
+
+      if (mongooseRoomData.last_message_id !== undefined) {
+        updateData.last_message_id =
+          mongooseRoomData.last_message_id &&
+          Types.ObjectId.isValid(mongooseRoomData.last_message_id)
+            ? new Types.ObjectId(mongooseRoomData.last_message_id)
+            : null;
+      }
+
+      const updated = await this.roomModel
+        .findByIdAndUpdate(
+          id,
+          { $set: updateData },
+          { returnDocument: 'after' },
+        )
+        .populate(ROOM_POPULATE_OPTIONS)
+        .lean()
+        .exec();
+
+      if (updated) {
+        return RoomMapper.toProps(updated);
+      }
+    }
+
     const roomDoc = new this.roomModel(mongooseRoomData);
     const roomCreated = await roomDoc.save();
     await roomCreated.populate(ROOM_POPULATE_OPTIONS);

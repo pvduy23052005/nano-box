@@ -47,6 +47,16 @@ export class RoomMember {
     this._status = newStatus;
   }
 
+  public isAccepted(): boolean {
+    return this._status === MemberStatus.ACCEPTED;
+  }
+
+  public isAdmin(): boolean {
+    return (
+      this._role === MemberRole.SUPER_ADMIN || this._role === MemberRole.ADMIN
+    );
+  }
+
   get userId(): string {
     return this._user_id;
   }
