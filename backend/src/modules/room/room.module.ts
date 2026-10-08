@@ -23,6 +23,7 @@ import { RevokeRoomAdminUseCase } from './application/use-cases/revoke-room-admi
 import { UserModule } from '../user/user.module';
 import { FriendshipModule } from '../friendship/friendship.module';
 import { FriendshipRepositoryAdapter } from '../friendship/applications/ports/friendship.port';
+import { RoomListener } from './presentation/listener/room.listener';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { FriendshipRepositoryAdapter } from '../friendship/applications/ports/fr
   ],
   providers: [
     RoomResolver,
+    RoomListener,
     {
       provide: RoomRepositoryAdapter,
       useClass: RoomRepository,

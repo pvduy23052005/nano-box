@@ -201,20 +201,18 @@ describe('RevokeRoomAdminUseCase', () => {
 
       const result = (member as any).canBeRevokedAdminBy(superAdmin);
       expect(result.allowed).toBe(false);
-      expect(result.reason).toBe(
-        'Thành viên này không phải là quản trị viên',
-      );
+      expect(result.reason).toBe('Thành viên này không phải là quản trị viên');
     });
 
     it('không cho phép cắt chức khi thành viên là SUPER_ADMIN', () => {
       const superAdminActor = RoomMember.createSuperAdmin(superAdminId);
       const superAdminTarget = RoomMember.createSuperAdmin(adminId);
 
-      const result = (superAdminTarget as any).canBeRevokedAdminBy(superAdminActor);
-      expect(result.allowed).toBe(false);
-      expect(result.reason).toBe(
-        'Không thể cắt chức Trưởng nhóm',
+      const result = (superAdminTarget as any).canBeRevokedAdminBy(
+        superAdminActor,
       );
+      expect(result.allowed).toBe(false);
+      expect(result.reason).toBe('Không thể cắt chức Trưởng nhóm');
     });
   });
 });

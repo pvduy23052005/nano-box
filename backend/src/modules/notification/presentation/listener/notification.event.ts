@@ -4,7 +4,6 @@ export const NOTIFICATION_EVENTS = {
   MESSAGE_CREATED: 'message.created',
   MESSAGE_REACTION: 'message.reaction',
   ROOM_CREATED: 'room.created',
-  ROOM_MEMBER_ADDED: 'room.member_added',
   FRIEND_REQUEST: 'friend.request',
 } as const;
 
@@ -43,15 +42,3 @@ export interface RoomCreatedEventPayload {
   creatorAvatar?: string;
   memberIds: string[];
 }
-
-export interface RoomMemberAddedEventPayload {
-  roomId: string;
-  roomTitle: string;
-  adderId: string;
-  adderName?: string;
-  adderAvatar?: string;
-  addedUserId: string;
-  addedUserName?: string;
-  memberIds: string[];
-}
-

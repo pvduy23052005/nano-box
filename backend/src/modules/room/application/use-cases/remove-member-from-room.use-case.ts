@@ -1,12 +1,16 @@
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 
 import { RoomEntity } from '../../domain/room.entity';
-import { RoomProps } from '../../domain/room.type';
+import { RoomMemberProps, RoomProps } from '../../domain/room.type';
 import { RoomRepositoryAdapter } from '../ports/room.ports';
 
 export interface RemoveMemberFromRoomInputProps {
   roomId: string;
   userId: string;
+}
+
+export interface RemoveMemberFromRoomOutputProps extends RoomProps {
+  removedMember?: RoomMemberProps;
 }
 
 export class RemoveMemberFromRoomUseCase {
@@ -15,7 +19,7 @@ export class RemoveMemberFromRoomUseCase {
   async execute(
     myId: string,
     input: RemoveMemberFromRoomInputProps,
-  ): Promise<RoomProps> {
+  ): Promise<RemoveMemberFromRoomOutputProps> {
     const room = await this.roomRepository.findById(input.roomId, myId);
 
     if (!room) {
@@ -25,9 +29,18 @@ export class RemoveMemberFromRoomUseCase {
       );
     }
 
+    const removedMember = (room.members || []).find(
+      (member) => member.userId === input.userId,
+    );
+
     const roomEntity = RoomEntity.restore(room);
     roomEntity.removeMember(myId, input.userId);
 
-    return await this.roomRepository.save(roomEntity);
+    const savedRoom = await this.roomRepository.save(roomEntity);
+
+    return {
+      ...savedRoom,
+      removedMember,
+    };
   }
 }

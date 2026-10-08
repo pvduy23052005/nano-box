@@ -1,11 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { WebsocketService } from 'src/infrastructure/websocket/ws.service';
-import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
 import {
-  NOTIFICATION_EVENTS,
-  type RoomMemberAddedEventPayload,
-} from 'src/modules/notification/presentation/listener/notification.event';
+  ROOM_EVENTS,
+  type RoomMemberAddedPayload,
+  type RoomMemberRemovedPayload,
+  type RoomAdminAssignedPayload,
+  type RoomAdminRevokedPayload,
+} from 'src/modules/room/presentation/event/room.event';
+import type { RoomProps } from 'src/modules/room/domain/room.type';
 import { CHAT_SOCKET_EVENTS } from '../gateway/event.type';
 import { SendSystemMessageUseCase } from '../../application/use-cases/send-system-message.use-case';
 
@@ -15,58 +18,116 @@ export class ChatListener {
 
   constructor(
     private readonly sendSystemMessageUseCase: SendSystemMessageUseCase,
-    private readonly userRepository: UserRepositoryAdapter,
     private readonly websocketService: WebsocketService,
   ) {}
 
-  @OnEvent(NOTIFICATION_EVENTS.ROOM_MEMBER_ADDED)
-  async handleRoomMemberAdded(
-    payload: RoomMemberAddedEventPayload,
-  ): Promise<void> {
+  private async sendRoomSystemMessage(params: {
+    room: RoomProps;
+    actorId: string;
+    targetUserName?: string;
+    extraRecipientId?: string;
+    buildContent: (actorName: string, targetName: string) => string;
+    eventName: string;
+  }): Promise<void> {
     try {
-      const {
-        roomId,
-        adderId,
-        adderName: payloadAdderName,
-        addedUserId,
-        addedUserName: payloadAddedUserName,
-        memberIds,
-      } = payload;
+      const { room, actorId, targetUserName, extraRecipientId, buildContent } =
+        params;
+      if (!room || !actorId) return;
 
-      if (!roomId || !adderId || !addedUserId) return;
-
-      let adderName = payloadAdderName;
-      if (!adderName) {
-        const adder = await this.userRepository.findById(adderId);
-        adderName = adder?.getName();
-      }
-
-      let addedUserName = payloadAddedUserName;
-      if (!addedUserName) {
-        const addedUser = await this.userRepository.findById(addedUserId);
-        addedUserName = addedUser?.getName();
-      }
-
-      const displayAdder = adderName || 'Quản trị viên';
-      const displayAdded = addedUserName || 'thành viên';
-      const content = `${displayAdder} đã thêm ${displayAdded} vào nhóm`;
+      const actor = (room.members || []).find(
+        (member) => member.userId === actorId,
+      );
+      const displayActor = actor?.name || 'Quản trị viên';
+      const displayTarget = targetUserName || 'thành viên';
+      const content = buildContent(displayActor, displayTarget);
 
       const { message, memberIds: roomMemberIds } =
         await this.sendSystemMessageUseCase.execute({
-          roomId,
+          roomId: room.id,
           content,
           senderName: 'Hệ thống',
         });
 
       const recipientIds = Array.from(
-        new Set([...(memberIds || []), ...(roomMemberIds || [])]),
+        new Set(
+          [
+            ...(room.members || []).map((member) => member.userId),
+            ...(roomMemberIds || []),
+            ...(extraRecipientId ? [extraRecipientId] : []),
+          ].filter(Boolean),
+        ),
       );
 
       this.websocketService.server
-        ?.to([...recipientIds, roomId])
+        ?.to([...recipientIds, room.id])
         ?.emit(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, message);
     } catch (error) {
-      this.logger.error('Error handling room.member_added in ChatListener', error);
+      this.logger.error(
+        `Error handling ${params.eventName} in ChatListener`,
+        error,
+      );
     }
+  }
+
+  @OnEvent(ROOM_EVENTS.MEMBER_ADDED)
+  async handleRoomMemberAdded(payload: RoomMemberAddedPayload): Promise<void> {
+    const added = (payload.room.members || []).find(
+      (member) => member.userId === payload.addedUserId,
+    );
+    await this.sendRoomSystemMessage({
+      room: payload.room,
+      actorId: payload.adderId,
+      targetUserName: added?.name ?? undefined,
+      buildContent: (actor, target) => `${actor} đã thêm ${target} vào nhóm`,
+      eventName: ROOM_EVENTS.MEMBER_ADDED,
+    });
+  }
+
+  @OnEvent(ROOM_EVENTS.MEMBER_REMOVED)
+  async handleRoomMemberRemoved(
+    payload: RoomMemberRemovedPayload,
+  ): Promise<void> {
+    await this.sendRoomSystemMessage({
+      room: payload.room,
+      actorId: payload.actorId,
+      targetUserName: payload.removedMember?.name ?? undefined,
+      extraRecipientId: payload.removedUserId,
+      buildContent: (actor, target) => `${actor} đã xóa ${target} khỏi nhóm`,
+      eventName: ROOM_EVENTS.MEMBER_REMOVED,
+    });
+  }
+
+  @OnEvent(ROOM_EVENTS.ADMIN_ASSIGNED)
+  async handleRoomAdminAssigned(
+    payload: RoomAdminAssignedPayload,
+  ): Promise<void> {
+    const target = (payload.room.members || []).find(
+      (member) => member.userId === payload.targetUserId,
+    );
+    await this.sendRoomSystemMessage({
+      room: payload.room,
+      actorId: payload.actorId,
+      targetUserName: target?.name ?? undefined,
+      buildContent: (actor, target) =>
+        `${actor} đã bổ nhiệm ${target} làm quản trị viên`,
+      eventName: ROOM_EVENTS.ADMIN_ASSIGNED,
+    });
+  }
+
+  @OnEvent(ROOM_EVENTS.ADMIN_REVOKED)
+  async handleRoomAdminRevoked(
+    payload: RoomAdminRevokedPayload,
+  ): Promise<void> {
+    const target = (payload.room.members || []).find(
+      (member) => member.userId === payload.targetUserId,
+    );
+    await this.sendRoomSystemMessage({
+      room: payload.room,
+      actorId: payload.actorId,
+      targetUserName: target?.name ?? undefined,
+      buildContent: (actor, target) =>
+        `${actor} đã thu hồi quyền quản trị viên của ${target}`,
+      eventName: ROOM_EVENTS.ADMIN_REVOKED,
+    });
   }
 }

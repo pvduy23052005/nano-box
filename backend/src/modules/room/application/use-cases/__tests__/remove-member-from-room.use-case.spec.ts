@@ -95,7 +95,9 @@ describe('RemoveMemberFromRoomUseCase', () => {
       userId: regularMemberId,
     });
 
-    expect(result.members.some((m) => m.userId === regularMemberId)).toBe(false);
+    expect(result.members.some((m) => m.userId === regularMemberId)).toBe(
+      false,
+    );
   });
 
   it('nên xóa thành viên thành công khi người gọi là ADMIN xóa một MEMBER', async () => {
@@ -109,7 +111,9 @@ describe('RemoveMemberFromRoomUseCase', () => {
       userId: regularMemberId,
     });
 
-    expect(result.members.some((m) => m.userId === regularMemberId)).toBe(false);
+    expect(result.members.some((m) => m.userId === regularMemberId)).toBe(
+      false,
+    );
   });
 
   it('nên ném DomainValidationException nếu ADMIN cố gắng xóa SUPER_ADMIN', async () => {
@@ -258,9 +262,7 @@ describe('RemoveMemberFromRoomUseCase', () => {
 
       const result = superAdmin.canBeRemovedBy(anotherSuperAdmin);
       expect(result.allowed).toBe(false);
-      expect(result.reason).toBe(
-        'Không thể xóa Trưởng nhóm khỏi phòng',
-      );
+      expect(result.reason).toBe('Không thể xóa Trưởng nhóm khỏi phòng');
     });
 
     it('không cho phép ADMIN xóa ADMIN khác', () => {

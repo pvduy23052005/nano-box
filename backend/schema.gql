@@ -159,6 +159,7 @@ type Mutation {
 }
 
 type NotificationMetadataOutput {
+  action: String
   messageId: String
   roomId: String
 }
@@ -182,6 +183,7 @@ enum NotificationType {
   NEW_MESSAGE
   NEW_ROOM
   REACTION
+  ROOM_ACTION
 }
 
 type NotificationsPagePayload {

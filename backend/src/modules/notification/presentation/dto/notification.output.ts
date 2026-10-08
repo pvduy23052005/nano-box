@@ -12,6 +12,9 @@ export class NotificationMetadataOutput {
 
   @Field({ nullable: true })
   messageId?: string;
+
+  @Field({ nullable: true })
+  action?: string;
 }
 
 @ObjectType()

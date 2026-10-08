@@ -78,7 +78,10 @@ export class RoomMember {
       };
     }
 
-    if (actor.getRole() === MemberRole.ADMIN && this._role === MemberRole.ADMIN) {
+    if (
+      actor.getRole() === MemberRole.ADMIN &&
+      this._role === MemberRole.ADMIN
+    ) {
       return {
         allowed: false,
         reason: 'Quản trị viên không thể xóa Quản trị viên khác',

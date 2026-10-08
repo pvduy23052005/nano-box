@@ -9,6 +9,9 @@ export class NotificationMetadataSchema {
 
   @Prop()
   message_id?: string;
+
+  @Prop()
+  action?: string;
 }
 
 @Schema({

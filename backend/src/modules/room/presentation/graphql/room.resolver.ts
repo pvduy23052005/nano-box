@@ -3,8 +3,8 @@ import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import {
   NOTIFICATION_EVENTS,
   type RoomCreatedEventPayload,
-  type RoomMemberAddedEventPayload,
 } from 'src/modules/notification/presentation/listener/notification.event';
+import { ROOM_EVENTS } from '../event/room.event';
 import { CurrentUser } from 'src/common/customs/current-user.decorator';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { RoomOutput } from '../dto/room.output';
@@ -207,45 +207,12 @@ export class RoomResolver {
     const result = await this.addMemberToRoomUseCase.execute(myId, input);
     const roomOutput = RoomMapper.toOutput(result);
 
-    const recipientIds = (result.members || [])
-      .map((member) => member.userId)
-      .filter(Boolean);
-
-    if (recipientIds.length > 0) {
-      this.websocketService.server
-        ?.to(recipientIds)
-        ?.emit(ROOM_SOCKET_EVENTS.SERVER_SEND_ROOM, roomOutput);
-      this.websocketService.server
-        ?.to(recipientIds)
-        ?.emit(ROOM_SOCKET_EVENTS.ROOM_UPDATED, roomOutput);
-    }
-
-    let adderName: string | undefined;
-    let adderAvatar: string | undefined;
-    try {
-      const sender = await this.getMeUseCase.execute(myId);
-      adderName = sender?.name;
-      adderAvatar = sender?.avatar;
-    } catch {
-      // fallback
-    }
-
-    const addedMember = (result.members || []).find(
-      (member) => member.userId === input.userId,
-    );
-    const addedUserName = addedMember?.name ?? undefined;
-
-    const payload: RoomMemberAddedEventPayload = {
-      roomId: result.id,
-      roomTitle: result.title || 'Nhóm',
+    this.eventEmitter.emit(ROOM_EVENTS.MEMBER_ADDED, {
+      room: result,
+      roomOutput,
       adderId: myId,
-      adderName,
-      adderAvatar,
       addedUserId: input.userId,
-      addedUserName,
-      memberIds: recipientIds,
-    };
-    this.eventEmitter.emit(NOTIFICATION_EVENTS.ROOM_MEMBER_ADDED, payload);
+    });
 
     return roomOutput;
   }
@@ -258,23 +225,13 @@ export class RoomResolver {
     const result = await this.removeMemberFromRoomUseCase.execute(myId, input);
     const roomOutput = RoomMapper.toOutput(result);
 
-    const recipientIds = Array.from(
-      new Set(
-        [
-          ...(result.members || []).map((member) => member.userId),
-          input.userId,
-        ].filter(Boolean),
-      ),
-    );
-
-    if (recipientIds.length > 0) {
-      this.websocketService.server
-        ?.to(recipientIds)
-        ?.emit(ROOM_SOCKET_EVENTS.SERVER_SEND_ROOM, roomOutput);
-      this.websocketService.server
-        ?.to(recipientIds)
-        ?.emit(ROOM_SOCKET_EVENTS.ROOM_UPDATED, roomOutput);
-    }
+    this.eventEmitter.emit(ROOM_EVENTS.MEMBER_REMOVED, {
+      room: result,
+      roomOutput,
+      actorId: myId,
+      removedUserId: input.userId,
+      removedMember: result.removedMember,
+    });
 
     return roomOutput;
   }
@@ -287,20 +244,12 @@ export class RoomResolver {
     const result = await this.assignRoomAdminUseCase.execute(myId, input);
     const roomOutput = RoomMapper.toOutput(result);
 
-    const recipientIds = Array.from(
-      new Set(
-        (result.members || []).map((member) => member.userId).filter(Boolean),
-      ),
-    );
-
-    if (recipientIds.length > 0) {
-      this.websocketService.server
-        ?.to(recipientIds)
-        ?.emit(ROOM_SOCKET_EVENTS.SERVER_SEND_ROOM, roomOutput);
-      this.websocketService.server
-        ?.to(recipientIds)
-        ?.emit(ROOM_SOCKET_EVENTS.ROOM_UPDATED, roomOutput);
-    }
+    this.eventEmitter.emit(ROOM_EVENTS.ADMIN_ASSIGNED, {
+      room: result,
+      roomOutput,
+      actorId: myId,
+      targetUserId: input.userId,
+    });
 
     return roomOutput;
   }
@@ -313,20 +262,12 @@ export class RoomResolver {
     const result = await this.revokeRoomAdminUseCase.execute(myId, input);
     const roomOutput = RoomMapper.toOutput(result);
 
-    const recipientIds = Array.from(
-      new Set(
-        (result.members || []).map((member) => member.userId).filter(Boolean),
-      ),
-    );
-
-    if (recipientIds.length > 0) {
-      this.websocketService.server
-        ?.to(recipientIds)
-        ?.emit(ROOM_SOCKET_EVENTS.SERVER_SEND_ROOM, roomOutput);
-      this.websocketService.server
-        ?.to(recipientIds)
-        ?.emit(ROOM_SOCKET_EVENTS.ROOM_UPDATED, roomOutput);
-    }
+    this.eventEmitter.emit(ROOM_EVENTS.ADMIN_REVOKED, {
+      room: result,
+      roomOutput,
+      actorId: myId,
+      targetUserId: input.userId,
+    });
 
     return roomOutput;
   }

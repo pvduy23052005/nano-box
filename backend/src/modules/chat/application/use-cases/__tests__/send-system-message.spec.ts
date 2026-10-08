@@ -57,8 +57,13 @@ describe('SendSystemMessageUseCase', () => {
     });
 
     expect(roomRepository.findById).toHaveBeenCalledWith(roomId);
-    expect(messageRepository.save).toHaveBeenCalledWith(expect.any(MessageEntity));
-    expect(roomRepository.updateLastMessageId).toHaveBeenCalledWith(roomId, 'msg-123');
+    expect(messageRepository.save).toHaveBeenCalledWith(
+      expect.any(MessageEntity),
+    );
+    expect(roomRepository.updateLastMessageId).toHaveBeenCalledWith(
+      roomId,
+      'msg-123',
+    );
     expect(result.message.id).toBe('msg-123');
     expect(result.message.senderId).toBe('system');
     expect(result.memberIds).toEqual(['user-1', 'user-2']);
