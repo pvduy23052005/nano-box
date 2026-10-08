@@ -2,7 +2,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { RoomRepositoryAdapter } from '../application/ports/room.ports';
 import { RoomEntity } from '../domain/room.entity';
 import { Room, RoomDocument } from './room.schema';
-import { Model, Types, UpdateQuery } from 'mongoose';
+import { Model, Types, UpdateQuery, sanitizeFilter } from 'mongoose';
 import { RoomProps } from '../domain/room.type';
 import { MemberStatus, RoomType } from '../domain/chat.enum';
 import { RoomMapper } from './room.mapper';
@@ -10,6 +10,8 @@ import {
   User,
   UserDocument,
 } from '../../user/infrastructure/databases/user.schema';
+
+type RoomFilterQuery = Parameters<typeof sanitizeFilter<Room>>[0];
 
 const ROOM_POPULATE_OPTIONS = [
   {
@@ -97,7 +99,7 @@ export class RoomRepository implements RoomRepositoryAdapter {
       ? new Types.ObjectId(userId)
       : userId;
 
-    const filter: Record<string, any> = {
+    const filter: RoomFilterQuery = {
       members: {
         $elemMatch: {
           user_id: userObjectId,

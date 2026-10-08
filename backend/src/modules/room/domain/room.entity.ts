@@ -22,11 +22,11 @@ export class RoomEntity {
       member instanceof RoomMember
         ? member
         : RoomMember.restore(
-          member.userId,
-          member.role,
-          member.status,
-          member.lastReadMessageId,
-        ),
+            member.userId,
+            member.role,
+            member.status,
+            member.lastReadMessageId,
+          ),
     );
   }
 
