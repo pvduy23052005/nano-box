@@ -9,6 +9,7 @@ import {
   type MessageReactionEventPayload,
   type FriendRequestEventPayload,
   type RoomCreatedEventPayload,
+  type RoomMemberAddedEventPayload,
 } from './notification.event';
 import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
 @Injectable()
@@ -167,4 +168,57 @@ export class NotificationListener {
       this.logger.error('Error handling room.created event', error);
     }
   }
+
+  @OnEvent(NOTIFICATION_EVENTS.ROOM_MEMBER_ADDED)
+  async handleRoomMemberAdded(
+    payload: RoomMemberAddedEventPayload,
+  ): Promise<void> {
+    try {
+      const {
+        roomId,
+        roomTitle,
+        adderId,
+        adderName,
+        adderAvatar,
+        addedUserId,
+      } = payload;
+
+      if (!roomId || !adderId || !addedUserId) return;
+
+      let senderName = adderName;
+      let senderAvatar = adderAvatar;
+
+      if (!senderName) {
+        const adder = await this.userRepository.findById(adderId);
+        if (adder) {
+          senderName = adder.getName();
+          senderAvatar = adder.getAvatar();
+        }
+      }
+
+      const displaySenderName = senderName || 'Quản trị viên';
+      const title = roomTitle;
+      const content = `${displaySenderName} đã thêm bạn vào nhóm "${title}".`;
+
+      const notification = await this.createNotificationUseCase.execute({
+        recipientId: addedUserId,
+        senderId: adderId,
+        senderName: displaySenderName,
+        senderAvatar,
+        type: NotificationType.NEW_ROOM,
+        title,
+        content,
+        metadata: {
+          roomId,
+        },
+      });
+
+      this.websocketService.server
+        ?.to(addedUserId)
+        ?.emit(NOTIFICATION_SOCKET_EVENTS.RECEIVE_NOTIFICATION, notification);
+    } catch (error) {
+      this.logger.error('Error handling room.member_added event', error);
+    }
+  }
 }
+
