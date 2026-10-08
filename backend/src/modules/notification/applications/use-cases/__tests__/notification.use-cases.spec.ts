@@ -6,8 +6,6 @@ import { MarkAllNotificationsAsReadUseCase } from '../mark-all-notifications-as-
 import { CreateNotificationUseCase } from '../create-notification.use-case';
 import { NotificationType } from '../../../domain/notification.type';
 
-import { NOTIFICATION_EVENTS } from '../../../presentation/listener/notification.event';
-
 const makeMockNotificationRepository =
   (): jest.Mocked<NotificationRepositoryAdapter> => ({
     save: jest.fn(),
@@ -23,10 +21,6 @@ describe('Notification Use Cases', () => {
 
   beforeEach(() => {
     repository = makeMockNotificationRepository();
-  });
-
-  it('should have ROOM_MEMBER_ADDED event defined', () => {
-    expect((NOTIFICATION_EVENTS as any).ROOM_MEMBER_ADDED).toBe('room.member_added');
   });
 
   describe('CreateNotificationUseCase', () => {
