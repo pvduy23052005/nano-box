@@ -3,6 +3,7 @@ import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import {
   NOTIFICATION_EVENTS,
   type RoomCreatedEventPayload,
+  type RoomMemberAddedEventPayload,
 } from 'src/modules/notification/presentation/listener/notification.event';
 import { CurrentUser } from 'src/common/customs/current-user.decorator';
 import { AuthGuard } from 'src/common/guards/auth.guard';
@@ -218,6 +219,33 @@ export class RoomResolver {
         ?.to(recipientIds)
         ?.emit(ROOM_SOCKET_EVENTS.ROOM_UPDATED, roomOutput);
     }
+
+    let adderName: string | undefined;
+    let adderAvatar: string | undefined;
+    try {
+      const sender = await this.getMeUseCase.execute(myId);
+      adderName = sender?.name;
+      adderAvatar = sender?.avatar;
+    } catch {
+      // fallback
+    }
+
+    const addedMember = (result.members || []).find(
+      (member) => member.userId === input.userId,
+    );
+    const addedUserName = addedMember?.name ?? undefined;
+
+    const payload: RoomMemberAddedEventPayload = {
+      roomId: result.id,
+      roomTitle: result.title || 'Nhóm',
+      adderId: myId,
+      adderName,
+      adderAvatar,
+      addedUserId: input.userId,
+      addedUserName,
+      memberIds: recipientIds,
+    };
+    this.eventEmitter.emit(NOTIFICATION_EVENTS.ROOM_MEMBER_ADDED, payload);
 
     return roomOutput;
   }
