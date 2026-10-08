@@ -157,6 +157,9 @@ export class RoomMapper {
         user_id: member.userId,
         role: member.role,
         status: member.status,
+        ...(member.lastReadMessageId !== undefined
+          ? { last_read_message_id: member.lastReadMessageId }
+          : {}),
       })),
     };
   }

@@ -1,6 +1,6 @@
-import { RoomType } from './chat.enum';
+import { MemberRole, MemberStatus, RoomType } from './chat.enum';
 import { RoomMember } from './member.object';
-import { LastMessageProps, RoomProps } from './room.type';
+import { LastMessageProps, RoomMemberProps, RoomProps } from './room.type';
 import { randomUUID } from 'node:crypto';
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 
@@ -21,7 +21,12 @@ export class RoomEntity {
     this.members = data.members.map((member) =>
       member instanceof RoomMember
         ? member
-        : RoomMember.restore(member.userId, member.role, member.status),
+        : RoomMember.restore(
+          member.userId,
+          member.role,
+          member.status,
+          member.lastReadMessageId,
+        ),
     );
   }
 
@@ -181,6 +186,48 @@ export class RoomEntity {
     }
   }
 
+  public addMember(adderId: string, userId: string): void {
+    const errors: Record<string, string> = {};
+
+    if (this.typeRoom !== RoomType.GROUP) {
+      errors.typeRoom = 'Chỉ có thể thêm thành viên vào phòng nhóm';
+    }
+
+    if (!this.isMember(adderId)) {
+      errors.member = 'Bạn không phải là thành viên của phòng này';
+    } else if (!this.isAdmin(adderId)) {
+      errors.role = 'Chỉ quản trị viên mới có quyền thêm thành viên vào nhóm';
+    }
+
+    const cleanUserId = userId?.trim().toString();
+    if (!cleanUserId) {
+      errors.userId = 'ID người dùng không được để trống';
+    }
+
+    if (adderId && cleanUserId && adderId === cleanUserId) {
+      errors.userId = 'Bạn đã ở trong nhóm';
+    }
+
+    const existingMember = cleanUserId
+      ? this.getMember(cleanUserId)
+      : undefined;
+    if (existingMember && existingMember.isAccepted()) {
+      errors.userId = 'Người dùng đã là thành viên trong nhóm';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      throw new DomainValidationException(errors);
+    }
+
+    if (!existingMember) {
+      this.members.push(RoomMember.createMember(cleanUserId));
+      return;
+    }
+
+    existingMember.changeStatus(MemberStatus.ACCEPTED);
+    existingMember.changeRole(MemberRole.MEMBER);
+  }
+
   public static restore(data: RoomProps): RoomEntity {
     return new RoomEntity({
       id: data.id,
@@ -199,11 +246,17 @@ export class RoomEntity {
       typeRoom: this.typeRoom,
       lastMessageId: this.lastMessageId,
       avatar: this.avatar,
-      members: this.members.map((member) => ({
-        userId: member.userId,
-        role: member.role,
-        status: member.status,
-      })),
+      members: this.members.map((member): RoomMemberProps => {
+        const item: RoomMemberProps = {
+          userId: member.userId,
+          role: member.role,
+          status: member.status,
+        };
+        if (member.lastReadMessageId !== undefined) {
+          item.lastReadMessageId = member.lastReadMessageId;
+        }
+        return item;
+      }),
     };
   }
 

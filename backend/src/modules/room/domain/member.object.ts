@@ -4,19 +4,29 @@ export class RoomMember {
   private readonly _user_id: string;
   private _role: MemberRole;
   private _status: MemberStatus;
+  private _lastReadMessageId?: string | null;
 
-  private constructor(userId: string, role: MemberRole, status: MemberStatus) {
+  private constructor(
+    userId: string,
+    role: MemberRole,
+    status: MemberStatus,
+    lastReadMessageId?: string | null,
+  ) {
     this._user_id = userId;
     this._role = role;
     this._status = status;
+    if (lastReadMessageId !== undefined) {
+      this._lastReadMessageId = lastReadMessageId;
+    }
   }
 
   public static restore(
     userId: string,
     role: MemberRole,
     status: MemberStatus,
+    lastReadMessageId?: string | null,
   ): RoomMember {
-    return new RoomMember(userId, role, status);
+    return new RoomMember(userId, role, status, lastReadMessageId);
   }
 
   public static createWaitingMember(userId: string): RoomMember {
@@ -65,5 +75,8 @@ export class RoomMember {
   }
   get status(): MemberStatus {
     return this._status;
+  }
+  get lastReadMessageId(): string | null | undefined {
+    return this._lastReadMessageId;
   }
 }

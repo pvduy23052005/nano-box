@@ -15,6 +15,11 @@ input AddEmojiMessageInput {
   userName: String
 }
 
+input AddMemberToRoomInput {
+  roomId: String!
+  userId: String!
+}
+
 type CancelFriendRequestPayload {
   data: FriendshipDataPayload
   message: String!
@@ -127,6 +132,7 @@ type MessagesPagePayload {
 type Mutation {
   acceptFriendRequest(friendId: String!): AcceptFriendRequestPayload!
   addEmojiMessage(input: AddEmojiMessageInput!): ChatPayload!
+  addMemberToRoom(input: AddMemberToRoomInput!): RoomOutput!
   cancelFriendRequest(friendId: String!): CancelFriendRequestPayload!
   createGroupRoom(input: CreateGroupRoomInput!): RoomOutput!
   createRoomChatNotFriend(otherUserId: String!): RoomOutput!

@@ -123,7 +123,9 @@ describe('UpdateRoomProfileUseCase', () => {
     expect(roomRepository.save).toHaveBeenCalledWith(expect.any(RoomEntity));
     const savedEntity = roomRepository.save.mock.calls[0][0];
     expect(savedEntity.getTitle()).toBe(mockGroupRoom.title);
-    expect(savedEntity.getAvatar()).toBe('http://example.com/another-avatar.png');
+    expect(savedEntity.getAvatar()).toBe(
+      'http://example.com/another-avatar.png',
+    );
     expect(result.avatar).toBe('http://example.com/another-avatar.png');
   });
 
@@ -240,4 +242,3 @@ describe('UpdateRoomProfileUseCase', () => {
     expect(roomEntity.isAdmin('stranger-id')).toBe(false);
   });
 });
-

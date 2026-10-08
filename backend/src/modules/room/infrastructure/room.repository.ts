@@ -2,7 +2,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { RoomRepositoryAdapter } from '../application/ports/room.ports';
 import { RoomEntity } from '../domain/room.entity';
 import { Room, RoomDocument } from './room.schema';
-import { Model, Types } from 'mongoose';
+import { Model, Types, UpdateQuery } from 'mongoose';
 import { RoomProps } from '../domain/room.type';
 import { MemberStatus, RoomType } from '../domain/chat.enum';
 import { RoomMapper } from './room.mapper';
@@ -35,7 +35,7 @@ export class RoomRepository implements RoomRepositoryAdapter {
     const mongooseRoomData = RoomMapper.toPersistence(room);
 
     if (id && Types.ObjectId.isValid(id)) {
-      const updateData: Partial<Room> = {
+      const updateData: UpdateQuery<Room> = {
         title: mongooseRoomData.title,
         avatar: mongooseRoomData.avatar,
         type_room: mongooseRoomData.type_room,
@@ -47,6 +47,24 @@ export class RoomRepository implements RoomRepositoryAdapter {
           Types.ObjectId.isValid(mongooseRoomData.last_message_id)
             ? new Types.ObjectId(mongooseRoomData.last_message_id)
             : null;
+      }
+
+      if (mongooseRoomData.members !== undefined) {
+        updateData.members = mongooseRoomData.members.map((member) => ({
+          user_id: Types.ObjectId.isValid(member.user_id)
+            ? new Types.ObjectId(member.user_id)
+            : member.user_id,
+          role: member.role,
+          status: member.status,
+          ...(member.last_read_message_id &&
+          Types.ObjectId.isValid(member.last_read_message_id)
+            ? {
+                last_read_message_id: new Types.ObjectId(
+                  member.last_read_message_id,
+                ),
+              }
+            : {}),
+        }));
       }
 
       const updated = await this.roomModel
