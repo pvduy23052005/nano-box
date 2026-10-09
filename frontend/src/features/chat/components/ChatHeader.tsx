@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { MoreVertical } from "lucide-react";
+import { ArrowLeft, MoreVertical } from "lucide-react";
 import {
   Avatar,
   AvatarFallback,
@@ -16,10 +16,9 @@ import { GroupAvatar } from "../../room/components/GroupAvatar";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { usePresenceStore } from "@/src/features/user/stores/usePresenceStore";
 
-
 export default function ChatHeader() {
   const router = useRouter();
-  const { activeRoom } = useRoomStore();
+  const { activeRoom, setActiveRoom } = useRoomStore();
   const currentUserId = useAuthStore((state) => state.user?.id);
   const onlineUsers = usePresenceStore((state) => state.onlineUsers);
 
@@ -53,8 +52,19 @@ export default function ChatHeader() {
   };
 
   return (
-    <header className="hidden sm:flex h-12 border-b items-center justify-between gap-2 p-2 px-4 shadow-sm">
-      <div className="flex items-center gap-2 min-w-0">
+    <header className="flex h-12 border-b items-center justify-between gap-2 p-2 px-3 sm:px-4 shadow-sm bg-card">
+      <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+        <Button
+          variant="ghost"
+          size="icon"
+          type="button"
+          onClick={() => setActiveRoom(null)}
+          className="sm:hidden size-8 -ml-1 text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
+          title="Quay lại danh sách phòng"
+          aria-label="Quay lại"
+        >
+          <ArrowLeft className="size-4" />
+        </Button>
         {isGroup ? (
           <GroupAvatar
             avatars={activeRoom.groupAvatars}
