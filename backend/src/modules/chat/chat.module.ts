@@ -7,6 +7,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { MessageRepository } from './infrastructure/database/message.repository';
 import { MessageRepositoryAdapter } from './application/ports/message.port';
 import { SendMessageUseCase } from './application/use-cases/send-message.use-case';
+import { SendSystemMessageUseCase } from './application/use-cases/send-system-message.use-case';
 import { AddEmojiMessageUseCase } from './application/use-cases/add-emoji-message.use-case';
 import { ChatResolver } from './presentation/graphql/chat.resolver';
 import { GetMessagesUseCase } from './application/use-cases/get-message.use-case';
@@ -14,6 +15,7 @@ import { ChatGateway } from './presentation/gateway/chat.gateway';
 import { UploadModule } from 'src/infrastructure/upload/upload.module';
 import { RoomModule } from '../room/room.module';
 import { RoomRepositoryAdapter } from '../room/application/ports/room.ports';
+import { ChatListener } from './presentation/listener/chat.listener';
 
 @Module({
   imports: [
@@ -24,6 +26,7 @@ import { RoomRepositoryAdapter } from '../room/application/ports/room.ports';
   providers: [
     ChatResolver,
     ChatGateway,
+    ChatListener,
     {
       provide: MessageRepositoryAdapter,
       useClass: MessageRepository,
@@ -34,6 +37,14 @@ import { RoomRepositoryAdapter } from '../room/application/ports/room.ports';
         messageRepository: MessageRepositoryAdapter,
         roomRepository: RoomRepositoryAdapter,
       ) => new SendMessageUseCase(messageRepository, roomRepository),
+      inject: [MessageRepositoryAdapter, RoomRepositoryAdapter],
+    },
+    {
+      provide: SendSystemMessageUseCase,
+      useFactory: (
+        messageRepository: MessageRepositoryAdapter,
+        roomRepository: RoomRepositoryAdapter,
+      ) => new SendSystemMessageUseCase(messageRepository, roomRepository),
       inject: [MessageRepositoryAdapter, RoomRepositoryAdapter],
     },
     {
@@ -53,6 +64,10 @@ import { RoomRepositoryAdapter } from '../room/application/ports/room.ports';
       inject: [MessageRepositoryAdapter, RoomRepositoryAdapter],
     },
   ],
-  exports: [SendMessageUseCase, AddEmojiMessageUseCase],
+  exports: [
+    SendMessageUseCase,
+    SendSystemMessageUseCase,
+    AddEmojiMessageUseCase,
+  ],
 })
 export class ChatModule {}

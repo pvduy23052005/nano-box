@@ -123,14 +123,20 @@ export class RoomMapper {
       lastMessageId,
       avatar,
       groupAvatars,
-      members: (rawRoom.members || []).map((member) => ({
-        userId: getMemberUserId(member.user_id),
-        role: member.role,
-        status: member.status,
-        lastReadMessageId: member.last_read_message_id
-          ? member.last_read_message_id.toString()
-          : null,
-      })),
+      members: (rawRoom.members || []).map((member) => {
+        const isPopulated = isPopulatedUser(member.user_id);
+        const user = isPopulated ? member.user_id : null;
+        return {
+          userId: getMemberUserId(member.user_id),
+          role: member.role,
+          status: member.status,
+          lastReadMessageId: member.last_read_message_id
+            ? member.last_read_message_id.toString()
+            : null,
+          name: user?.name ?? null,
+          avatar: user?.avatar ?? null,
+        };
+      }),
     };
   }
 
@@ -151,6 +157,9 @@ export class RoomMapper {
         user_id: member.userId,
         role: member.role,
         status: member.status,
+        ...(member.lastReadMessageId !== undefined
+          ? { last_read_message_id: member.lastReadMessageId }
+          : {}),
       })),
     };
   }
@@ -189,6 +198,13 @@ export class RoomMapper {
         role: member.role,
         status: member.status,
         lastReadMessageId: member.lastReadMessageId ?? null,
+        user: member.name
+          ? {
+              id: member.userId,
+              name: member.name,
+              avatar: member.avatar ?? '',
+            }
+          : undefined,
       })),
       avatar: overrides?.avatar !== undefined ? overrides.avatar : room.avatar,
       groupAvatars: room.groupAvatars ?? null,

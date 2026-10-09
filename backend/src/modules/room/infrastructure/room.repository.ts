@@ -2,7 +2,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { RoomRepositoryAdapter } from '../application/ports/room.ports';
 import { RoomEntity } from '../domain/room.entity';
 import { Room, RoomDocument } from './room.schema';
-import { Model, Types } from 'mongoose';
+import { Model, Types, UpdateQuery, sanitizeFilter } from 'mongoose';
 import { RoomProps } from '../domain/room.type';
 import { MemberStatus, RoomType } from '../domain/chat.enum';
 import { RoomMapper } from './room.mapper';
@@ -10,6 +10,8 @@ import {
   User,
   UserDocument,
 } from '../../user/infrastructure/databases/user.schema';
+
+type RoomFilterQuery = Parameters<typeof sanitizeFilter<Room>>[0];
 
 const ROOM_POPULATE_OPTIONS = [
   {
@@ -31,7 +33,57 @@ export class RoomRepository implements RoomRepositoryAdapter {
   ) {}
 
   async save(room: RoomEntity): Promise<RoomProps> {
+    const id = room.getId();
     const mongooseRoomData = RoomMapper.toPersistence(room);
+
+    if (id && Types.ObjectId.isValid(id)) {
+      const updateData: UpdateQuery<Room> = {
+        title: mongooseRoomData.title,
+        avatar: mongooseRoomData.avatar,
+        type_room: mongooseRoomData.type_room,
+      };
+
+      if (mongooseRoomData.last_message_id !== undefined) {
+        updateData.last_message_id =
+          mongooseRoomData.last_message_id &&
+          Types.ObjectId.isValid(mongooseRoomData.last_message_id)
+            ? new Types.ObjectId(mongooseRoomData.last_message_id)
+            : null;
+      }
+
+      if (mongooseRoomData.members !== undefined) {
+        updateData.members = mongooseRoomData.members.map((member) => ({
+          user_id: Types.ObjectId.isValid(member.user_id)
+            ? new Types.ObjectId(member.user_id)
+            : member.user_id,
+          role: member.role,
+          status: member.status,
+          ...(member.last_read_message_id &&
+          Types.ObjectId.isValid(member.last_read_message_id)
+            ? {
+                last_read_message_id: new Types.ObjectId(
+                  member.last_read_message_id,
+                ),
+              }
+            : {}),
+        }));
+      }
+
+      const updated = await this.roomModel
+        .findByIdAndUpdate(
+          id,
+          { $set: updateData },
+          { returnDocument: 'after' },
+        )
+        .populate(ROOM_POPULATE_OPTIONS)
+        .lean()
+        .exec();
+
+      if (updated) {
+        return RoomMapper.toProps(updated);
+      }
+    }
+
     const roomDoc = new this.roomModel(mongooseRoomData);
     const roomCreated = await roomDoc.save();
     await roomCreated.populate(ROOM_POPULATE_OPTIONS);
@@ -47,7 +99,7 @@ export class RoomRepository implements RoomRepositoryAdapter {
       ? new Types.ObjectId(userId)
       : userId;
 
-    const filter: Record<string, any> = {
+    const filter: RoomFilterQuery = {
       members: {
         $elemMatch: {
           user_id: userObjectId,
@@ -221,5 +273,17 @@ export class RoomRepository implements RoomRepositoryAdapter {
       .exec();
 
     return updated ? RoomMapper.toProps(updated) : null;
+  }
+
+  async deleteRoom(roomId: string): Promise<boolean> {
+    if (!roomId || !Types.ObjectId.isValid(roomId)) {
+      return false;
+    }
+
+    const result = await this.roomModel
+      .deleteOne({ _id: new Types.ObjectId(roomId) })
+      .exec();
+
+    return result.deletedCount > 0;
   }
 }

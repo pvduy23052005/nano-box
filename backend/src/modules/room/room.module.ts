@@ -6,20 +6,25 @@ import {
   MessageSchema,
 } from '../chat/infrastructure/database/message.schema';
 import { User, UserSchema } from '../user/infrastructure/databases/user.schema';
-import {
-  RoomResolver,
-  RoomMemberResolver,
-} from './presentation/graphql/room.resolver';
+import { RoomResolver } from './presentation/graphql/room.resolver';
 import { RoomRepositoryAdapter } from './application/ports/room.ports';
 import { RoomRepository } from './infrastructure/room.repository';
 import { CreateSingleRoomUseCase } from './application/use-cases/create-single-room';
 import { CreateGroupRoomUseCase } from './application/use-cases/create-group-room';
 import { GetRoomsByStatusUseCase } from './application/use-cases/get-rooms-by-status';
+import { GetRoomDetailUseCase } from './application/use-cases/get-room-detail.use-case';
 import { UpdateMemberLastReadMessageUseCase } from './application/use-cases/update-member-last-read-message';
 import { EnsureFriendRoomUseCase } from './application/use-cases/ensure-friend-room.use-case';
+import { UpdateRoomProfileUseCase } from './application/use-cases/update-room-profile.use-case';
+import { AddMemberToRoomUseCase } from './application/use-cases/add-member-to-room.use-case';
+import { RemoveMemberFromRoomUseCase } from './application/use-cases/remove-member-from-room.use-case';
+import { AssignRoomAdminUseCase } from './application/use-cases/assign-room-admin.use-case';
+import { RevokeRoomAdminUseCase } from './application/use-cases/revoke-room-admin.use-case';
+import { LeaveRoomUseCase } from './application/use-cases/leave-room.use-case';
 import { UserModule } from '../user/user.module';
 import { FriendshipModule } from '../friendship/friendship.module';
 import { FriendshipRepositoryAdapter } from '../friendship/applications/ports/friendship.port';
+import { RoomListener } from './presentation/listener/room.listener';
 
 @Module({
   imports: [
@@ -33,7 +38,7 @@ import { FriendshipRepositoryAdapter } from '../friendship/applications/ports/fr
   ],
   providers: [
     RoomResolver,
-    RoomMemberResolver,
+    RoomListener,
     {
       provide: RoomRepositoryAdapter,
       useClass: RoomRepository,
@@ -59,6 +64,12 @@ import { FriendshipRepositoryAdapter } from '../friendship/applications/ports/fr
       inject: [RoomRepositoryAdapter],
     },
     {
+      provide: GetRoomDetailUseCase,
+      useFactory: (roomRepository: RoomRepositoryAdapter) =>
+        new GetRoomDetailUseCase(roomRepository),
+      inject: [RoomRepositoryAdapter],
+    },
+    {
       provide: UpdateMemberLastReadMessageUseCase,
       useFactory: (roomRepository: RoomRepositoryAdapter) =>
         new UpdateMemberLastReadMessageUseCase(roomRepository),
@@ -70,13 +81,58 @@ import { FriendshipRepositoryAdapter } from '../friendship/applications/ports/fr
         new EnsureFriendRoomUseCase(roomRepository),
       inject: [RoomRepositoryAdapter],
     },
+    {
+      provide: UpdateRoomProfileUseCase,
+      useFactory: (roomRepository: RoomRepositoryAdapter) =>
+        new UpdateRoomProfileUseCase(roomRepository),
+      inject: [RoomRepositoryAdapter],
+    },
+    {
+      provide: AddMemberToRoomUseCase,
+      useFactory: (
+        roomRepository: RoomRepositoryAdapter,
+        friendshipRepository: FriendshipRepositoryAdapter,
+      ) => new AddMemberToRoomUseCase(roomRepository, friendshipRepository),
+      inject: [RoomRepositoryAdapter, FriendshipRepositoryAdapter],
+    },
+    {
+      provide: RemoveMemberFromRoomUseCase,
+      useFactory: (roomRepository: RoomRepositoryAdapter) =>
+        new RemoveMemberFromRoomUseCase(roomRepository),
+      inject: [RoomRepositoryAdapter],
+    },
+    {
+      provide: AssignRoomAdminUseCase,
+      useFactory: (roomRepository: RoomRepositoryAdapter) =>
+        new AssignRoomAdminUseCase(roomRepository),
+      inject: [RoomRepositoryAdapter],
+    },
+    {
+      provide: RevokeRoomAdminUseCase,
+      useFactory: (roomRepository: RoomRepositoryAdapter) =>
+        new RevokeRoomAdminUseCase(roomRepository),
+      inject: [RoomRepositoryAdapter],
+    },
+    {
+      provide: LeaveRoomUseCase,
+      useFactory: (roomRepository: RoomRepositoryAdapter) =>
+        new LeaveRoomUseCase(roomRepository),
+      inject: [RoomRepositoryAdapter],
+    },
   ],
   exports: [
     CreateSingleRoomUseCase,
     CreateGroupRoomUseCase,
     GetRoomsByStatusUseCase,
+    GetRoomDetailUseCase,
     UpdateMemberLastReadMessageUseCase,
     EnsureFriendRoomUseCase,
+    UpdateRoomProfileUseCase,
+    AddMemberToRoomUseCase,
+    RemoveMemberFromRoomUseCase,
+    AssignRoomAdminUseCase,
+    RevokeRoomAdminUseCase,
+    LeaveRoomUseCase,
     RoomRepositoryAdapter,
   ],
 })

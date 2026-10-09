@@ -1,8 +1,3 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
-import { CreateNotificationUseCase } from '../../applications/use-cases/create-notification.use-case';
-import { NotificationType } from '../../domain/notification.type';
-import { WebsocketService } from 'src/infrastructure/websocket/ws.service';
 import {
   NOTIFICATION_EVENTS,
   NOTIFICATION_SOCKET_EVENTS,
@@ -10,7 +5,23 @@ import {
   type FriendRequestEventPayload,
   type RoomCreatedEventPayload,
 } from './notification.event';
+import {
+  ROOM_EVENTS,
+  ROOM_MEMBER_ACTIONS,
+  type RoomMemberAction,
+  type RoomMemberAddedPayload,
+  type RoomMemberRemovedPayload,
+  type RoomAdminAssignedPayload,
+  type RoomAdminRevokedPayload,
+} from 'src/modules/room/presentation/event/room.event';
+import { Injectable, Logger } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
+import { NotificationType } from '../../domain/notification.type';
+import type { RoomProps } from 'src/modules/room/domain/room.type';
+import { WebsocketService } from 'src/infrastructure/websocket/ws.service';
 import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
+import { CreateNotificationUseCase } from '../../applications/use-cases/create-notification.use-case';
+
 @Injectable()
 export class NotificationListener {
   private readonly logger = new Logger(NotificationListener.name);
@@ -166,5 +177,104 @@ export class NotificationListener {
     } catch (error) {
       this.logger.error('Error handling room.created event', error);
     }
+  }
+
+  private async sendRoomMemberNotification(params: {
+    room: RoomProps;
+    actorId: string;
+    targetUserId: string;
+    action: RoomMemberAction;
+    buildContent: (actorName: string, roomTitle: string) => string;
+    eventName: string;
+  }): Promise<void> {
+    try {
+      const { room, actorId, targetUserId, action, buildContent } = params;
+      if (!room || !actorId || !targetUserId) return;
+
+      const actor = (room.members || []).find(
+        (member) => member.userId === actorId,
+      );
+      const displaySenderName = actor?.name || 'Quản trị viên';
+      const title = room.title || 'Nhóm';
+      const content = buildContent(displaySenderName, title);
+
+      const notification = await this.createNotificationUseCase.execute({
+        recipientId: targetUserId,
+        senderId: actorId,
+        senderName: displaySenderName,
+        senderAvatar: actor?.avatar ?? undefined,
+        type: NotificationType.ROOM_ACTION,
+        title,
+        content,
+        metadata: {
+          roomId: room.id,
+          action,
+        },
+      });
+
+      this.websocketService.server
+        ?.to(targetUserId)
+        ?.emit(NOTIFICATION_SOCKET_EVENTS.RECEIVE_NOTIFICATION, notification);
+    } catch (error) {
+      this.logger.error(`Error handling ${params.eventName} event`, error);
+    }
+  }
+
+  @OnEvent(ROOM_EVENTS.MEMBER_ADDED)
+  async handleRoomMemberAdded(payload: RoomMemberAddedPayload): Promise<void> {
+    await this.sendRoomMemberNotification({
+      room: payload.room,
+      actorId: payload.adderId,
+      targetUserId: payload.addedUserId,
+      action: ROOM_MEMBER_ACTIONS.MEMBER_ADDED,
+      buildContent: (actor, title) =>
+        `${actor} đã thêm bạn vào nhóm "${title}".`,
+      eventName: ROOM_EVENTS.MEMBER_ADDED,
+    });
+  }
+
+  @OnEvent(ROOM_EVENTS.MEMBER_REMOVED)
+  async handleRoomMemberRemoved(
+    payload: RoomMemberRemovedPayload,
+  ): Promise<void> {
+    await this.sendRoomMemberNotification({
+      room: payload.room,
+      actorId: payload.actorId,
+      targetUserId: payload.removedUserId,
+      action: ROOM_MEMBER_ACTIONS.MEMBER_REMOVED,
+      buildContent: (actor, title) =>
+        `${actor} đã xóa bạn khỏi nhóm "${title}".`,
+      eventName: ROOM_EVENTS.MEMBER_REMOVED,
+    });
+  }
+
+  @OnEvent(ROOM_EVENTS.ADMIN_ASSIGNED)
+  async handleRoomAdminAssigned(
+    payload: RoomAdminAssignedPayload,
+  ): Promise<void> {
+    await this.sendRoomMemberNotification({
+      room: payload.room,
+      actorId: payload.actorId,
+      targetUserId: payload.targetUserId,
+      action: ROOM_MEMBER_ACTIONS.ADMIN_ASSIGNED,
+      buildContent: (actor, title) =>
+        `${actor} đã bổ nhiệm bạn làm quản trị viên của nhóm "${title}".`,
+      eventName: ROOM_EVENTS.ADMIN_ASSIGNED,
+    });
+  }
+
+  @OnEvent(ROOM_EVENTS.ADMIN_REVOKED)
+  async handleRoomAdminRevoked(
+    payload: RoomAdminRevokedPayload,
+  ): Promise<void> {
+    await this.sendRoomMemberNotification({
+      room: payload.room,
+      actorId: payload.actorId,
+      targetUserId: payload.targetUserId,
+      action: ROOM_MEMBER_ACTIONS.ADMIN_REVOKED,
+      buildContent: (actor, title) =>
+        `${actor} đã thu hồi quyền quản trị viên của bạn trong nhóm "${title}".`,
+      eventName: ROOM_EVENTS.ADMIN_REVOKED,
+    });
   }
 }

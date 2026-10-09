@@ -22,6 +22,7 @@ export const useReceiveMessage = () => {
       appendMessageToCache(client.cache, GET_MESSAGE_QUERY, {
         ...newMessage,
         isMe: newMessage.senderId === user?.id,
+        isSystem: newMessage.isSystem ?? (newMessage.senderId === "system"),
       });
 
       if (newMessage.roomId) {

@@ -25,6 +25,7 @@ interface RawNotificationRecord {
   metadata?: {
     room_id?: string;
     message_id?: string;
+    action?: string;
   };
   is_read?: boolean;
   created_at?: Date;
@@ -52,6 +53,7 @@ export class NotificationRepository implements NotificationRepositoryAdapter {
       metadata: {
         room_id: notification.getMetadata().roomId,
         message_id: notification.getMetadata().messageId,
+        action: notification.getMetadata().action,
       },
       is_read: notification.getIsRead(),
     };
@@ -77,6 +79,7 @@ export class NotificationRepository implements NotificationRepositoryAdapter {
       metadata: {
         roomId: record.metadata?.room_id ?? '',
         messageId: record.metadata?.message_id,
+        action: record.metadata?.action,
       },
       isRead: Boolean(record.is_read),
       createdAt: record.created_at,

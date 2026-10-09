@@ -1,5 +1,21 @@
 import { create } from "zustand";
 
+export interface ChatRoomMember {
+  userId: string;
+  name?: string | null;
+  avatar?: string | null;
+  email?: string | null;
+  role?: string | null;
+  status?: string | null;
+  lastReadMessageId?: string | null;
+  user?: {
+    id: string;
+    name: string;
+    avatar: string;
+    email: string;
+  } | null;
+}
+
 export interface ChatRoom {
   id: string;
   title: string | null;
@@ -10,10 +26,7 @@ export interface ChatRoom {
     senderId?: string | null;
     createdAt?: unknown;
   } | string | null;
-  members?: Array<{
-    userId: string;
-    lastReadMessageId?: string | null;
-  }> | null;
+  members?: ChatRoomMember[] | null;
   avatar: string | null;
   groupAvatars?: (string | null)[] | null;
 }
@@ -25,6 +38,7 @@ interface RoomState {
   setActiveRoom: (room: ChatRoom | null) => void;
   setActiveRoomId: (roomId: string | null) => void;
   setIsCreateGroupOpen: (open: boolean) => void;
+  updateActiveRoomProfile: (title: string, avatar?: string | null) => void;
 }
 
 export const useRoomStore = create<RoomState>((set) => ({
@@ -43,5 +57,16 @@ export const useRoomStore = create<RoomState>((set) => ({
   setIsCreateGroupOpen: (open) =>
     set({
       isCreateGroupOpen: open,
+    }),
+  updateActiveRoomProfile: (title, avatar) =>
+    set((state) => {
+      if (!state.activeRoom) return state;
+      return {
+        activeRoom: {
+          ...state.activeRoom,
+          title,
+          avatar: avatar !== undefined ? avatar : state.activeRoom.avatar,
+        },
+      };
     }),
 }));

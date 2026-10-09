@@ -173,6 +173,7 @@ export default function CreateGroupRoomDialog({
                         onClick={() => setSearchQuery("")}
                         title="Xóa tìm kiếm"
                         aria-label="Xóa tìm kiếm"
+                        className="cursor-pointer"
                       >
                         <X />
                       </InputGroupButton>
@@ -198,10 +199,16 @@ export default function CreateGroupRoomDialog({
               size="sm"
               onClick={handleClose}
               disabled={isCreating}
+              className="cursor-pointer"
             >
               Hủy
             </Button>
-            <Button type="submit" size="sm" disabled={isSubmitDisabled}>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={isSubmitDisabled}
+              className="cursor-pointer"
+            >
               {isCreating && <Spinner data-icon="inline-start" />}
               <span>{isCreating ? "Đang tạo nhóm..." : "Tạo nhóm"}</span>
             </Button>

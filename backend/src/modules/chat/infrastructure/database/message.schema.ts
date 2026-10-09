@@ -42,6 +42,9 @@ export class Message {
 
   @Prop({ default: [], type: [String] })
   read_by: string[];
+
+  @Prop({ type: Boolean, default: false, index: true })
+  is_system?: boolean;
 }
 
 export type MessageDocument = HydratedDocument<Message>;

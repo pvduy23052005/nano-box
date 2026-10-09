@@ -25,6 +25,7 @@ export const useGetMessages = () => {
       ...message,
       roomId: message.roomId || activeRoomId,
       isMe: message.senderId === user?.id,
+      isSystem: message.isSystem ?? (message.senderId === "system"),
     }));
   }, [data?.getMessages?.items, user?.id, activeRoomId]);
 

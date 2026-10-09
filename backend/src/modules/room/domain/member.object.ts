@@ -1,22 +1,32 @@
 import { MemberRole, MemberStatus } from './chat.enum';
 
 export class RoomMember {
-  private readonly _user_id: string;
+  private readonly _userId: string;
   private _role: MemberRole;
   private _status: MemberStatus;
+  private _lastReadMessageId?: string | null;
 
-  private constructor(userId: string, role: MemberRole, status: MemberStatus) {
-    this._user_id = userId;
+  private constructor(
+    userId: string,
+    role: MemberRole,
+    status: MemberStatus,
+    lastReadMessageId?: string | null,
+  ) {
+    this._userId = userId;
     this._role = role;
     this._status = status;
+    if (lastReadMessageId !== undefined) {
+      this._lastReadMessageId = lastReadMessageId;
+    }
   }
 
   public static restore(
     userId: string,
     role: MemberRole,
     status: MemberStatus,
+    lastReadMessageId?: string | null,
   ): RoomMember {
-    return new RoomMember(userId, role, status);
+    return new RoomMember(userId, role, status, lastReadMessageId);
   }
 
   public static createWaitingMember(userId: string): RoomMember {
@@ -47,13 +57,115 @@ export class RoomMember {
     this._status = newStatus;
   }
 
-  get userId(): string {
-    return this._user_id;
+  public isAccepted(): boolean {
+    return this._status === MemberStatus.ACCEPTED;
   }
-  get role(): MemberRole {
+
+  public isAdmin(): boolean {
+    return (
+      this._role === MemberRole.SUPER_ADMIN || this._role === MemberRole.ADMIN
+    );
+  }
+
+  public canBeRemovedBy(actor: RoomMember): {
+    allowed: boolean;
+    reason?: string;
+  } {
+    if (this._role === MemberRole.SUPER_ADMIN) {
+      return {
+        allowed: false,
+        reason: 'Không thể xóa Trưởng nhóm khỏi phòng',
+      };
+    }
+
+    if (
+      actor.getRole() === MemberRole.ADMIN &&
+      this._role === MemberRole.ADMIN
+    ) {
+      return {
+        allowed: false,
+        reason: 'Quản trị viên không thể xóa Quản trị viên khác',
+      };
+    }
+
+    return { allowed: true };
+  }
+
+  public canBeAssignedAdminBy(actor: RoomMember): {
+    allowed: boolean;
+    reason?: string;
+  } {
+    if (actor.getRole() !== MemberRole.SUPER_ADMIN) {
+      return {
+        allowed: false,
+        reason: 'Chỉ trưởng nhóm mới có quyền bổ nhiệm quản trị viên',
+      };
+    }
+
+    if (this.isAdmin()) {
+      return {
+        allowed: false,
+        reason: 'Thành viên này đã là quản trị viên hoặc trưởng nhóm',
+      };
+    }
+
+    return { allowed: true };
+  }
+
+  public canBeRevokedAdminBy(actor: RoomMember): {
+    allowed: boolean;
+    reason?: string;
+  } {
+    if (actor.getRole() !== MemberRole.SUPER_ADMIN) {
+      return {
+        allowed: false,
+        reason: 'Chỉ trưởng nhóm mới có quyền cắt chức quản trị viên',
+      };
+    }
+
+    if (this._role === MemberRole.SUPER_ADMIN) {
+      return {
+        allowed: false,
+        reason: 'Không thể cắt chức Trưởng nhóm',
+      };
+    }
+
+    if (this._role !== MemberRole.ADMIN) {
+      return {
+        allowed: false,
+        reason: 'Thành viên này không phải là quản trị viên',
+      };
+    }
+
+    return { allowed: true };
+  }
+
+  public getUserId(): string {
+    return this._userId;
+  }
+
+  public getRole(): MemberRole {
     return this._role;
   }
-  get status(): MemberStatus {
+
+  public getStatus(): MemberStatus {
     return this._status;
+  }
+
+  public getLastReadMessageId(): string | null | undefined {
+    return this._lastReadMessageId;
+  }
+
+  get userId(): string {
+    return this.getUserId();
+  }
+  get role(): MemberRole {
+    return this.getRole();
+  }
+  get status(): MemberStatus {
+    return this.getStatus();
+  }
+  get lastReadMessageId(): string | null | undefined {
+    return this.getLastReadMessageId();
   }
 }

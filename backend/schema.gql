@@ -15,6 +15,16 @@ input AddEmojiMessageInput {
   userName: String
 }
 
+input AddMemberToRoomInput {
+  roomId: String!
+  userId: String!
+}
+
+input AssignRoomAdminInput {
+  roomId: String!
+  userId: String!
+}
+
 type CancelFriendRequestPayload {
   data: FriendshipDataPayload
   message: String!
@@ -27,6 +37,7 @@ type ChatPayload {
   content: String!
   createdAt: DateTime
   id: String!
+  isSystem: Boolean
   reactions: [ReactionPayload!]
   readBy: [String!]
   roomId: String!
@@ -127,9 +138,12 @@ type MessagesPagePayload {
 type Mutation {
   acceptFriendRequest(friendId: String!): AcceptFriendRequestPayload!
   addEmojiMessage(input: AddEmojiMessageInput!): ChatPayload!
+  addMemberToRoom(input: AddMemberToRoomInput!): RoomOutput!
+  assignRoomAdmin(input: AssignRoomAdminInput!): RoomOutput!
   cancelFriendRequest(friendId: String!): CancelFriendRequestPayload!
   createGroupRoom(input: CreateGroupRoomInput!): RoomOutput!
   createRoomChatNotFriend(otherUserId: String!): RoomOutput!
+  leaveRoom(roomId: String!): Boolean!
   login(input: LoginInputDto!): LoginPayload!
   loginGoogle(idToken: String!): LoginPayload!
   logout: Boolean!
@@ -137,13 +151,17 @@ type Mutation {
   markNotificationAsRead(id: String!): Boolean!
   register(input: RegisterInputDto!): RegisterPayload!
   rejectFriendRequest(friendId: String!): RejectFriendRequestPayload!
+  removeMemberFromRoom(input: RemoveMemberFromRoomInput!): RoomOutput!
+  revokeRoomAdmin(input: RevokeRoomAdminInput!): RoomOutput!
   sendFriendRequest(addresseeId: String!): SendFriendRequestPayload!
   sendMessage(input: MessageInput!): ChatPayload!
   updateMemberLastReadMessage(messageId: String!, roomId: String!): Boolean!
   updateProfile(input: UpdateProfileInputDto!): UpdateProfilePayload!
+  updateRoomProfile(input: UpdateRoomProfileInput!): RoomOutput!
 }
 
 type NotificationMetadataOutput {
+  action: String
   messageId: String
   roomId: String
 }
@@ -167,6 +185,7 @@ enum NotificationType {
   NEW_MESSAGE
   NEW_ROOM
   REACTION
+  ROOM_ACTION
 }
 
 type NotificationsPagePayload {
@@ -182,6 +201,7 @@ type Query {
   getMessages(cursor: String, limit: Float, roomId: String!): MessagesPagePayload!
   getNotifications(cursor: String, limit: Float): NotificationsPagePayload!
   getReceivedFriendRequests: [GetReceivedFriendRequestPayload!]!
+  getRoomDetail(roomId: String!): RoomOutput!
   getRoomsByStatus(search: String, status: MemberStatus!): [RoomOutput!]!
   getUnreadNotificationCount: Int!
   getUsers(search: String): [UserProfilePayload!]!
@@ -211,12 +231,28 @@ type RejectFriendRequestPayload {
   success: Boolean!
 }
 
+input RemoveMemberFromRoomInput {
+  roomId: String!
+  userId: String!
+}
+
+input RevokeRoomAdminInput {
+  roomId: String!
+  userId: String!
+}
+
 type RoomMemberOutput {
   lastReadMessageId: String
   role: MemberRole!
   status: MemberStatus!
-  user: UserProfilePayload
+  user: RoomMemberUserOutput
   userId: String!
+}
+
+type RoomMemberUserOutput {
+  avatar: String!
+  id: String!
+  name: String!
 }
 
 type RoomOutput {
@@ -249,6 +285,12 @@ type UpdateProfilePayload {
   data: UserProfilePayload
   message: String!
   success: Boolean!
+}
+
+input UpdateRoomProfileInput {
+  avatar: String
+  roomId: String!
+  title: String!
 }
 
 type User {
