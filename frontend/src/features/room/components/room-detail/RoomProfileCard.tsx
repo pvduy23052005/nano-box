@@ -5,7 +5,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/src/components/ui/avatar";
-import { Network } from "lucide-react";
+import { Network, Pencil } from "lucide-react";
 import { RoomType } from "../../types/room.type";
 import { GroupAvatar } from "../GroupAvatar";
 import { Card, CardContent } from "@/src/components/ui/card";
@@ -16,11 +16,15 @@ interface RoomProfileCardProps {
   room: RoomDetailData;
   currentUserId?: string;
   onClickAddMember?: () => void;
+  canEdit?: boolean;
+  onEdit?: () => void;
 }
 
 export default function RoomProfileCard({
   room,
   currentUserId,
+  canEdit = false,
+  onEdit,
 }: RoomProfileCardProps) {
   const isGroup = room.typeRoom === RoomType.GROUP;
   const otherMember = !isGroup
@@ -35,6 +39,8 @@ export default function RoomProfileCard({
 
   const hasAvatar =
     !!displayAvatar || (room.groupAvatars && room.groupAvatars.length > 0);
+
+  const isEditable = canEdit && isGroup && Boolean(onEdit);
 
   return (
     <Card className="shadow-sm overflow-hidden m-0 p-1 sm:p-0">
@@ -70,8 +76,21 @@ export default function RoomProfileCard({
             )}
           </div>
 
-          <div className="flex-1 min-w-0">
-            <Typography variant="h4">{displayName}</Typography>
+          <div className="flex-1 min-w-0 flex items-center justify-between gap-1">
+            <Typography variant="h4" className="truncate">
+              {displayName}
+            </Typography>
+            {isEditable && (
+              <button
+                type="button"
+                onClick={onEdit}
+                className="size-7 inline-flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors cursor-pointer shrink-0"
+                title="Chỉnh sửa thông tin phòng"
+                aria-label="Chỉnh sửa thông tin phòng"
+              >
+                <Pencil className="size-3.5" />
+              </button>
+            )}
           </div>
         </div>
       </CardContent>

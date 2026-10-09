@@ -14,6 +14,5 @@ export class UpdateRoomProfileInput {
 
   @Field(() => String, { nullable: true })
   @IsOptional()
-  @IsString({ message: 'Avatar phải là chuỗi ký tự' })
-  avatar?: string;
+  avatar?: string | null;
 }

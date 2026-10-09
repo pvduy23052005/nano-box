@@ -152,3 +152,23 @@ export const REVOKE_ROOM_ADMIN_MUTATION = graphql(`
   }
 `);
 
+export const UPDATE_ROOM_PROFILE_MUTATION = graphql(`
+  mutation UpdateRoomProfile($input: UpdateRoomProfileInput!) {
+    updateRoomProfile(input: $input) {
+      id
+      title
+      typeRoom
+      avatar
+      groupAvatars
+      members {
+        role
+        user {
+          id
+          name
+          avatar
+        }
+      }
+    }
+  }
+`);
+

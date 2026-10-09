@@ -7,6 +7,7 @@ import { MemberStatus } from "../types/room.type";
 import { appendRoomToCache } from "../room.cache";
 import { ROOM_SOCKET_EVENTS } from "../types/event.types";
 import { GET_ROOM_DETAIL_QUERY } from "../room.mutation";
+import { useRoomStore } from "../stores/useRoomStore";
 
 export interface ReceiveRoomMember {
   userId: string;
@@ -55,15 +56,26 @@ export const useReceiveRoom = () => {
         status,
       );
 
+      const activeRoom = useRoomStore.getState().activeRoom;
+      if (activeRoom && activeRoom.id === roomData.id) {
+        useRoomStore.getState().setActiveRoom({
+          ...activeRoom,
+          title: roomData.title,
+          avatar: roomData.avatar ?? null,
+        });
+      }
+
       client.refetchQueries({
         include: [GET_ROOM_DETAIL_QUERY],
       });
     };
 
     socket.on(ROOM_SOCKET_EVENTS.SERVER_SEND_ROOM, handleReceiveRoom);
+    socket.on(ROOM_SOCKET_EVENTS.ROOM_UPDATED, handleReceiveRoom);
 
     return () => {
       socket.off(ROOM_SOCKET_EVENTS.SERVER_SEND_ROOM, handleReceiveRoom);
+      socket.off(ROOM_SOCKET_EVENTS.ROOM_UPDATED, handleReceiveRoom);
     };
   }, [client, socket, user?.id]);
 };

@@ -1,6 +1,13 @@
 import { ApolloCache } from "@apollo/client";
-import { GET_ROOMS_BY_STATUS_QUERY } from "./room.mutation";
-import { RoomType, GetRoomsByStatusQuery } from "@/src/types/graphql/graphql";
+import {
+  GET_ROOMS_BY_STATUS_QUERY,
+  GET_ROOM_DETAIL_QUERY,
+} from "./room.mutation";
+import {
+  RoomType,
+  GetRoomsByStatusQuery,
+  GetRoomDetailQuery,
+} from "@/src/types/graphql/graphql";
 import { MemberStatus } from "./types/room.type";
 
 export type LastMessageCacheItem = {
@@ -126,6 +133,53 @@ export const updateRoomLastMessageInCache = (
     );
 
     if (found) break;
+  }
+};
+
+export const updateRoomProfileInCache = (
+  cache: ApolloCache,
+  roomId: string,
+  data: {
+    title: string;
+    avatar?: string | null;
+  },
+): void => {
+  cache.updateQuery<GetRoomDetailQuery>(
+    { query: GET_ROOM_DETAIL_QUERY, variables: { roomId } },
+    (existing) => {
+      if (!existing?.getRoomDetail) return existing;
+      return {
+        getRoomDetail: {
+          ...existing.getRoomDetail,
+          title: data.title,
+          avatar:
+            data.avatar !== undefined
+              ? data.avatar
+              : existing.getRoomDetail.avatar,
+        },
+      };
+    },
+  );
+
+  for (const status of [MemberStatus.ACCEPTED, MemberStatus.WAITTING]) {
+    cache.updateQuery<GetRoomsByStatusQuery>(
+      { query: GET_ROOMS_BY_STATUS_QUERY, variables: { status } },
+      (existing) => {
+        if (!existing?.getRoomsByStatus) return existing;
+        return {
+          getRoomsByStatus: existing.getRoomsByStatus.map((room) =>
+            room.id === roomId
+              ? {
+                  ...room,
+                  title: data.title,
+                  avatar:
+                    data.avatar !== undefined ? data.avatar : room.avatar,
+                }
+              : room,
+          ),
+        };
+      },
+    );
   }
 };
 

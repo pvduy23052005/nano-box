@@ -12,6 +12,7 @@ import RoomMemberList from "./room-detail/RoomMemberList";
 import RoomDetailSkeleton from "./room-detail/RoomDetailSkeleton";
 import RoomDetailError from "./room-detail/RoomDetailError";
 import AddMemberDrawer from "./room-detail/AddMemberDrawer";
+import EditRoomProfileDialog from "./room-detail/EditRoomProfileDialog";
 import { ArrowLeft, UserPlus } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 
@@ -24,6 +25,7 @@ export default function RoomDetailView({ roomId }: RoomDetailViewProps) {
   const currentUserId = useAuthStore((state) => state.user?.id);
   const onlineUsers = usePresenceStore((state) => state.onlineUsers);
   const [isAddMemberDrawerOpen, setIsAddMemberDrawerOpen] = useState(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   const { room, loading, error, refetch } = useGetRoomDetail(roomId);
 
@@ -89,9 +91,15 @@ export default function RoomDetailView({ roomId }: RoomDetailViewProps) {
             <RoomProfileCard
               room={room}
               currentUserId={currentUserId}
+              canEdit={canAddMember}
+              onEdit={() => setIsEditProfileOpen(true)}
               onClickAddMember={() => setIsAddMemberDrawerOpen(true)}
             />
-            <RoomActionsCard isGroup={isGroup} onLeaveRoom={handleBack} />
+            <RoomActionsCard
+              isGroup={isGroup}
+              onLeaveRoom={handleBack}
+              onEditRoom={canAddMember ? () => setIsEditProfileOpen(true) : undefined}
+            />
           </div>
 
           <div className="lg:col-span-8 w-full min-w-0">
@@ -110,6 +118,17 @@ export default function RoomDetailView({ roomId }: RoomDetailViewProps) {
           onClose={() => setIsAddMemberDrawerOpen(false)}
           roomId={roomId}
           existingMemberIds={existingMemberIds}
+        />
+      )}
+
+      {canAddMember && (
+        <EditRoomProfileDialog
+          open={isEditProfileOpen}
+          onOpenChange={setIsEditProfileOpen}
+          roomId={roomId}
+          initialTitle={room.title || ""}
+          initialAvatar={room.avatar}
+          groupAvatars={room.groupAvatars}
         />
       )}
     </div>

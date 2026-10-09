@@ -62,19 +62,21 @@ export default function RoomActionsCard({
       </CardHeader>
 
       <CardContent className="p-3 flex flex-col gap-2">
-        <button
-          type="button"
-          onClick={handleEdit}
-          className="w-full flex items-center justify-between p-3.5 rounded-xl bg-muted/40 hover:bg-muted/70 transition-colors cursor-pointer text-left group"
-        >
-          <div className="flex items-center gap-3 min-w-0">
-            <Pencil className="size-4 text-muted-foreground shrink-0" />
-            <span className="text-sm font-medium text-foreground truncate">
-              Chỉnh sửa thông tin phòng
-            </span>
-          </div>
-          <ChevronRight className="size-4 text-muted-foreground shrink-0 group-hover:translate-x-0.5 transition-transform" />
-        </button>
+        {isGroup && (
+          <button
+            type="button"
+            onClick={handleEdit}
+            className="w-full flex items-center justify-between p-3.5 rounded-xl bg-muted/40 hover:bg-muted/70 transition-colors cursor-pointer text-left group"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <Pencil className="size-4 text-muted-foreground shrink-0" />
+              <span className="text-sm font-medium text-foreground truncate">
+                Chỉnh sửa thông tin phòng
+              </span>
+            </div>
+            <ChevronRight className="size-4 text-muted-foreground shrink-0 group-hover:translate-x-0.5 transition-transform" />
+          </button>
+        )}
 
         <div className="w-full flex items-center justify-between p-3.5 rounded-xl bg-muted/40">
           <div className="flex items-center gap-3 min-w-0 pr-3">

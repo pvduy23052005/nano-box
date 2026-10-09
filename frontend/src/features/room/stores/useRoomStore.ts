@@ -38,6 +38,7 @@ interface RoomState {
   setActiveRoom: (room: ChatRoom | null) => void;
   setActiveRoomId: (roomId: string | null) => void;
   setIsCreateGroupOpen: (open: boolean) => void;
+  updateActiveRoomProfile: (title: string, avatar?: string | null) => void;
 }
 
 export const useRoomStore = create<RoomState>((set) => ({
@@ -56,5 +57,16 @@ export const useRoomStore = create<RoomState>((set) => ({
   setIsCreateGroupOpen: (open) =>
     set({
       isCreateGroupOpen: open,
+    }),
+  updateActiveRoomProfile: (title, avatar) =>
+    set((state) => {
+      if (!state.activeRoom) return state;
+      return {
+        activeRoom: {
+          ...state.activeRoom,
+          title,
+          avatar: avatar !== undefined ? avatar : state.activeRoom.avatar,
+        },
+      };
     }),
 }));
