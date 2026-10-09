@@ -6,6 +6,7 @@ import { RoomType } from "@/src/types/graphql/graphql";
 import { MemberStatus } from "../types/room.type";
 import { appendRoomToCache } from "../room.cache";
 import { ROOM_SOCKET_EVENTS } from "../types/event.types";
+import { GET_ROOM_DETAIL_QUERY } from "../room.mutation";
 
 export interface ReceiveRoomMember {
   userId: string;
@@ -53,6 +54,10 @@ export const useReceiveRoom = () => {
         },
         status,
       );
+
+      client.refetchQueries({
+        include: [GET_ROOM_DETAIL_QUERY],
+      });
     };
 
     socket.on(ROOM_SOCKET_EVENTS.SERVER_SEND_ROOM, handleReceiveRoom);

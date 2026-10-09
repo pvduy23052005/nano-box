@@ -15,7 +15,7 @@ import { Typography } from "@/src/components/ui/typography";
 interface RoomProfileCardProps {
   room: RoomDetailData;
   currentUserId?: string;
-  onClickAddMember: () => void;
+  onClickAddMember?: () => void;
 }
 
 export default function RoomProfileCard({

@@ -27,6 +27,7 @@ import { MemberRole } from "../../types/room.type";
 import { Button } from "@/src/components/ui/button";
 
 interface RoomMemberListProps {
+  roomId: string;
   members: RoomDetailMember[];
   currentUserId?: string;
   onlineUsers: Record<string, boolean>;
@@ -37,6 +38,7 @@ type FilterRole = "ALL" | "ADMIN" | "MEMBER";
 const INITIAL_LIMIT = 5;
 
 export default function RoomMemberList({
+  roomId,
   members,
   currentUserId,
   onlineUsers,
@@ -44,6 +46,12 @@ export default function RoomMemberList({
   const [searchQuery, setSearchQuery] = useState("");
   const [filterRole, setFilterRole] = useState<FilterRole>("ALL");
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const myRole = useMemo(() => {
+    if (!currentUserId) return undefined;
+    const currentMember = members.find((m) => m.user?.id === currentUserId);
+    return currentMember?.role as MemberRole | undefined;
+  }, [members, currentUserId]);
 
   const onlineCount = useMemo(() => {
     return members.filter((m) => m.user?.id && !!onlineUsers[m.user.id]).length;
@@ -117,7 +125,7 @@ export default function RoomMemberList({
               variant={filterRole === "ALL" ? "default" : "ghost"}
               size="sm"
               onClick={() => setFilterRole("ALL")}
-              className="h-7 sm:h-8 px-2 sm:px-3 text-xs whitespace-nowrap"
+              className="h-7 sm:h-8 px-2 sm:px-3 text-xs whitespace-nowrap cursor-pointer"
               title="Tất cả"
               aria-label="Tất cả"
             >
@@ -129,7 +137,7 @@ export default function RoomMemberList({
               variant={filterRole === "ADMIN" ? "default" : "ghost"}
               size="sm"
               onClick={() => setFilterRole("ADMIN")}
-              className="h-7 sm:h-8 px-2 sm:px-3 text-xs whitespace-nowrap"
+              className="h-7 sm:h-8 px-2 sm:px-3 text-xs whitespace-nowrap cursor-pointer"
               title="Quản trị viên"
               aria-label="Quản trị viên"
             >
@@ -141,7 +149,7 @@ export default function RoomMemberList({
               variant={filterRole === "MEMBER" ? "default" : "ghost"}
               size="sm"
               onClick={() => setFilterRole("MEMBER")}
-              className="h-7 sm:h-8 px-2 sm:px-3 text-xs whitespace-nowrap"
+              className="h-7 sm:h-8 px-2 sm:px-3 text-xs whitespace-nowrap cursor-pointer"
               title="Thành viên"
               aria-label="Thành viên"
             >
@@ -168,6 +176,8 @@ export default function RoomMemberList({
                   member={member}
                   isMe={isMe}
                   isOnline={isOnline}
+                  roomId={roomId}
+                  myRole={myRole}
                 />
               );
             })

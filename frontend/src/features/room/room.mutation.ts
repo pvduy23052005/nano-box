@@ -71,3 +71,84 @@ export const GET_ROOM_DETAIL_QUERY = graphql(`
     }
   }
 `);
+
+export const ADD_MEMBER_TO_ROOM_MUTATION = graphql(`
+  mutation AddMemberToRoom($input: AddMemberToRoomInput!) {
+    addMemberToRoom(input: $input) {
+      id
+      title
+      typeRoom
+      avatar
+      groupAvatars
+      members {
+        role
+        user {
+          id
+          name
+          avatar
+        }
+      }
+    }
+  }
+`);
+
+export const REMOVE_MEMBER_FROM_ROOM_MUTATION = graphql(`
+  mutation RemoveMemberFromRoom($input: RemoveMemberFromRoomInput!) {
+    removeMemberFromRoom(input: $input) {
+      id
+      title
+      typeRoom
+      avatar
+      groupAvatars
+      members {
+        role
+        user {
+          id
+          name
+          avatar
+        }
+      }
+    }
+  }
+`);
+
+export const ASSIGN_ROOM_ADMIN_MUTATION = graphql(`
+  mutation AssignRoomAdmin($input: AssignRoomAdminInput!) {
+    assignRoomAdmin(input: $input) {
+      id
+      title
+      typeRoom
+      avatar
+      groupAvatars
+      members {
+        role
+        user {
+          id
+          name
+          avatar
+        }
+      }
+    }
+  }
+`);
+
+export const REVOKE_ROOM_ADMIN_MUTATION = graphql(`
+  mutation RevokeRoomAdmin($input: RevokeRoomAdminInput!) {
+    revokeRoomAdmin(input: $input) {
+      id
+      title
+      typeRoom
+      avatar
+      groupAvatars
+      members {
+        role
+        user {
+          id
+          name
+          avatar
+        }
+      }
+    }
+  }
+`);
+

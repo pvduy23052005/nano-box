@@ -1,21 +1,22 @@
 "use client";
 
-import { MoreVertical } from "lucide-react";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@/src/components/ui/avatar";
-import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
 import { cn } from "@/src/lib/utils";
 import { RoomDetailMember } from "./types";
 import { MemberRole } from "../../types/room.type";
+import RoomMemberActionMenu from "./RoomMemberActionMenu";
 
 interface RoomMemberItemProps {
   member: RoomDetailMember;
   isMe: boolean;
   isOnline: boolean;
+  roomId?: string;
+  myRole?: MemberRole;
 }
 
 const getAvatarBg = (name: string) => {
@@ -36,6 +37,8 @@ export default function RoomMemberItem({
   member,
   isMe,
   isOnline,
+  roomId,
+  myRole,
 }: RoomMemberItemProps) {
   const memberUser = member.user;
   const memberName = memberUser?.name || "Người dùng";
@@ -47,7 +50,7 @@ export default function RoomMemberItem({
         return (
           <Badge
             variant="default"
-            className="text-[11px] sm:text-xs shrink-0 whitespace-nowrap"
+            className="text-[11px] sm:text-xs shrink-0 whitespace-nowrap transition-all duration-200"
           >
             <span className="sm:hidden">Admin</span>
             <span className="hidden sm:inline">Trưởng nhóm</span>
@@ -57,7 +60,7 @@ export default function RoomMemberItem({
         return (
           <Badge
             variant="secondary"
-            className="text-[11px] sm:text-xs shrink-0 whitespace-nowrap"
+            className="text-[11px] sm:text-xs shrink-0 whitespace-nowrap transition-all duration-200"
           >
             <span className="sm:hidden">Mod</span>
             <span className="hidden sm:inline">Quản trị viên / Mod</span>
@@ -67,7 +70,7 @@ export default function RoomMemberItem({
         return (
           <Badge
             variant="outline"
-            className="text-[11px] sm:text-xs text-muted-foreground shrink-0 whitespace-nowrap"
+            className="text-[11px] sm:text-xs text-muted-foreground shrink-0 whitespace-nowrap transition-all duration-200"
           >
             Thành viên
           </Badge>
@@ -76,7 +79,7 @@ export default function RoomMemberItem({
   };
 
   return (
-    <div className="flex items-center justify-between gap-2 p-2 sm:p-2.5 px-2.5 sm:px-3.5 rounded-xl bg-muted/40 hover:bg-muted/70 transition-colors w-full min-w-0">
+    <div className="flex items-center justify-between gap-2 p-2 sm:p-2.5 px-2.5 sm:px-3.5 rounded-xl bg-muted/40 hover:bg-muted/70 transition-all duration-200 animate-in fade-in slide-in-from-top-1 w-full min-w-0">
       <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
         <div className="relative shrink-0">
           <Avatar className="size-9 sm:size-10">
@@ -119,14 +122,14 @@ export default function RoomMemberItem({
       <div className="flex items-center gap-1 shrink-0">
         {renderRoleBadge(member.role)}
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-7 sm:size-8 text-muted-foreground hover:text-foreground cursor-pointer"
-          aria-label="Tùy chọn"
-        >
-          <MoreVertical />
-        </Button>
+        {roomId && myRole && (
+          <RoomMemberActionMenu
+            roomId={roomId}
+            member={member}
+            myRole={myRole}
+            isMe={isMe}
+          />
+        )}
       </div>
     </div>
   );
