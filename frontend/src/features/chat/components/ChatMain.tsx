@@ -6,6 +6,7 @@ import { useGetMessages } from "../hooks/useGetMessages";
 import LogoSpinner from "@/src/components/common/LogoSpinner";
 import ChatLoading from "./ChatLoading";
 import ChatMessage from "./ChatMessage";
+import ChatSystemMessage from "./ChatSystemMessage";
 import ChatTypingIndicator from "./ChatTypingIndicator";
 import { useMarkAsRead } from "../hooks/useMarkAsRead";
 import { useTypingStore } from "../stores/useTypingStore";
@@ -99,9 +100,22 @@ export default function ChatMain() {
           seenMessageIds.add(message.id);
         }
 
+        const isSystem = Boolean(message.isSystem || message.senderId === "system");
+        if (isSystem) {
+          groups.push({
+            id: `system-${message.id || index}`,
+            isMe: false,
+            senderId: "system",
+            isSystem: true,
+            messages: [message],
+          });
+          return groups;
+        }
+
         const lastGroup = groups[groups.length - 1];
         const isSameSender =
           lastGroup &&
+          !lastGroup.isSystem &&
           lastGroup.isMe === message.isMe &&
           (!lastGroup.senderId || !message.senderId || lastGroup.senderId === message.senderId);
 
@@ -161,6 +175,17 @@ export default function ChatMain() {
           )}
 
           {messageGroups.map((group, index) => {
+            if (group.isSystem) {
+              const systemMessage = group.messages[0];
+              return (
+                <ChatSystemMessage
+                  key={group.id}
+                  content={systemMessage?.content ?? ""}
+                  createdAt={systemMessage?.createdAt}
+                />
+              );
+            }
+
             const isLastGroup = index === messageGroups.length - 1;
             const lastGroupMessage = group.messages[group.messages.length - 1];
             const isSeen =

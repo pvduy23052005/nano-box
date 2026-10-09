@@ -63,7 +63,7 @@ export default function RoomMemberItem({
             className="text-[11px] sm:text-xs shrink-0 whitespace-nowrap transition-all duration-200"
           >
             <span className="sm:hidden">Mod</span>
-            <span className="hidden sm:inline">Quản trị viên / Mod</span>
+            <span className="hidden sm:inline">Quản trị viên</span>
           </Badge>
         );
       default:
@@ -83,7 +83,7 @@ export default function RoomMemberItem({
       <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
         <div className="relative shrink-0">
           <Avatar className="size-9 sm:size-10">
-            <AvatarImage src={memberUser?.avatar || ""} alt={memberName} />
+            <AvatarImage src={memberUser?.avatar ?? ""} alt={memberName} />
             <AvatarFallback
               className={cn(
                 "text-xs sm:text-sm font-bold tracking-tight",

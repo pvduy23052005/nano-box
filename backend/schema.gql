@@ -37,6 +37,7 @@ type ChatPayload {
   content: String!
   createdAt: DateTime
   id: String!
+  isSystem: Boolean
   reactions: [ReactionPayload!]
   readBy: [String!]
   roomId: String!

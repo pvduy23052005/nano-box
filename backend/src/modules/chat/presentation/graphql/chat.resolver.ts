@@ -55,6 +55,7 @@ export class ChatResolver {
         attachments: msg.attachments || [],
         readBy: msg.readBy || [],
         reactions: msg.reactions || [],
+        isSystem: msg.isSystem ?? (msg.senderId === 'system'),
         createdAt: msg.createdAt ? new Date(msg.createdAt) : null,
       })),
       nextCursor: result.nextCursor ?? null,
@@ -102,7 +103,10 @@ export class ChatResolver {
         .emit(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, message);
     }
 
-    return message;
+    return {
+      ...message,
+      isSystem: message.isSystem ?? false,
+    };
   }
 
   @Mutation(() => ChatPayload)
@@ -140,6 +144,7 @@ export class ChatResolver {
       attachments: message.attachments || [],
       readBy: message.readBy || [],
       reactions: message.reactions || [],
+      isSystem: message.isSystem ?? false,
     };
   }
 }

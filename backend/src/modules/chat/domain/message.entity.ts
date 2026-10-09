@@ -11,6 +11,7 @@ export class MessageEntity {
   private attachments: string[];
   private reactions: MessageReactionType[];
   private readBy: string[];
+  private isSystem: boolean;
   private createdAt?: Date | string | null;
 
   private constructor(props: MessageType) {
@@ -23,6 +24,7 @@ export class MessageEntity {
     this.attachments = props.attachments || [];
     this.reactions = props.reactions || [];
     this.readBy = props.readBy || [];
+    this.isSystem = props.isSystem ?? (props.senderId === 'system');
     this.createdAt = props.createdAt ?? null;
   }
 
@@ -44,6 +46,7 @@ export class MessageEntity {
     return new MessageEntity({
       ...props,
       roomId: props.roomId.trim(),
+      isSystem: props.isSystem ?? (props.senderId === 'system'),
     });
   }
 
@@ -109,5 +112,23 @@ export class MessageEntity {
   }
   public getCreatedAt(): Date | string | null | undefined {
     return this.createdAt;
+  }
+  public getIsSystem(): boolean {
+    return this.isSystem;
+  }
+  public toObject(): MessageType {
+    return {
+      id: this.id,
+      senderId: this.senderId,
+      senderAvatar: this.senderAvatar,
+      senderName: this.senderName,
+      roomId: this.roomId,
+      content: this.content,
+      attachments: this.attachments,
+      reactions: this.reactions,
+      readBy: this.readBy,
+      isSystem: this.isSystem,
+      createdAt: this.createdAt,
+    };
   }
 }

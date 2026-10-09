@@ -41,6 +41,9 @@ export class ChatPayload {
   @Field(() => [ReactionPayload], { nullable: true, defaultValue: [] })
   reactions?: ReactionPayload[];
 
+  @Field(() => Boolean, { nullable: true, defaultValue: false })
+  isSystem?: boolean;
+
   @Field(() => Date, { nullable: true })
   createdAt?: Date | null;
 }

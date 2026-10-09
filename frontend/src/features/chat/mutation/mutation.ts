@@ -16,6 +16,7 @@ export const GET_MESSAGE_QUERY = graphql(`
           emoji
           userIds
         }
+        isSystem
       }
       hasMore
       nextCursor
@@ -38,6 +39,7 @@ export const SEND_MESSAGE_MUTATION = graphql(`
         emoji
         userIds
       }
+      isSystem
     }
   }
 `);
@@ -57,6 +59,7 @@ export const ADD_EMOJI_MESSAGE_MUTATION = graphql(`
         emoji
         userIds
       }
+      isSystem
     }
   }
 `);

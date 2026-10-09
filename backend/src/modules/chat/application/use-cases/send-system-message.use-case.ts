@@ -47,6 +47,7 @@ export class SendSystemMessageUseCase {
       attachments: [],
       reactions: [],
       readBy: [],
+      isSystem: true,
     });
 
     const savedMessage = await this.messageRepository.save(newMessage);

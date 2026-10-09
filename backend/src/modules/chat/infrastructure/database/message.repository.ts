@@ -31,6 +31,8 @@ interface RawMessageRecord {
   read_by?: string[];
   readBy?: string[];
   reactions?: RawReactionRecord[];
+  is_system?: boolean;
+  isSystem?: boolean;
   created_at?: Date | null;
   createdAt?: Date | null;
 }
@@ -55,6 +57,7 @@ export class MessageRepository implements MessageRepositoryAdapter {
           emoji: reaction.emoji,
           user_ids: reaction.userIds,
         })) ?? [],
+      is_system: message.getIsSystem(),
     };
     const senderId = message.getSenderId();
     if (senderId) {
@@ -77,6 +80,7 @@ export class MessageRepository implements MessageRepositoryAdapter {
     const senderAvatar = record.sender_avatar ?? record.senderAvatar ?? null;
     const senderName = record.sender_name ?? record.senderName ?? null;
     const createdAt = record.created_at ?? record.createdAt ?? null;
+    const isSystem = record.is_system ?? record.isSystem ?? (senderId === 'system');
 
     return {
       id: record._id?.toString() ?? '',
@@ -88,6 +92,7 @@ export class MessageRepository implements MessageRepositoryAdapter {
       content: record.content ?? '',
       attachments: Array.isArray(record.attachments) ? record.attachments : [],
       readBy: Array.isArray(readBy) ? readBy : [],
+      isSystem,
       createdAt,
       reactions: reactions.map((reaction) => ({
         emoji: reaction.emoji ?? '',

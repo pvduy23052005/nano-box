@@ -15,6 +15,7 @@ export interface Message {
   attachments?: string[] | null;
   readBy?: string[] | null;
   reactions?: MessageReaction[] | null;
+  isSystem?: boolean | null;
   createdAt?: string | Date;
 }
 
@@ -25,6 +26,7 @@ export interface MessageGroup {
   avatar?: string | null;
   senderAvatar?: string | null;
   senderName?: string | null;
+  isSystem?: boolean | null;
   messages: Message[];
 }
 
