@@ -4,7 +4,7 @@ import { useSocket } from "@/src/providers/SocketProvider";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { RoomType } from "@/src/types/graphql/graphql";
 import { MemberStatus } from "../types/room.type";
-import { appendRoomToCache } from "../room.cache";
+import { appendRoomToCache, removeRoomFromCache } from "../room.cache";
 import { ROOM_SOCKET_EVENTS } from "../types/event.types";
 import { GET_ROOM_DETAIL_QUERY } from "../room.mutation";
 import { useRoomStore } from "../stores/useRoomStore";
@@ -41,6 +41,15 @@ export const useReceiveRoom = () => {
       if (!roomData?.id) return;
 
       const myMember = roomData.members?.find((members) => members.userId === user?.id);
+      if (!myMember) {
+        removeRoomFromCache(client.cache, roomData.id);
+        const activeRoom = useRoomStore.getState().activeRoom;
+        if (activeRoom && activeRoom.id === roomData.id) {
+          useRoomStore.getState().setActiveRoom(null);
+        }
+        return;
+      }
+
       const status: MemberStatus = (myMember?.status as MemberStatus) || MemberStatus.WAITTING;
 
       appendRoomToCache(

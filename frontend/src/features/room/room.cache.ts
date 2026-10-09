@@ -183,3 +183,27 @@ export const updateRoomProfileInCache = (
   }
 };
 
+export const removeRoomFromCache = (
+  cache: ApolloCache,
+  roomId: string,
+): void => {
+  for (const status of [MemberStatus.ACCEPTED, MemberStatus.WAITTING]) {
+    cache.updateQuery<GetRoomsByStatusQuery>(
+      { query: GET_ROOMS_BY_STATUS_QUERY, variables: { status } },
+      (existing) => {
+        if (!existing?.getRoomsByStatus) return existing;
+        return {
+          getRoomsByStatus: existing.getRoomsByStatus.filter(
+            (room) => room.id !== roomId,
+          ),
+        };
+      },
+    );
+  }
+
+  cache.evict({
+    id: cache.identify({ __typename: "RoomOutput", id: roomId }),
+  });
+  cache.gc();
+};
+

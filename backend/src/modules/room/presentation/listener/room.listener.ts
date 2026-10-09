@@ -4,6 +4,7 @@ import {
   type RoomMemberRemovedPayload,
   type RoomAdminAssignedPayload,
   type RoomAdminRevokedPayload,
+  type RoomMemberLeftPayload,
 } from '../event/room.event';
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
@@ -86,6 +87,21 @@ export class RoomListener {
       payload.roomOutput,
       recipientIds,
       ROOM_EVENTS.ADMIN_REVOKED,
+    );
+  }
+
+  @OnEvent(ROOM_EVENTS.MEMBER_LEFT)
+  handleRoomMemberLeftSocket(payload: RoomMemberLeftPayload): void {
+    if (payload.isRoomEmpty || !payload.roomOutput) return;
+
+    const recipientIds = [
+      ...(payload.room?.members || []).map((member) => member.userId),
+      payload.actorId,
+    ];
+    this.emitRoomSync(
+      payload.roomOutput,
+      recipientIds,
+      ROOM_EVENTS.MEMBER_LEFT,
     );
   }
 }

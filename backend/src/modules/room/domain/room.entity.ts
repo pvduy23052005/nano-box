@@ -277,6 +277,58 @@ export class RoomEntity {
     );
   }
 
+  public leaveRoom(userId: string): {
+    newSuperAdminId?: string;
+    isRoomEmpty: boolean;
+  } {
+    const errors: Record<string, string> = {};
+
+    if (this.typeRoom !== RoomType.GROUP) {
+      errors.typeRoom = 'Chỉ có thể rời khỏi phòng nhóm';
+    }
+
+    const cleanUserId = userId?.trim().toString();
+    if (!cleanUserId) {
+      errors.userId = 'ID thành viên không được để trống';
+    } else if (!this.isMember(cleanUserId)) {
+      errors.member = 'Bạn không phải là thành viên của phòng này';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      throw new DomainValidationException(errors);
+    }
+
+    const leavingMember = this.getMember(cleanUserId);
+    const isLeavingSuperAdmin =
+      leavingMember?.getRole() === MemberRole.SUPER_ADMIN;
+
+    this.members = this.members.filter(
+      (member) => member.getUserId() !== cleanUserId,
+    );
+
+    let newSuperAdminId: string | undefined;
+
+    if (isLeavingSuperAdmin && this.members.length > 0) {
+      const candidateAdmin = this.members.find(
+        (member) => member.getRole() === MemberRole.ADMIN && member.isAccepted(),
+      );
+      const successor =
+        candidateAdmin ||
+        this.members.find((member) => member.isAccepted()) ||
+        this.members[0];
+
+      if (successor) {
+        successor.changeRole(MemberRole.SUPER_ADMIN);
+        newSuperAdminId = successor.getUserId();
+      }
+    }
+
+    return {
+      newSuperAdminId,
+      isRoomEmpty: this.members.length === 0,
+    };
+  }
+
   public assignAdmin(actorId: string, targetUserId: string): void {
     const errors: Record<string, string> = {};
 

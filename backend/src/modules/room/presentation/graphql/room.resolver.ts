@@ -23,6 +23,7 @@ import { AddMemberToRoomUseCase } from '../../application/use-cases/add-member-t
 import { RemoveMemberFromRoomUseCase } from '../../application/use-cases/remove-member-from-room.use-case';
 import { AssignRoomAdminUseCase } from '../../application/use-cases/assign-room-admin.use-case';
 import { RevokeRoomAdminUseCase } from '../../application/use-cases/revoke-room-admin.use-case';
+import { LeaveRoomUseCase } from '../../application/use-cases/leave-room.use-case';
 import { CreateGroupRoomInput } from '../dto/create.input';
 import { UpdateRoomProfileInput } from '../dto/update.input';
 import { AddMemberToRoomInput } from '../dto/add-member.input';
@@ -42,6 +43,7 @@ export class RoomResolver {
     private readonly removeMemberFromRoomUseCase: RemoveMemberFromRoomUseCase,
     private readonly assignRoomAdminUseCase: AssignRoomAdminUseCase,
     private readonly revokeRoomAdminUseCase: RevokeRoomAdminUseCase,
+    private readonly leaveRoomUseCase: LeaveRoomUseCase,
     private readonly getRoomsByStatusUseCase: GetRoomsByStatusUseCase,
     private readonly getRoomDetailUseCase: GetRoomDetailUseCase,
     private readonly updateMemberLastReadMessageUseCase: UpdateMemberLastReadMessageUseCase,
@@ -270,5 +272,28 @@ export class RoomResolver {
     });
 
     return roomOutput;
+  }
+
+  @Mutation(() => Boolean)
+  async leaveRoom(
+    @CurrentUser('id') myId: string,
+    @Args('roomId') roomId: string,
+  ): Promise<boolean> {
+    const result = await this.leaveRoomUseCase.execute(myId, { roomId });
+    const roomOutput = result.room
+      ? RoomMapper.toOutput(result.room)
+      : undefined;
+
+    this.eventEmitter.emit(ROOM_EVENTS.MEMBER_LEFT, {
+      roomId,
+      actorId: myId,
+      isRoomEmpty: result.isRoomEmpty,
+      room: result.room,
+      roomOutput,
+      leavingMember: result.leavingMember,
+      newSuperAdminId: result.newSuperAdminId,
+    });
+
+    return result.success;
   }
 }

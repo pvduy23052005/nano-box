@@ -274,4 +274,16 @@ export class RoomRepository implements RoomRepositoryAdapter {
 
     return updated ? RoomMapper.toProps(updated) : null;
   }
+
+  async deleteRoom(roomId: string): Promise<boolean> {
+    if (!roomId || !Types.ObjectId.isValid(roomId)) {
+      return false;
+    }
+
+    const result = await this.roomModel
+      .deleteOne({ _id: new Types.ObjectId(roomId) })
+      .exec();
+
+    return result.deletedCount > 0;
+  }
 }

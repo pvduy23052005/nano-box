@@ -142,6 +142,7 @@ type Mutation {
   cancelFriendRequest(friendId: String!): CancelFriendRequestPayload!
   createGroupRoom(input: CreateGroupRoomInput!): RoomOutput!
   createRoomChatNotFriend(otherUserId: String!): RoomOutput!
+  leaveRoom(roomId: String!): Boolean!
   login(input: LoginInputDto!): LoginPayload!
   loginGoogle(idToken: String!): LoginPayload!
   logout: Boolean!

@@ -172,3 +172,9 @@ export const UPDATE_ROOM_PROFILE_MUTATION = graphql(`
   }
 `);
 
+export const LEAVE_ROOM_MUTATION = graphql(`
+  mutation LeaveRoom($roomId: String!) {
+    leaveRoom(roomId: $roomId)
+  }
+`);
+

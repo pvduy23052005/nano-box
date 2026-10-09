@@ -20,6 +20,7 @@ import { AddMemberToRoomUseCase } from './application/use-cases/add-member-to-ro
 import { RemoveMemberFromRoomUseCase } from './application/use-cases/remove-member-from-room.use-case';
 import { AssignRoomAdminUseCase } from './application/use-cases/assign-room-admin.use-case';
 import { RevokeRoomAdminUseCase } from './application/use-cases/revoke-room-admin.use-case';
+import { LeaveRoomUseCase } from './application/use-cases/leave-room.use-case';
 import { UserModule } from '../user/user.module';
 import { FriendshipModule } from '../friendship/friendship.module';
 import { FriendshipRepositoryAdapter } from '../friendship/applications/ports/friendship.port';
@@ -112,6 +113,12 @@ import { RoomListener } from './presentation/listener/room.listener';
         new RevokeRoomAdminUseCase(roomRepository),
       inject: [RoomRepositoryAdapter],
     },
+    {
+      provide: LeaveRoomUseCase,
+      useFactory: (roomRepository: RoomRepositoryAdapter) =>
+        new LeaveRoomUseCase(roomRepository),
+      inject: [RoomRepositoryAdapter],
+    },
   ],
   exports: [
     CreateSingleRoomUseCase,
@@ -125,6 +132,7 @@ import { RoomListener } from './presentation/listener/room.listener';
     RemoveMemberFromRoomUseCase,
     AssignRoomAdminUseCase,
     RevokeRoomAdminUseCase,
+    LeaveRoomUseCase,
     RoomRepositoryAdapter,
   ],
 })

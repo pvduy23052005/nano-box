@@ -7,6 +7,7 @@ import {
   type RoomMemberRemovedPayload,
   type RoomAdminAssignedPayload,
   type RoomAdminRevokedPayload,
+  type RoomMemberLeftPayload,
 } from 'src/modules/room/presentation/event/room.event';
 import type { RoomProps } from 'src/modules/room/domain/room.type';
 import { CHAT_SOCKET_EVENTS } from '../gateway/event.type';
@@ -128,6 +129,18 @@ export class ChatListener {
       buildContent: (actor, target) =>
         `${actor} đã thu hồi quyền quản trị viên của ${target}`,
       eventName: ROOM_EVENTS.ADMIN_REVOKED,
+    });
+  }
+
+  @OnEvent(ROOM_EVENTS.MEMBER_LEFT)
+  async handleRoomMemberLeft(payload: RoomMemberLeftPayload): Promise<void> {
+    if (payload.isRoomEmpty || !payload.room) return;
+    await this.sendRoomSystemMessage({
+      room: payload.room,
+      actorId: payload.actorId,
+      extraRecipientId: payload.actorId,
+      buildContent: (actor) => `${actor} đã rời khỏi nhóm`,
+      eventName: ROOM_EVENTS.MEMBER_LEFT,
     });
   }
 }

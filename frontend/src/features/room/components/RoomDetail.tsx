@@ -13,6 +13,7 @@ import RoomDetailSkeleton from "./room-detail/RoomDetailSkeleton";
 import RoomDetailError from "./room-detail/RoomDetailError";
 import AddMemberDrawer from "./room-detail/AddMemberDrawer";
 import EditRoomProfileDialog from "./room-detail/EditRoomProfileDialog";
+import ConfirmLeaveRoomDialog from "./room-detail/ConfirmLeaveRoomDialog";
 import { ArrowLeft, UserPlus } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 
@@ -26,6 +27,7 @@ export default function RoomDetailView({ roomId }: RoomDetailViewProps) {
   const onlineUsers = usePresenceStore((state) => state.onlineUsers);
   const [isAddMemberDrawerOpen, setIsAddMemberDrawerOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [isLeaveRoomOpen, setIsLeaveRoomOpen] = useState(false);
 
   const { room, loading, error, refetch } = useGetRoomDetail(roomId);
 
@@ -41,6 +43,14 @@ export default function RoomDetailView({ roomId }: RoomDetailViewProps) {
       .map((m) => m.user?.id)
       .filter((id): id is string => Boolean(id));
   }, [members]);
+
+  const isSuperAdmin = useMemo(() => {
+    if (!isGroup || !currentUserId) return false;
+    const myMember = members.find(
+      (member) => member?.user?.id === currentUserId,
+    );
+    return myMember?.role === MemberRole.SUPER_ADMIN;
+  }, [isGroup, currentUserId, members]);
 
   const canAddMember = useMemo(() => {
     if (!isGroup || !currentUserId) return false;
@@ -97,7 +107,7 @@ export default function RoomDetailView({ roomId }: RoomDetailViewProps) {
             />
             <RoomActionsCard
               isGroup={isGroup}
-              onLeaveRoom={handleBack}
+              onLeaveRoom={() => setIsLeaveRoomOpen(true)}
               onEditRoom={canAddMember ? () => setIsEditProfileOpen(true) : undefined}
             />
           </div>
@@ -129,6 +139,17 @@ export default function RoomDetailView({ roomId }: RoomDetailViewProps) {
           initialTitle={room.title || ""}
           initialAvatar={room.avatar}
           groupAvatars={room.groupAvatars}
+        />
+      )}
+
+      {isGroup && (
+        <ConfirmLeaveRoomDialog
+          open={isLeaveRoomOpen}
+          onOpenChange={setIsLeaveRoomOpen}
+          roomId={roomId}
+          roomTitle={room.title ?? ""}
+          isSuperAdmin={isSuperAdmin}
+          memberCount={members.length}
         />
       )}
     </div>

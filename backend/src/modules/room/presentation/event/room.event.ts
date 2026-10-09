@@ -4,6 +4,7 @@ import { RoomOutput } from '../dto/room.output';
 export const ROOM_EVENTS = {
   MEMBER_ADDED: 'room.member_added',
   MEMBER_REMOVED: 'room.member_removed',
+  MEMBER_LEFT: 'room.member_left',
   ADMIN_ASSIGNED: 'room.admin_assigned',
   ADMIN_REVOKED: 'room.admin_revoked',
 } as const;
@@ -11,6 +12,7 @@ export const ROOM_EVENTS = {
 export const ROOM_MEMBER_ACTIONS = {
   MEMBER_ADDED: 'MEMBER_ADDED',
   MEMBER_REMOVED: 'MEMBER_REMOVED',
+  MEMBER_LEFT: 'MEMBER_LEFT',
   ADMIN_ASSIGNED: 'ADMIN_ASSIGNED',
   ADMIN_REVOKED: 'ADMIN_REVOKED',
 } as const;
@@ -45,4 +47,14 @@ export interface RoomAdminRevokedPayload {
   roomOutput: RoomOutput;
   actorId: string;
   targetUserId: string;
+}
+
+export interface RoomMemberLeftPayload {
+  roomId: string;
+  actorId: string;
+  isRoomEmpty: boolean;
+  room?: RoomProps;
+  roomOutput?: RoomOutput;
+  leavingMember?: RoomMemberProps;
+  newSuperAdminId?: string;
 }
