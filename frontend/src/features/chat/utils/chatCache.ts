@@ -22,6 +22,7 @@ export const appendMessageToCache = (
     isMe: newMessage.isMe ?? false,
     reactions: newMessage.reactions ?? [],
     attachments: newMessage.attachments ?? [],
+    isSystem: newMessage.isSystem ?? (newMessage.senderId === "system"),
     __typename: (newMessage as { __typename?: string }).__typename ?? "ChatPayload",
   } as Message;
   const targetRoomId = roomId ?? newMessage.roomId ?? null;

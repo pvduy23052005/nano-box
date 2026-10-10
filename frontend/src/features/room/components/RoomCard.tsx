@@ -91,55 +91,43 @@ export default function RoomCard({
     <div
       onClick={onClick}
       className={cn(
-        "relative flex items-center bg-card justify-center sm:justify-start gap-3 cursor-pointer p-2 sm:p-2.5 transition-all duration-200 shadow-lg",
+        "relative flex items-center bg-card justify-start gap-3 cursor-pointer p-2.5 sm:p-2.5 transition-all duration-150 w-full active:scale-[0.99] active:bg-accent/40 select-none",
         isSelected
-          ? "text-foreground border-t-5 sm:border-l-5 sm:border-t-0 border-primary border-b border-b-muted/50"
-          : "hover:bg-primary/5 text-foreground border-b border-muted/50",
+          ? "bg-accent/40 text-foreground border-l-4 border-primary"
+          : "hover:bg-accent/20 text-foreground",
       )}
     >
-      <div className="relative shrink-0 flex flex-col items-center gap-1.5 w-14 sm:w-auto">
-        <div className="relative">
-          {room.typeRoom === RoomType.GROUP ? (
-            <GroupAvatar
-              avatars={room.groupAvatars}
-              singleAvatar={room.avatar}
-              title={displayName}
-              size="md"
-            />
-          ) : (
-            <>
-              <Avatar className="size-11 rounded-full after:hidden">
-                <AvatarImage
-                  src={room.avatar || ""}
-                  alt={displayName}
-                  className="rounded-full object-cover"
-                />
-                <AvatarFallback className="rounded-full bg-emerald-50 text-emerald-700 text-sm font-semibold">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-              {isOtherUserOnline && (
-                <span
-                  title="Đang hoạt động"
-                  className="absolute bottom-0 right-0 size-3 rounded-full bg-emerald-500 ring-2 ring-card z-10"
-                />
-              )}
-            </>
-          )}
-        </div>
-        <span
-          className={cn(
-            "sm:hidden text-[11px] leading-tight text-center truncate w-full",
-            isSelected
-              ? "text-foreground font-semibold"
-              : "text-muted-foreground font-normal",
-          )}
-        >
-          {displayName}
-        </span>
+      <div className="relative shrink-0">
+        {room.typeRoom === RoomType.GROUP ? (
+          <GroupAvatar
+            avatars={room.groupAvatars}
+            singleAvatar={room.avatar}
+            title={displayName}
+            size="md"
+          />
+        ) : (
+          <>
+            <Avatar className="size-11 rounded-full after:hidden">
+              <AvatarImage
+                src={room.avatar || ""}
+                alt={displayName}
+                className="rounded-full object-cover"
+              />
+              <AvatarFallback className="rounded-full bg-emerald-50 text-emerald-700 text-sm font-semibold">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            {isOtherUserOnline && (
+              <span
+                title="Đang hoạt động"
+                className="absolute bottom-0 right-0 size-3 rounded-full bg-emerald-500 ring-2 ring-card z-10"
+              />
+            )}
+          </>
+        )}
       </div>
 
-      <div className="hidden sm:flex flex-col flex-1 min-w-0">
+      <div className="flex flex-col flex-1 min-w-0">
         <div className="flex items-center justify-between gap-1">
           <Typography
             variant="small"

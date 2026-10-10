@@ -35,6 +35,7 @@ export const useSendMessage = () => {
       readBy: [],
       reactions: [],
       isMe: true,
+      isSystem: false,
     };
     appendMessageToCache(client.cache, GET_MESSAGE_QUERY, optimisticMsg, undefined, targetRoomId);
 
@@ -68,6 +69,7 @@ export const useSendMessage = () => {
                 ...data.sendMessage,
                 roomId: data.sendMessage.roomId || targetRoomId,
                 reactions: data.sendMessage.reactions ?? [],
+                isSystem: data.sendMessage.isSystem ?? false,
                 isMe: data.sendMessage.senderId === user.id,
               },
               optimisticId,

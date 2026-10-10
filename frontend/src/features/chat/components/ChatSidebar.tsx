@@ -12,7 +12,7 @@ import {
   InputGroupInput,
 } from "@/src/components/ui/input-group";
 import { Button } from "@/src/components/ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import RoomFriend from "../../room/components/RoomFriend";
 import RoomStranger from "../../room/components/RoomStranger";
 import { useGetRooms } from "../../room/hooks/useGetRooms";
@@ -21,6 +21,7 @@ import { useRoomStore, ChatRoom } from "../../room/stores/useRoomStore";
 import { MemberStatus } from "../../room/types/room.type";
 import { Plus, Search, X } from "lucide-react";
 import { useDebounce } from "@/src/hooks/useDebounce";
+import { cn } from "@/src/lib/utils";
 
 export enum RoomTypeSearch {
   FRIEND = "friends",
@@ -71,6 +72,8 @@ export default function ChatSidebar() {
     }
   }
 
+  const hasAutoSelectedRef = useRef(false);
+
   useEffect(() => {
     if (activeRoomId) {
       if (activeRoom?.id !== activeRoomId) {
@@ -86,26 +89,39 @@ export default function ChatSidebar() {
           setActiveRoom(foundRoom);
         }
       }
-    } else if (friendRooms.length > 0) {
+    } else if (
+      friendRooms.length > 0 &&
+      !hasAutoSelectedRef.current &&
+      typeof window !== "undefined" &&
+      window.innerWidth >= 640
+    ) {
+      hasAutoSelectedRef.current = true;
       setActiveRoom(friendRooms[0] as ChatRoom);
     }
   }, [friendRooms, strangerRooms, activeRoomId, activeRoom?.id, setActiveRoom]);
 
   return (
-    <aside className="w-full sm:w-64 md:w-80 border-b sm:border-b-0 sm:border-r flex flex-col h-auto max-h-[130px] sm:max-h-none sm:h-full bg-background shrink-0">
+    <aside
+      className={cn(
+        "w-full sm:w-64 md:w-80 border-r flex flex-col h-full bg-background shrink-0 transition-all duration-300 ease-out sm:transform-none",
+        activeRoomId
+          ? "-translate-x-8 opacity-80 sm:translate-x-0 sm:opacity-100 pointer-events-none sm:pointer-events-auto"
+          : "translate-x-0 opacity-100 pointer-events-auto",
+      )}
+    >
       <Tabs
         value={activeTab}
         onValueChange={(val) => setActiveTab(val as RoomTypeSearch)}
-        className="w-full flex flex-col min-h-0 gap-0"
+        className="w-full flex flex-col min-h-0 gap-0 h-full"
       >
-        <div className="p-1.5 pb-0 sm:p-2 border-b flex flex-col gap-1.5">
-          <div className="hidden sm:flex items-center gap-1.5">
-            <InputGroup className="h-7 flex-1">
+        <div className="p-2 border-b flex flex-col gap-1.5">
+          <div className="flex items-center gap-1.5">
+            <InputGroup className="h-8 sm:h-7 flex-1">
               <InputGroupAddon align="inline-start">
                 <Search className="size-3.5" />
               </InputGroupAddon>
               <InputGroupInput
-                className="h-6 py-0 text-xs"
+                className="h-7 sm:h-6 py-0 text-xs"
                 placeholder="Tìm kiếm cuộc trò chuyện..."
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
@@ -129,7 +145,7 @@ export default function ChatSidebar() {
               variant="outline"
               size="icon"
               onClick={() => setIsCreateGroupOpen(true)}
-              className="size-7 cursor-pointer shrink-0"
+              className="size-8 sm:size-7 cursor-pointer shrink-0"
               title="Tạo nhóm chat"
               aria-label="Tạo nhóm chat"
             >
@@ -141,13 +157,13 @@ export default function ChatSidebar() {
             <TabsList variant="line" className="grid flex-1 grid-cols-2">
               <TabsTrigger
                 value={RoomTypeSearch.FRIEND}
-                className="text-xs py-1 sm:py-1.5 font-medium cursor-pointer after:hidden"
+                className="text-xs py-1.5 font-medium cursor-pointer after:hidden"
               >
                 Bạn bè
               </TabsTrigger>
               <TabsTrigger
                 value={RoomTypeSearch.STRANGER}
-                className="text-xs py-1 sm:py-1.5 font-medium cursor-pointer after:hidden"
+                className="text-xs py-1.5 font-medium cursor-pointer after:hidden"
               >
                 Người lạ
               </TabsTrigger>
@@ -157,7 +173,7 @@ export default function ChatSidebar() {
 
         <TabsContent
           value={RoomTypeSearch.FRIEND}
-          className="w-full flex flex-row sm:flex-col overflow-x-auto sm:overflow-y-auto flex-1 mt-0 scrollbar-none"
+          className="w-full flex flex-col overflow-y-auto flex-1 mt-0 scrollbar-none"
         >
           <RoomFriend
             rooms={friendRooms as ChatRoom[]}
@@ -173,7 +189,7 @@ export default function ChatSidebar() {
 
         <TabsContent
           value={RoomTypeSearch.STRANGER}
-          className="w-full flex flex-row sm:flex-col overflow-x-auto sm:overflow-y-auto flex-1 mt-0 scrollbar-none"
+          className="w-full flex flex-col overflow-y-auto flex-1 mt-0 scrollbar-none"
         >
           <RoomStranger
             rooms={strangerRooms as ChatRoom[]}
