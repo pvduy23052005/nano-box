@@ -103,8 +103,10 @@ export default function ChatSidebar() {
   return (
     <aside
       className={cn(
-        "w-full sm:w-64 md:w-80 border-r flex flex-col h-full bg-background shrink-0",
-        activeRoomId ? "hidden sm:flex" : "flex",
+        "w-full sm:w-64 md:w-80 border-r flex flex-col h-full bg-background shrink-0 transition-all duration-300 ease-out sm:transform-none",
+        activeRoomId
+          ? "-translate-x-8 opacity-80 sm:translate-x-0 sm:opacity-100 pointer-events-none sm:pointer-events-auto"
+          : "translate-x-0 opacity-100 pointer-events-auto",
       )}
     >
       <Tabs

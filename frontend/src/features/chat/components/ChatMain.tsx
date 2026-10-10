@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useMemo, useLayoutEffect } from "react";
+import { useEffect, useRef, useMemo, useLayoutEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import { useGetMessages } from "../hooks/useGetMessages";
 import LogoSpinner from "@/src/components/common/LogoSpinner";
@@ -142,16 +142,46 @@ export default function ChatMain() {
     );
   }, [messages]);
 
+  const [cachedGroups, setCachedGroups] = useState<MessageGroup[]>(messageGroups);
+  if (messageGroups.length > 0 && messageGroups !== cachedGroups) {
+    setCachedGroups(messageGroups);
+  }
+
   if (!activeRoomId) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-4 text-center text-muted-foreground gap-3">
-        <div className="flex items-center justify-center size-12 rounded-full bg-muted/60 text-muted-foreground/80">
-          <MessageSquareDashed className="size-6 stroke-[1.5]" />
+      <>
+        <div className="hidden sm:flex flex-1 flex-col items-center justify-center p-4 text-center text-muted-foreground gap-3">
+          <div className="flex items-center justify-center size-12 rounded-full bg-muted/60 text-muted-foreground/80">
+            <MessageSquareDashed className="size-6 stroke-[1.5]" />
+          </div>
+          <Typography variant="small" className="text-xs text-muted-foreground">
+            Chọn một cuộc trò chuyện để bắt đầu
+          </Typography>
         </div>
-        <Typography variant="small" className="text-xs text-muted-foreground">
-          Chọn một cuộc trò chuyện để bắt đầu
-        </Typography>
-      </div>
+        {cachedGroups.length > 0 && (
+          <div className="sm:hidden flex-1 min-h-0 flex flex-col gap-4 px-3 py-3 overflow-hidden opacity-75">
+            {cachedGroups.map((group) => {
+              if (group.isSystem) {
+                return (
+                  <ChatSystemMessage
+                    key={group.id}
+                    content={group.messages[0]?.content ?? ""}
+                    createdAt={group.messages[0]?.createdAt}
+                  />
+                );
+              }
+              return (
+                <ChatMessage
+                  key={group.id}
+                  isLastGroup={false}
+                  isSeen={false}
+                  {...group}
+                />
+              );
+            })}
+          </div>
+        )}
+      </>
     );
   }
 
