@@ -40,7 +40,7 @@ export class RoomEntity {
       errors.memberId = 'memberId is required';
     }
     if (Object.keys(errors).length > 0) {
-      throw new Error(JSON.stringify(errors));
+      throw new DomainValidationException(errors);
     }
 
     const members: RoomMember[] = [
@@ -68,7 +68,7 @@ export class RoomEntity {
       errors.user2Id = 'user2Id is required';
     }
     if (Object.keys(errors).length > 0) {
-      throw new Error(JSON.stringify(errors));
+      throw new DomainValidationException(errors);
     }
 
     const members: RoomMember[] = [
@@ -310,7 +310,8 @@ export class RoomEntity {
 
     if (isLeavingSuperAdmin && this.members.length > 0) {
       const candidateAdmin = this.members.find(
-        (member) => member.getRole() === MemberRole.ADMIN && member.isAccepted(),
+        (member) =>
+          member.getRole() === MemberRole.ADMIN && member.isAccepted(),
       );
       const successor =
         candidateAdmin ||
