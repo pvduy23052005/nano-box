@@ -56,8 +56,9 @@ describe('RegisterUseCase', () => {
       it('nên hash mật khẩu và lưu đúng entity với status ACTIVE', async () => {
         const result = await registerUseCase.execute(validInput);
 
-        expect(result.getEmail()).toBe(validInput.email);
-        expect(result.getName()).toBe(validInput.name);
+        expect(result.email).toBe(validInput.email);
+        expect(result.name).toBe(validInput.name);
+        expect(result.id).toBe('user-id-1');
 
         expect(userRepository.findByEmail).toHaveBeenCalledWith(
           validInput.email,

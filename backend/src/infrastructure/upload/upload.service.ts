@@ -99,7 +99,10 @@ export class UploadService {
     const key = `${cleanFolder}/${shortId}${cleanBaseName}${ext}`;
 
     const endpointUrl = `${this.r2Endpoint}/${key}`;
-    const contentDisposition = resolveContentDisposition(originalName, mimeType);
+    const contentDisposition = resolveContentDisposition(
+      originalName,
+      mimeType,
+    );
 
     try {
       const response = await this.awsClient.fetch(endpointUrl, {

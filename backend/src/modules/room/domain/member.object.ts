@@ -155,17 +155,4 @@ export class RoomMember {
   public getLastReadMessageId(): string | null | undefined {
     return this._lastReadMessageId;
   }
-
-  get userId(): string {
-    return this.getUserId();
-  }
-  get role(): MemberRole {
-    return this.getRole();
-  }
-  get status(): MemberStatus {
-    return this.getStatus();
-  }
-  get lastReadMessageId(): string | null | undefined {
-    return this.getLastReadMessageId();
-  }
 }

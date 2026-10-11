@@ -2,29 +2,21 @@ import { LoginResponse } from '../dto/login.type';
 import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
 import { IpasswordHasher } from 'src/modules/user/applications/ports/password-hasher.port';
 import { ITokenGenerator } from '../ports/token-generator.port';
+import { IGoogleAuthVerifier } from '../ports/google-auth-verifier.port';
 import { UserEntity } from 'src/modules/user/domain/user.entity';
 import * as crypto from 'crypto';
-import { OAuth2Client } from 'google-auth-library';
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 
 export class LoginGoogleUseCase {
-  private client: OAuth2Client;
-
   constructor(
     private readonly userRepository: UserRepositoryAdapter,
     private readonly passwordHasher: IpasswordHasher,
     private readonly tokenGenerator: ITokenGenerator,
-  ) {
-    this.client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-  }
+    private readonly googleAuthVerifier: IGoogleAuthVerifier,
+  ) {}
 
   async execute(idToken: string): Promise<LoginResponse> {
-    const ticket = await this.client.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-
-    const payload = ticket.getPayload();
+    const payload = await this.googleAuthVerifier.verify(idToken);
 
     if (!payload || !payload.email) {
       throw new DomainValidationException({

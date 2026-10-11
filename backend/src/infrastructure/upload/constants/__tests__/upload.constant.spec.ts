@@ -80,12 +80,12 @@ describe('upload.constant security & content disposition', () => {
     });
 
     it('should force attachment for documents, scripts, and unknown binaries', () => {
-      expect(
-        resolveContentDisposition('archive.zip', 'application/zip'),
-      ).toBe('attachment; filename="archive.zip"');
-      expect(
-        resolveContentDisposition('manual.pdf', 'application/pdf'),
-      ).toBe('attachment; filename="manual.pdf"');
+      expect(resolveContentDisposition('archive.zip', 'application/zip')).toBe(
+        'attachment; filename="archive.zip"',
+      );
+      expect(resolveContentDisposition('manual.pdf', 'application/pdf')).toBe(
+        'attachment; filename="manual.pdf"',
+      );
       expect(
         resolveContentDisposition('data.bin', 'application/octet-stream'),
       ).toBe('attachment; filename="data.bin"');
@@ -97,7 +97,9 @@ describe('upload.constant security & content disposition', () => {
     it('should encode filenames properly', () => {
       expect(
         resolveContentDisposition('tài liệu mới.pdf', 'application/pdf'),
-      ).toBe('attachment; filename="t%C3%A0i%20li%E1%BB%87u%20m%E1%BB%9Bi.pdf"');
+      ).toBe(
+        'attachment; filename="t%C3%A0i%20li%E1%BB%87u%20m%E1%BB%9Bi.pdf"',
+      );
     });
   });
 });

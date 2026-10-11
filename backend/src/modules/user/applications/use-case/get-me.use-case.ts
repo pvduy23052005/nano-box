@@ -3,7 +3,7 @@ import { UserProfile } from '../dto/user.dto';
 import { UserRepositoryAdapter } from '../ports/user.port';
 
 export class GetMeUseCase {
-  constructor(private readonly userRepository: UserRepositoryAdapter) { }
+  constructor(private readonly userRepository: UserRepositoryAdapter) {}
 
   async execute(id: string): Promise<UserProfile> {
     const user = await this.userRepository.findById(id);

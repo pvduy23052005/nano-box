@@ -33,6 +33,6 @@ export abstract class RoomRepositoryAdapter {
   ): Promise<boolean>;
 
   abstract acceptAllMembers(roomId: string): Promise<RoomProps | null>;
-  
+
   abstract deleteRoom(roomId: string): Promise<boolean>;
 }

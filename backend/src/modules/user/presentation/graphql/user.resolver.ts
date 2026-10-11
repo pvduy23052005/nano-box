@@ -34,7 +34,9 @@ export class UserResolver {
   }
 
   @Mutation(() => RegisterPayload)
-  async register(@Args('input') input: RegisterInputDto) {
+  async register(
+    @Args('input') input: RegisterInputDto,
+  ): Promise<RegisterPayload> {
     const result = await this.registerUseCase.execute(input);
     return {
       success: true,
