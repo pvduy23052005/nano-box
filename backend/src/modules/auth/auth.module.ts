@@ -22,7 +22,7 @@ import { AuthResolver } from './presentation/graphql/auth.resolver';
         signOptions: {
           expiresIn: configService.get<string>(
             'JWT_EXPIRES_IN',
-            'JWT_EXPIRES_IN',
+            '30d',
           ) as `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`,
         },
       }),

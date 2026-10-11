@@ -124,8 +124,12 @@ export class RoomRepository implements RoomRepositoryAdapter {
       const matchingUserIds = matchingUsers.map((u) => u._id);
 
       filter.$or = [
-        { title: { $regex: escapedSearch, $options: 'i' } },
         {
+          type_room: RoomType.GROUP,
+          title: { $regex: escapedSearch, $options: 'i' },
+        },
+        {
+          type_room: RoomType.SINGLE,
           members: {
             $elemMatch: {
               user_id: { $in: matchingUserIds },
@@ -142,15 +146,7 @@ export class RoomRepository implements RoomRepositoryAdapter {
       .lean()
       .exec();
 
-    const mappedRooms = rooms.map((room) => RoomMapper.toProps(room, userId));
-
-    if (cleanSearch) {
-      return mappedRooms.filter((room) =>
-        room.title?.toLowerCase().includes(cleanSearch.toLowerCase()),
-      );
-    }
-
-    return mappedRooms;
+    return rooms.map((room) => RoomMapper.toProps(room, userId));
   }
 
   async checkRoomExist(
