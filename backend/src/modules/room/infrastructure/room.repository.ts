@@ -10,6 +10,7 @@ import {
   User,
   UserDocument,
 } from '../../user/infrastructure/databases/user.schema';
+import { escapeRegex } from 'src/common/utils/regex.util';
 
 type RoomFilterQuery = Parameters<typeof sanitizeFilter<Room>>[0];
 
@@ -110,9 +111,10 @@ export class RoomRepository implements RoomRepositoryAdapter {
 
     const cleanSearch = search?.trim();
     if (cleanSearch) {
+      const escapedSearch = escapeRegex(cleanSearch);
       const matchingUsers = await this.userModel
         .find({
-          name: { $regex: cleanSearch, $options: 'i' },
+          name: { $regex: escapedSearch, $options: 'i' },
           _id: { $ne: userObjectId },
         })
         .select('_id')
@@ -122,7 +124,7 @@ export class RoomRepository implements RoomRepositoryAdapter {
       const matchingUserIds = matchingUsers.map((u) => u._id);
 
       filter.$or = [
-        { title: { $regex: cleanSearch, $options: 'i' } },
+        { title: { $regex: escapedSearch, $options: 'i' } },
         {
           members: {
             $elemMatch: {

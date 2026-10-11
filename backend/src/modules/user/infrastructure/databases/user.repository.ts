@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { UserEntity } from 'src/modules/user/domain/user.entity';
 import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
 import { User, UserDocument } from './user.schema';
+import { escapeRegex } from 'src/common/utils/regex.util';
 
 @Injectable()
 export class UserRepository implements UserRepositoryAdapter {
@@ -66,11 +67,12 @@ export class UserRepository implements UserRepositoryAdapter {
   }
 
   async findAll(search?: string): Promise<UserEntity[]> {
-    const query: Record<string, unknown> = search
+    const cleanSearch = search?.trim();
+    const query: Record<string, unknown> = cleanSearch
       ? {
           $or: [
-            { name: { $regex: search, $options: 'i' } },
-            { email: { $regex: search, $options: 'i' } },
+            { name: { $regex: escapeRegex(cleanSearch), $options: 'i' } },
+            { email: { $regex: escapeRegex(cleanSearch), $options: 'i' } },
           ],
         }
       : {};

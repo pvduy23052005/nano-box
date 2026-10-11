@@ -16,6 +16,7 @@ import {
   UserDocument,
 } from '../../user/infrastructure/databases/user.schema';
 import { UserProfile } from 'src/modules/user/applications/dto/user.dto';
+import { escapeRegex } from 'src/common/utils/regex.util';
 
 interface PopulatedRequester {
   _id: Types.ObjectId | string;
@@ -183,7 +184,7 @@ export class FriendshipRepository implements FriendshipRepositoryAdapter {
       .find({
         _id: { $in: friendIds },
         ...(cleanSearch
-          ? { name: { $regex: cleanSearch, $options: 'i' } }
+          ? { name: { $regex: escapeRegex(cleanSearch), $options: 'i' } }
           : {}),
       })
       .select('name email avatar')
