@@ -60,7 +60,7 @@ export class ChatListener {
       );
 
       this.websocketService.server
-        ?.to([...recipientIds, room.id])
+        ?.to(recipientIds)
         ?.emit(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, message);
     } catch (error) {
       this.logger.error(

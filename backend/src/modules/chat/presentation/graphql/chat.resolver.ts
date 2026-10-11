@@ -96,9 +96,7 @@ export class ChatResolver {
 
     const server = this.webSocketService.server;
     if (server && memberIds.length) {
-      server
-        .to([...memberIds, input.roomId])
-        .emit(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, message);
+      server.to(memberIds).emit(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, message);
     }
 
     return {
@@ -122,7 +120,7 @@ export class ChatResolver {
     const server = this.webSocketService.server;
     if (server && memberIds.length) {
       server
-        .to([...memberIds, message.roomId])
+        .to(memberIds)
         .emit(CHAT_SOCKET_EVENTS.UPDATE_MESSAGE_REACTION, message);
     }
 

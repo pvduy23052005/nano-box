@@ -37,11 +37,9 @@ export class ChatGateway {
       .filter((member) => member.userId !== userIdTyping)
       .map((member) => member.userId);
 
-    const targets = [...recipientUserIds, payload.roomId];
-
-    if (targets.length > 0) {
+    if (recipientUserIds.length > 0) {
       this.server
-        .to(targets)
+        .to(recipientUserIds)
         .emit(eventType.CHAT_SOCKET_EVENTS.SERVER_SEND_TYPING, {
           ...payload,
           userId: userIdTyping,

@@ -166,7 +166,7 @@ export class RoomResolver {
 
     if (isSuccess && memberIds.length > 0) {
       this.websocketService.server
-        ?.to([...memberIds, roomId])
+        ?.to(memberIds)
         ?.emit(ROOM_SOCKET_EVENTS.USER_READ_MESSAGE, {
           roomId,
           userId: myId,
