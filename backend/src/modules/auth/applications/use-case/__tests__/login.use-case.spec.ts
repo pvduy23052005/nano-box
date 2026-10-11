@@ -126,6 +126,15 @@ describe('LoginUseCase', () => {
 
         expect(tokenGenerator.generateToken).not.toHaveBeenCalled();
       });
+
+      it('nên so sánh mật khẩu với dummy hash để chống timing attack', async () => {
+        await expect(loginUseCase.execute(validInput)).rejects.toThrow();
+
+        expect(passwordHasher.compare).toHaveBeenCalledWith(
+          validInput.password,
+          expect.stringMatching(/^\$2[aby]?\$\d+\$/),
+        );
+      });
     });
 
     describe('khi mật khẩu không đúng', () => {

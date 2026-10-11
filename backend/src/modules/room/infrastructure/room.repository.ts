@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { RoomRepositoryAdapter } from '../application/ports/room.ports';
 import { RoomEntity } from '../domain/room.entity';
@@ -25,6 +26,7 @@ const ROOM_POPULATE_OPTIONS = [
   },
 ];
 
+@Injectable()
 export class RoomRepository implements RoomRepositoryAdapter {
   constructor(
     @InjectModel(Room.name)
