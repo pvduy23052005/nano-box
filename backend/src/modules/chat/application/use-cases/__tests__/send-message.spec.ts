@@ -125,7 +125,7 @@ describe('SendMessageUseCase', () => {
     );
   });
 
-  it('should save senderAvatar and senderName passed in messageData', async () => {
+  it('should take senderAvatar and senderName from room member', async () => {
     roomRepository.findById.mockResolvedValue({
       id: 'room-1',
       title: null,
@@ -137,6 +137,8 @@ describe('SendMessageUseCase', () => {
           userId: 'user-1',
           role: MemberRole.MEMBER,
           status: MemberStatus.ACCEPTED,
+          name: 'User One',
+          avatar: 'https://example.com/avatar.jpg',
         },
       ],
     });
@@ -157,8 +159,8 @@ describe('SendMessageUseCase', () => {
     const result = await sendMessageUseCase.execute({
       roomId: 'room-1',
       senderId: 'user-1',
-      senderAvatar: 'https://example.com/avatar.jpg',
-      senderName: 'User One',
+      senderAvatar: 'https://spoofed.com/fake.jpg',
+      senderName: 'Fake Name',
       content: 'Hello with avatar',
     });
 

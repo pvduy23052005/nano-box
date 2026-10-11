@@ -12,6 +12,8 @@ export interface AddEmojiMessageInputDto {
 export interface AddEmojiMessageOutputDto {
   message: MessageType;
   memberIds: string[];
+  reactorName?: string | null;
+  reactorAvatar?: string | null;
 }
 
 export class AddEmojiMessageUseCase {
@@ -57,10 +59,10 @@ export class AddEmojiMessageUseCase {
       });
     }
 
-    const isMember = room.members?.some(
+    const currentMember = room.members?.find(
       (member) => member.userId === cleanUserId,
     );
-    if (!isMember) {
+    if (!currentMember) {
       throw new DomainValidationException({
         permission: 'Bạn không phải thành viên của phòng này',
       });
@@ -74,6 +76,8 @@ export class AddEmojiMessageUseCase {
     return {
       message: updatedMessage,
       memberIds,
+      reactorName: currentMember.name ?? null,
+      reactorAvatar: currentMember.avatar ?? null,
     };
   }
 }
