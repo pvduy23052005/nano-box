@@ -14,6 +14,7 @@ import { TempUploadResponseDto } from './dto/temp-upload-response.dto';
 import {
   detectFileCategory,
   resolveMimeType,
+  resolveContentDisposition,
   MAX_FILE_SIZE,
   ALLOWED_UPLOAD_FOLDERS,
   UploadFolder,
@@ -98,6 +99,7 @@ export class UploadService {
     const key = `${cleanFolder}/${shortId}${cleanBaseName}${ext}`;
 
     const endpointUrl = `${this.r2Endpoint}/${key}`;
+    const contentDisposition = resolveContentDisposition(originalName, mimeType);
 
     try {
       const response = await this.awsClient.fetch(endpointUrl, {
@@ -105,7 +107,7 @@ export class UploadService {
         headers: {
           'Content-Type': mimeType,
           'Content-Length': file.size.toString(),
-          'Content-Disposition': `inline; filename="${encodeURIComponent(originalName)}"`,
+          'Content-Disposition': contentDisposition,
         },
         body: new Uint8Array(file.buffer),
       });

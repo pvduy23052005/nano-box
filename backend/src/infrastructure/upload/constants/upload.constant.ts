@@ -9,7 +9,7 @@ export enum UploadFolder {
 export const ALLOWED_UPLOAD_FOLDERS: readonly string[] =
   Object.values(UploadFolder);
 
-export const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
+export const MAX_FILE_SIZE = 25 * 1024 * 1024; 
 
 export const DOCUMENT_MIMES = [
   'application/pdf',
@@ -21,7 +21,6 @@ export const DOCUMENT_MIMES = [
   'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   'text/plain',
   'text/csv',
-  'text/html',
   'application/json',
   'application/zip',
   'application/x-zip-compressed',
@@ -32,7 +31,6 @@ export const DOCUMENT_MIMES = [
 ];
 
 export const MIME_TYPE_MAP: Record<string, string> = {
-  // Images
   jpg: 'image/jpeg',
   jpeg: 'image/jpeg',
   png: 'image/png',
@@ -68,10 +66,7 @@ export const MIME_TYPE_MAP: Record<string, string> = {
   // Documents / Text
   pdf: 'application/pdf',
   txt: 'text/plain; charset=utf-8',
-  html: 'text/html; charset=utf-8',
-  htm: 'text/html; charset=utf-8',
   css: 'text/css; charset=utf-8',
-  js: 'text/javascript; charset=utf-8',
   json: 'application/json',
   csv: 'text/csv; charset=utf-8',
   xml: 'application/xml',
@@ -89,6 +84,45 @@ export const MIME_TYPE_MAP: Record<string, string> = {
   gz: 'application/gzip',
 };
 
+export const DISALLOWED_MIME_TYPES: readonly string[] = [
+  'text/html',
+  'text/javascript',
+  'application/javascript',
+  'application/x-javascript',
+];
+
+export const SAFE_INLINE_MIME_TYPES = new Set([
+  // Images (raster only - excluding image/svg+xml to prevent Stored XSS)
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/avif',
+  'image/bmp',
+  'image/x-icon',
+  'image/heic',
+  'image/heif',
+  'image/tiff',
+
+  // Audio
+  'audio/mpeg',
+  'audio/wav',
+  'audio/ogg',
+  'audio/mp4',
+  'audio/aac',
+  'audio/flac',
+  'audio/x-ms-wma',
+
+  // Video
+  'video/mp4',
+  'video/webm',
+  'video/quicktime',
+  'video/x-matroska',
+  'video/x-msvideo',
+  'video/x-ms-wmv',
+  'video/x-flv',
+]);
+
 export function resolveMimeType(
   filename?: string,
   fallbackMime?: string,
@@ -100,11 +134,28 @@ export function resolveMimeType(
     }
   }
 
-  if (fallbackMime && fallbackMime !== 'application/octet-stream') {
+  if (
+    fallbackMime &&
+    fallbackMime !== 'application/octet-stream' &&
+    !DISALLOWED_MIME_TYPES.some((disallowed) =>
+      fallbackMime.toLowerCase().startsWith(disallowed),
+    )
+  ) {
     return fallbackMime;
   }
 
   return 'application/octet-stream';
+}
+
+export function resolveContentDisposition(
+  filename: string,
+  mimeType: string,
+): string {
+  const baseMime = mimeType.split(';')[0].trim().toLowerCase();
+  const isSafeInline = SAFE_INLINE_MIME_TYPES.has(baseMime);
+  const dispositionType = isSafeInline ? 'inline' : 'attachment';
+  const encodedFilename = encodeURIComponent(filename);
+  return `${dispositionType}; filename="${encodedFilename}"`;
 }
 
 export function detectFileCategory(
