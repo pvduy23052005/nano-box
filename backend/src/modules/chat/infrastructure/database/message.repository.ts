@@ -80,7 +80,8 @@ export class MessageRepository implements MessageRepositoryAdapter {
     const senderAvatar = record.sender_avatar ?? record.senderAvatar ?? null;
     const senderName = record.sender_name ?? record.senderName ?? null;
     const createdAt = record.created_at ?? record.createdAt ?? null;
-    const isSystem = record.is_system ?? record.isSystem ?? (senderId === 'system');
+    const isSystem =
+      record.is_system ?? record.isSystem ?? senderId === 'system';
 
     return {
       id: record._id?.toString() ?? '',
@@ -116,11 +117,16 @@ export class MessageRepository implements MessageRepositoryAdapter {
       throw new Error('Invalid message ID for update');
     }
 
-    const persistenceData = this.toPersistence(message);
+    const reactions =
+      message.getReactions()?.map((reaction) => ({
+        emoji: reaction.emoji,
+        user_ids: reaction.userIds,
+      })) ?? [];
+
     const updated = await this.messageModel
       .findByIdAndUpdate(
         id,
-        { $set: persistenceData },
+        { $set: { reactions } },
         { returnDocument: 'after' },
       )
       .exec();
