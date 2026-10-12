@@ -56,6 +56,6 @@ export class Notification {
 export type NotificationDocument = HydratedDocument<Notification>;
 export const NotificationSchema = SchemaFactory.createForClass(Notification);
 
-NotificationSchema.index({ recipient_id: 1, created_at: -1 });
+NotificationSchema.index({ recipient_id: 1, _id: -1 });
 
 NotificationSchema.index({ recipient_id: 1, is_read: 1 });
