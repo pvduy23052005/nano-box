@@ -35,4 +35,6 @@ export abstract class RoomRepositoryAdapter {
   abstract acceptAllMembers(roomId: string): Promise<RoomProps | null>;
 
   abstract deleteRoom(roomId: string): Promise<boolean>;
+
+  abstract isUserMember?(roomId: string, userId: string): Promise<boolean>;
 }

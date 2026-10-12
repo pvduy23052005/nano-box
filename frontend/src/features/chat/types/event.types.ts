@@ -4,4 +4,6 @@ export const CHAT_SOCKET_EVENTS = {
   SERVER_SEND_TYPING: 'server:send:typing',
   USER_READ_MESSAGE: 'user:read:message',
   UPDATE_MESSAGE_REACTION: 'update:message:reaction',
+  CLIENT_JOIN_ROOM: 'client:join:room',
+  CLIENT_LEAVE_ROOM: 'client:leave:room',
 };

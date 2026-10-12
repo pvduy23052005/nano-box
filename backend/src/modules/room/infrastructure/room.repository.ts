@@ -286,4 +286,29 @@ export class RoomRepository implements RoomRepositoryAdapter {
 
     return result.deletedCount > 0;
   }
+
+  async isUserMember(roomId: string, userId: string): Promise<boolean> {
+    if (
+      !roomId ||
+      !userId ||
+      !Types.ObjectId.isValid(roomId) ||
+      !Types.ObjectId.isValid(userId)
+    ) {
+      return false;
+    }
+
+    const count = await this.roomModel
+      .countDocuments({
+        _id: new Types.ObjectId(roomId),
+        members: {
+          $elemMatch: {
+            user_id: new Types.ObjectId(userId),
+            status: MemberStatus.ACCEPTED,
+          },
+        },
+      })
+      .exec();
+
+    return count > 0;
+  }
 }
