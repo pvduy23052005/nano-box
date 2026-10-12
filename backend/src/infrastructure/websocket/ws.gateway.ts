@@ -183,9 +183,9 @@ export class WebsocketGateway
     }
 
     try {
-      const [friends, rooms] = await Promise.all([
+      const [friends, roomMemberIds] = await Promise.all([
         this.friendshipRepository.findFriends(userId),
-        this.roomRepository.findRoomsByUserIdAndStatus(
+        this.roomRepository.findRelatedUserIdsByRooms(
           userId,
           MemberStatus.ACCEPTED,
         ),
@@ -199,16 +199,8 @@ export class WebsocketGateway
         }
       }
 
-      for (const room of rooms) {
-        for (const member of room.members) {
-          if (
-            member.userId &&
-            member.userId !== userId &&
-            member.status === MemberStatus.ACCEPTED
-          ) {
-            relatedIds.add(member.userId);
-          }
-        }
+      for (const memberId of roomMemberIds) {
+        relatedIds.add(memberId);
       }
 
       const result = Array.from(relatedIds);

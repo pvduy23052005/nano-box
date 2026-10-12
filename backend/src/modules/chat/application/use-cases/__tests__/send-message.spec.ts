@@ -2,11 +2,7 @@ import { DomainValidationException } from 'src/common/customs/domain-validation.
 import { SendMessageUseCase } from '../send-message.use-case';
 import { MessageRepositoryAdapter } from '../../ports/message.port';
 import { RoomRepositoryAdapter } from '../../../../room/application/ports/room.ports';
-import {
-  MemberRole,
-  MemberStatus,
-  RoomType,
-} from '../../../../room/domain/chat.enum';
+import { MemberRole, MemberStatus } from '../../../../room/domain/chat.enum';
 
 describe('SendMessageUseCase', () => {
   let sendMessageUseCase: SendMessageUseCase;
@@ -26,6 +22,10 @@ describe('SendMessageUseCase', () => {
       findById: jest.fn(),
       updateLastMessageId: jest.fn(),
       updateMemberLastReadMessage: jest.fn(),
+      acceptAllMembers: jest.fn(),
+      deleteRoom: jest.fn(),
+      findRoomMembers: jest.fn(),
+      findRelatedUserIdsByRooms: jest.fn(),
     };
 
     sendMessageUseCase = new SendMessageUseCase(
@@ -35,7 +35,7 @@ describe('SendMessageUseCase', () => {
   });
 
   it('should throw DomainValidationException if room does not exist', async () => {
-    roomRepository.findById.mockResolvedValue(null);
+    roomRepository.findRoomMembers.mockResolvedValue(null);
 
     await expect(
       sendMessageUseCase.execute({
@@ -47,12 +47,8 @@ describe('SendMessageUseCase', () => {
   });
 
   it('should throw DomainValidationException if sender is not a member of the room', async () => {
-    roomRepository.findById.mockResolvedValue({
-      id: 'room-1',
-      title: null,
-      typeRoom: RoomType.SINGLE,
-      lastMessageId: null,
-      avatar: null,
+    roomRepository.findRoomMembers.mockResolvedValue({
+      roomId: 'room-1',
       members: [
         {
           userId: 'user-2',
@@ -77,12 +73,8 @@ describe('SendMessageUseCase', () => {
   });
 
   it('should save message and return SendMessageOutputDto with memberIds', async () => {
-    roomRepository.findById.mockResolvedValue({
-      id: 'room-1',
-      title: null,
-      typeRoom: RoomType.SINGLE,
-      lastMessageId: null,
-      avatar: null,
+    roomRepository.findRoomMembers.mockResolvedValue({
+      roomId: 'room-1',
       members: [
         {
           userId: 'user-1',
@@ -114,6 +106,7 @@ describe('SendMessageUseCase', () => {
       content: 'Hello world',
     });
 
+    expect(roomRepository.findRoomMembers).toHaveBeenCalledWith('room-1', true);
     expect(result).toEqual({
       message: mockSavedMessage,
       memberIds: ['user-1', 'user-2'],
@@ -126,12 +119,8 @@ describe('SendMessageUseCase', () => {
   });
 
   it('should take senderAvatar and senderName from room member', async () => {
-    roomRepository.findById.mockResolvedValue({
-      id: 'room-1',
-      title: null,
-      typeRoom: RoomType.SINGLE,
-      lastMessageId: null,
-      avatar: null,
+    roomRepository.findRoomMembers.mockResolvedValue({
+      roomId: 'room-1',
       members: [
         {
           userId: 'user-1',

@@ -14,7 +14,7 @@ export class UpdateMemberLastReadMessageUseCase {
     userId: string,
     messageId: string,
   ): Promise<UpdateMemberLastReadOuput> {
-    const room = await this.roomRepository.findById(roomId);
+    const room = await this.roomRepository.findRoomMembers(roomId, false);
     const isMember = room?.members?.some((member) => member.userId === userId);
 
     const errors: Record<string, string> = {};

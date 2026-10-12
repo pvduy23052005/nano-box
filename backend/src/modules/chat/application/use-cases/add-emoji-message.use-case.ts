@@ -52,7 +52,10 @@ export class AddEmojiMessageUseCase {
       });
     }
 
-    const room = await this.roomRepository.findById(message.getRoomId());
+    const room = await this.roomRepository.findRoomMembers(
+      message.getRoomId(),
+      true,
+    );
     if (!room) {
       throw new DomainValidationException({
         roomId: 'Phòng chat không tồn tại',

@@ -63,6 +63,10 @@ describe('AddEmojiMessageUseCase', () => {
       findById: jest.fn(),
       updateLastMessageId: jest.fn(),
       updateMemberLastReadMessage: jest.fn(),
+      acceptAllMembers: jest.fn(),
+      deleteRoom: jest.fn(),
+      findRoomMembers: jest.fn(),
+      findRelatedUserIdsByRooms: jest.fn(),
     };
 
     addEmojiMessageUseCase = new AddEmojiMessageUseCase(
@@ -117,7 +121,7 @@ describe('AddEmojiMessageUseCase', () => {
     messageRepository.findById.mockResolvedValue(
       MessageEntity.restore(mockMessageData),
     );
-    roomRepository.findById.mockResolvedValue(null);
+    roomRepository.findRoomMembers.mockResolvedValue(null);
 
     await expect(
       addEmojiMessageUseCase.execute({
@@ -132,7 +136,10 @@ describe('AddEmojiMessageUseCase', () => {
     messageRepository.findById.mockResolvedValue(
       MessageEntity.restore(mockMessageData),
     );
-    roomRepository.findById.mockResolvedValue(mockRoom);
+    roomRepository.findRoomMembers.mockResolvedValue({
+      roomId: 'room-1',
+      members: mockRoom.members,
+    });
 
     await expect(
       addEmojiMessageUseCase.execute({
@@ -147,7 +154,10 @@ describe('AddEmojiMessageUseCase', () => {
     messageRepository.findById.mockResolvedValue(
       MessageEntity.restore(mockMessageData),
     );
-    roomRepository.findById.mockResolvedValue(mockRoom);
+    roomRepository.findRoomMembers.mockResolvedValue({
+      roomId: 'room-1',
+      members: mockRoom.members,
+    });
     messageRepository.update.mockImplementation((entity) =>
       Promise.resolve({
         id: entity.getId(),
@@ -164,6 +174,7 @@ describe('AddEmojiMessageUseCase', () => {
       userId: 'user-1',
     });
 
+    expect(roomRepository.findRoomMembers).toHaveBeenCalledWith('room-1', true);
     expect(result.memberIds).toEqual(['user-1', 'user-2']);
     expect(result.reactorName).toBe('User 1');
     expect(result.reactorAvatar).toBe('https://example.com/avatar1.jpg');
@@ -180,7 +191,10 @@ describe('AddEmojiMessageUseCase', () => {
         reactions: [{ emoji: '👍', userIds: ['user-1'] }],
       }),
     );
-    roomRepository.findById.mockResolvedValue(mockRoom);
+    roomRepository.findRoomMembers.mockResolvedValue({
+      roomId: 'room-1',
+      members: mockRoom.members,
+    });
     messageRepository.update.mockImplementation((entity) =>
       Promise.resolve({
         id: entity.getId(),
@@ -208,7 +222,10 @@ describe('AddEmojiMessageUseCase', () => {
         reactions: [{ emoji: '👍', userIds: ['user-1'] }],
       }),
     );
-    roomRepository.findById.mockResolvedValue(mockRoom);
+    roomRepository.findRoomMembers.mockResolvedValue({
+      roomId: 'room-1',
+      members: mockRoom.members,
+    });
     messageRepository.update.mockImplementation((entity) =>
       Promise.resolve({
         id: entity.getId(),

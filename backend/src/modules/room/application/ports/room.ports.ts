@@ -1,6 +1,19 @@
 import { RoomEntity } from '../../domain/room.entity';
 import { RoomProps } from '../../domain/room.type';
-import { MemberStatus } from '../../domain/chat.enum';
+import { MemberRole, MemberStatus } from '../../domain/chat.enum';
+
+export interface RoomMemberSummary {
+  userId: string;
+  role: MemberRole;
+  status: MemberStatus;
+  name?: string | null;
+  avatar?: string | null;
+}
+
+export interface RoomMembersResult {
+  roomId: string;
+  members: RoomMemberSummary[];
+}
 
 export abstract class RoomRepositoryAdapter {
   abstract save(room: RoomEntity): Promise<RoomProps>;
@@ -37,4 +50,14 @@ export abstract class RoomRepositoryAdapter {
   abstract deleteRoom(roomId: string): Promise<boolean>;
 
   abstract isUserMember?(roomId: string, userId: string): Promise<boolean>;
+
+  abstract findRoomMembers(
+    roomId: string,
+    includeProfile?: boolean,
+  ): Promise<RoomMembersResult | null>;
+
+  abstract findRelatedUserIdsByRooms(
+    userId: string,
+    status: MemberStatus,
+  ): Promise<string[]>;
 }

@@ -16,7 +16,10 @@ export class SendMessageUseCase {
   ) {}
 
   async execute(messageData: MessageType): Promise<SendMessageOutputDto> {
-    const room = await this.roomRepository.findById(messageData.roomId);
+    const room = await this.roomRepository.findRoomMembers(
+      messageData.roomId,
+      true,
+    );
     if (!room) {
       throw new DomainValidationException({
         roomId: 'Phòng chat không tồn tại',

@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { RoomRepositoryAdapter } from '../application/ports/room.ports';
+import {
+  RoomMembersResult,
+  RoomRepositoryAdapter,
+} from '../application/ports/room.ports';
 import { RoomEntity } from '../domain/room.entity';
 import { Room, RoomDocument } from './room.schema';
 import { Model, Types, UpdateQuery, sanitizeFilter } from 'mongoose';
 import { RoomProps } from '../domain/room.type';
 import { MemberStatus, RoomType } from '../domain/chat.enum';
-import { RoomMapper } from './room.mapper';
+import { RoomMapper, getMemberUserId, isPopulatedUser } from './room.mapper';
 import {
   User,
   UserDocument,
@@ -302,5 +305,105 @@ export class RoomRepository implements RoomRepositoryAdapter {
       .exec();
 
     return count > 0;
+  }
+
+  async findRoomMembers(
+    roomId: string,
+    includeProfile = false,
+  ): Promise<RoomMembersResult | null> {
+    if (!roomId || !Types.ObjectId.isValid(roomId)) {
+      return null;
+    }
+
+    if (includeProfile) {
+      const room = await this.roomModel
+        .findById(roomId)
+        .select('members')
+        .populate({
+          path: 'members.user_id',
+          select: 'name avatar',
+        })
+        .lean()
+        .exec();
+
+      if (!room) {
+        return null;
+      }
+
+      return {
+        roomId: room._id.toString(),
+        members: (room.members || []).map((member) => {
+          const rawUserId = member.user_id as unknown;
+          const user = isPopulatedUser(rawUserId) ? rawUserId : null;
+
+          return {
+            userId: getMemberUserId(rawUserId),
+            role: member.role,
+            status: member.status,
+            name: user?.name ?? null,
+            avatar: user?.avatar ?? null,
+          };
+        }),
+      };
+    }
+
+    const room = await this.roomModel
+      .findById(roomId)
+      .select('members.user_id members.role members.status')
+      .lean()
+      .exec();
+
+    if (!room) {
+      return null;
+    }
+
+    return {
+      roomId: room._id.toString(),
+      members: (room.members || []).map((member) => ({
+        userId: getMemberUserId(member.user_id),
+        role: member.role,
+        status: member.status,
+        name: null,
+        avatar: null,
+      })),
+    };
+  }
+
+  async findRelatedUserIdsByRooms(
+    userId: string,
+    status: MemberStatus,
+  ): Promise<string[]> {
+    if (!userId || !Types.ObjectId.isValid(userId)) {
+      return [];
+    }
+
+    const userObjectId = new Types.ObjectId(userId);
+
+    const rooms = await this.roomModel
+      .find({
+        members: {
+          $elemMatch: {
+            user_id: userObjectId,
+            status,
+          },
+        },
+      })
+      .select('members.user_id members.status')
+      .lean()
+      .exec();
+
+    const relatedIds = new Set<string>();
+
+    for (const room of rooms) {
+      if (!room.members) continue;
+      for (const member of room.members) {
+        const memberId = getMemberUserId(member.user_id);
+        if (memberId && memberId !== userId && member.status === status) {
+          relatedIds.add(memberId);
+        }
+      }
+    }
+
+    return Array.from(relatedIds);
   }
 }

@@ -19,7 +19,7 @@ export class User {
   @Prop({ required: true })
   password: string;
 
-  @Prop({ default: UserStatus.ACTIVE, enum: UserStatus })
+  @Prop({ type: String, default: UserStatus.ACTIVE, enum: UserStatus })
   status: UserStatus;
 
   @Prop({ default: '' })

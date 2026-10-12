@@ -35,21 +35,22 @@ export interface RawRoomInput {
   members: MemberItem[];
 }
 
-const getMemberUserId = (
-  userId: Types.ObjectId | PopulatedUser | string,
-): string => {
+export const getMemberUserId = (userId: unknown): string => {
   if (!userId) return '';
   if (typeof userId === 'string') return userId;
   if (userId instanceof Types.ObjectId) return userId.toString();
   if (typeof userId === 'object' && '_id' in userId && userId._id) {
-    return userId._id.toString();
+    const rawId = userId._id;
+    if (typeof rawId === 'string') return rawId;
+    if (rawId instanceof Types.ObjectId) return rawId.toString();
+    if (typeof rawId === 'object' && rawId !== null && 'toString' in rawId) {
+      return (rawId as { toString(): string }).toString();
+    }
   }
   return '';
 };
 
-const isPopulatedUser = (
-  user: Types.ObjectId | PopulatedUser,
-): user is PopulatedUser => {
+export const isPopulatedUser = (user: unknown): user is PopulatedUser => {
   return (
     typeof user === 'object' &&
     user !== null &&
