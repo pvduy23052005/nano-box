@@ -11,7 +11,6 @@ import {
   User,
   UserDocument,
 } from '../../user/infrastructure/databases/user.schema';
-import { escapeRegex } from 'src/common/utils/regex.util';
 
 type RoomFilterQuery = Parameters<typeof sanitizeFilter<Room>>[0];
 
@@ -32,7 +31,7 @@ export class RoomRepository implements RoomRepositoryAdapter {
     @InjectModel(Room.name)
     private readonly roomModel: Model<RoomDocument>,
     @InjectModel(User.name)
-    private readonly userModel: Model<UserDocument>,
+    private readonly _userModel: Model<UserDocument>,
   ) {}
 
   async save(room: RoomEntity): Promise<RoomProps> {
@@ -111,36 +110,6 @@ export class RoomRepository implements RoomRepositoryAdapter {
       },
     };
 
-    const cleanSearch = search?.trim();
-    if (cleanSearch) {
-      const escapedSearch = escapeRegex(cleanSearch);
-      const matchingUsers = await this.userModel
-        .find({
-          name: { $regex: escapedSearch, $options: 'i' },
-          _id: { $ne: userObjectId },
-        })
-        .select('_id')
-        .lean()
-        .exec();
-
-      const matchingUserIds = matchingUsers.map((u) => u._id);
-
-      filter.$or = [
-        {
-          type_room: RoomType.GROUP,
-          title: { $regex: escapedSearch, $options: 'i' },
-        },
-        {
-          type_room: RoomType.SINGLE,
-          members: {
-            $elemMatch: {
-              user_id: { $in: matchingUserIds },
-            },
-          },
-        },
-      ];
-    }
-
     const rooms = await this.roomModel
       .find(filter)
       .sort({ updated_at: -1 })
@@ -148,7 +117,30 @@ export class RoomRepository implements RoomRepositoryAdapter {
       .lean()
       .exec();
 
-    return rooms.map((room) => RoomMapper.toProps(room, userId));
+    const roomPropsList = rooms.map((room) => RoomMapper.toProps(room, userId));
+
+    const cleanSearch = search?.trim();
+    if (!cleanSearch) {
+      return roomPropsList;
+    }
+
+    const searchLower = cleanSearch.toLowerCase();
+    return roomPropsList.filter((roomProps) => {
+      if (
+        roomProps.title &&
+        roomProps.title.toLowerCase().includes(searchLower)
+      ) {
+        return true;
+      }
+
+      return roomProps.members?.some((member) => {
+        if (member.userId === userId) return false;
+        return (
+          typeof member.name === 'string' &&
+          member.name.toLowerCase().includes(searchLower)
+        );
+      });
+    });
   }
 
   async checkRoomExist(

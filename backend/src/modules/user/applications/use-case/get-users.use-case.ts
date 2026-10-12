@@ -4,8 +4,8 @@ import { UserRepositoryAdapter } from '../ports/user.port';
 export class GetUsersUseCase {
   constructor(private readonly userRepository: UserRepositoryAdapter) {}
 
-  async execute(search?: string): Promise<UserProfile[]> {
-    const users = await this.userRepository.findAll(search);
+  async execute(search?: string, limit?: number): Promise<UserProfile[]> {
+    const users = await this.userRepository.findAll(search, limit);
     return users.map((user) => ({
       id: user.getId() || '',
       name: user.getName(),

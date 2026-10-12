@@ -1,10 +1,20 @@
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { UserEntity } from 'src/modules/user/domain/user.entity';
 import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
 import { User, UserDocument } from './user.schema';
 import { escapeRegex } from 'src/common/utils/regex.util';
+import { UserStatus } from 'src/modules/user/domain/user.type';
+
+interface UserDocLike {
+  _id?: Types.ObjectId | string | null;
+  name: string;
+  email: string;
+  password?: string;
+  status?: UserStatus;
+  avatar?: string;
+}
 
 @Injectable()
 export class UserRepository implements UserRepositoryAdapter {
@@ -13,13 +23,13 @@ export class UserRepository implements UserRepositoryAdapter {
     private readonly userModel: Model<UserDocument>,
   ) {}
 
-  private toEntity(doc: UserDocument): UserEntity {
+  private toEntity(doc: UserDocLike): UserEntity {
     return UserEntity.restore({
-      id: doc._id.toString(),
+      id: doc._id?.toString() ?? '',
       name: doc.name,
       email: doc.email,
-      password: doc.password,
-      status: doc.status,
+      password: doc.password || '',
+      status: doc.status ?? UserStatus.ACTIVE,
       avatar: doc.avatar || '',
     });
   }
@@ -66,7 +76,7 @@ export class UserRepository implements UserRepositoryAdapter {
     return user ? this.toEntity(user) : null;
   }
 
-  async findAll(search?: string): Promise<UserEntity[]> {
+  async findAll(search?: string, limit: number = 20): Promise<UserEntity[]> {
     const cleanSearch = search?.trim();
     const query: Record<string, unknown> = cleanSearch
       ? {
@@ -76,7 +86,16 @@ export class UserRepository implements UserRepositoryAdapter {
           ],
         }
       : {};
-    const users = await this.userModel.find(query).lean().exec();
+
+    const safeLimit = Math.min(Math.max(Number(limit || 20), 1), 50);
+
+    const users = await this.userModel
+      .find(query)
+      .select('name email avatar status')
+      .limit(safeLimit)
+      .lean()
+      .exec();
+
     return users.map((user) => this.toEntity(user));
   }
 }

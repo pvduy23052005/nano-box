@@ -7,7 +7,7 @@ export interface UserProps {
   id?: string;
   name: string;
   email: string;
-  password: string;
+  password?: string;
   status?: UserStatus;
   avatar: string;
 }
