@@ -36,7 +36,7 @@ describe('GetMessagesUseCase', () => {
     useCase = new GetMessagesUseCase(messageRepository, roomRepository);
   });
 
-  it('should use findRoomMembers(roomId, false) and succeed if user is member', async () => {
+  it('should use findRoomMembers(roomId) and succeed if user is member', async () => {
     roomRepository.findRoomMembers.mockResolvedValue({
       roomId,
       members: [
@@ -64,7 +64,7 @@ describe('GetMessagesUseCase', () => {
 
     const result = await useCase.execute(roomId, userId);
 
-    expect(roomRepository.findRoomMembers).toHaveBeenCalledWith(roomId, false);
+    expect(roomRepository.findRoomMembers).toHaveBeenCalledWith(roomId);
     expect(messageRepository.findAll).toHaveBeenCalledWith({
       roomId,
       cursor: undefined,

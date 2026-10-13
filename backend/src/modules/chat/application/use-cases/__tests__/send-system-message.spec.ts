@@ -70,7 +70,7 @@ describe('SendSystemMessageUseCase', () => {
       content: 'Admin đã thêm Thành viên A vào nhóm',
     });
 
-    expect(roomRepository.findRoomMembers).toHaveBeenCalledWith(roomId, false);
+    expect(roomRepository.findRoomMembers).toHaveBeenCalledWith(roomId);
     expect(messageRepository.save).toHaveBeenCalledWith(
       expect.any(MessageEntity),
     );

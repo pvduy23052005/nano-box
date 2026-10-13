@@ -73,7 +73,7 @@ describe('UpdateMemberLastReadMessageUseCase', () => {
 
     const result = await useCase.execute(roomId, userId, messageId);
 
-    expect(roomRepository.findRoomMembers).toHaveBeenCalledWith(roomId, false);
+    expect(roomRepository.findRoomMembers).toHaveBeenCalledWith(roomId);
     expect(roomRepository.updateMemberLastReadMessage).toHaveBeenCalledWith(
       roomId,
       userId,
