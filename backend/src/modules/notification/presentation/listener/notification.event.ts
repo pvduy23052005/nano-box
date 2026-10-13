@@ -32,6 +32,9 @@ export interface FriendRequestEventPayload {
   addresseeId: string;
   friendshipId: string;
   createdAt: Date;
+  requesterName: string;
+  requesterAvatar?: string | null;
+  requesterEmail?: string;
 }
 
 export interface RoomCreatedEventPayload {

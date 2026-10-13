@@ -8,6 +8,7 @@ export interface SendSystemMessageInputProps {
   roomId: string;
   content: string;
   senderName?: string;
+  memberIds?: string[];
 }
 
 export interface SendSystemMessageOutputDto {
@@ -24,18 +25,27 @@ export class SendSystemMessageUseCase {
   async execute(
     input: SendSystemMessageInputProps,
   ): Promise<SendSystemMessageOutputDto> {
-    const room = await this.roomRepository.findRoomMembers(input.roomId, false);
-    if (!room) {
-      throw new DomainValidationException({
-        roomId: 'Phòng chat không tồn tại',
-      });
-    }
-
     const cleanContent = input.content?.trim();
     if (!cleanContent) {
       throw new DomainValidationException({
         content: 'Nội dung tin nhắn không được để trống',
       });
+    }
+
+    let memberIds = input.memberIds;
+    if (memberIds === undefined) {
+      const room = await this.roomRepository.findRoomMembers(
+        input.roomId,
+        false,
+      );
+      if (!room) {
+        throw new DomainValidationException({
+          roomId: 'Phòng chat không tồn tại',
+        });
+      }
+      memberIds = (room.members || [])
+        .map((member) => member.userId)
+        .filter(Boolean);
     }
 
     const newMessage = MessageEntity.create({
@@ -58,10 +68,6 @@ export class SendSystemMessageUseCase {
         savedMessage.id,
       );
     }
-
-    const memberIds = (room.members || [])
-      .map((member) => member.userId)
-      .filter(Boolean);
 
     return {
       message: savedMessage,

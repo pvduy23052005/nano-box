@@ -79,13 +79,13 @@ export class NotificationListener {
   @OnEvent(NOTIFICATION_EVENTS.FRIEND_REQUEST)
   async handleFriendRequest(payload: FriendRequestEventPayload): Promise<void> {
     try {
-      const { requesterId, addresseeId, friendshipId } = payload;
-
-      const requester = await this.userRepository.findById(requesterId);
-      if (!requester) return;
-
-      const requesterName = requester.getName();
-      const requesterAvatar = requester.getAvatar();
+      const {
+        requesterId,
+        addresseeId,
+        friendshipId,
+        requesterName,
+        requesterAvatar,
+      } = payload;
 
       const title = 'Lời mời kết bạn mới';
       const content = `${requesterName} đã gửi cho bạn một lời mời kết bạn.`;
@@ -94,7 +94,7 @@ export class NotificationListener {
         recipientId: addresseeId,
         senderId: requesterId,
         senderName: requesterName,
-        senderAvatar: requesterAvatar,
+        senderAvatar: requesterAvatar ?? '',
         type: NotificationType.FRIEND_REQUEST,
         title,
         content,

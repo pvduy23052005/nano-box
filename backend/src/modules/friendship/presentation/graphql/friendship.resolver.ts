@@ -21,6 +21,7 @@ import { FRIENDSHIP_SOCKET_EVENTS } from '../gateway/friendship.event';
 import { NOTIFICATION_EVENTS } from 'src/modules/notification/presentation/listener/notification.event';
 import { GetFriendsUseCase } from '../../applications/use-case/get-friends.use-case';
 import { UserProfilePayload } from 'src/modules/user/presentation/dto/profile.payload';
+import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
 
 @Resolver()
 @UseGuards(AuthGuard)
@@ -34,6 +35,7 @@ export class FriendshipResolver {
     private readonly getFriendsUseCase: GetFriendsUseCase,
     private readonly websocketService: WebsocketService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly userRepository: UserRepositoryAdapter,
   ) {}
 
   @Query(() => [GetReceivedFriendRequestPayload])
@@ -55,11 +57,11 @@ export class FriendshipResolver {
 
   @Mutation(() => SendFriendRequestPayload)
   async sendFriendRequest(
-    @CurrentUser('id') userId: string,
+    @CurrentUser('id') myId: string,
     @Args('addresseeId') addresseeId: string,
   ): Promise<SendFriendRequestPayload> {
     const result = await this.sendFriendRequestUseCase.execute(
-      userId,
+      myId,
       addresseeId,
     );
 
@@ -69,17 +71,25 @@ export class FriendshipResolver {
         : 'Gửi lời mời kết bạn thành công';
 
     if (result.status === FriendshipStatus.PENDING) {
+      const requester = await this.userRepository.findById(myId);
+      const requesterName = requester?.getName() || 'Người dùng';
+      const requesterAvatar = requester?.getAvatar() || null;
+      const requesterEmail = requester?.getEmail() || undefined;
+
       this.eventEmitter.emit(NOTIFICATION_EVENTS.FRIEND_REQUEST, {
-        requesterId: userId,
+        requesterId: myId,
         addresseeId,
-        friendshipId: result.id || '',
+        friendshipId: result.id ?? '',
         createdAt: result.createdAt,
+        requesterName,
+        requesterAvatar,
+        requesterEmail,
       });
     } else if (result.status === FriendshipStatus.ACCEPTED) {
       this.websocketService.server
         .to(addresseeId)
         .emit(FRIENDSHIP_SOCKET_EVENTS.FRIEND_REQUEST_ACCEPTED, {
-          id: result.id || '',
+          id: result.id ?? '',
           requesterId: result.addresseeId,
           addresseeId: result.requesterId,
           status: result.status,
@@ -92,7 +102,7 @@ export class FriendshipResolver {
       success: true,
       message,
       data: {
-        id: result.id || '',
+        id: result.id ?? '',
         requesterId: result.requesterId,
         addresseeId: result.addresseeId,
         status: result.status,

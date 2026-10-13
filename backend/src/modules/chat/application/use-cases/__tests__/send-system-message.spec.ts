@@ -104,4 +104,31 @@ describe('SendSystemMessageUseCase', () => {
       }),
     ).rejects.toThrow(DomainValidationException);
   });
+
+  it('nên bỏ qua truy vấn findRoomMembers khi memberIds đã được truyền trong input', async () => {
+    messageRepository.save.mockResolvedValue({
+      id: 'msg-456',
+      roomId,
+      content: 'Tin nhắn hệ thống với memberIds có sẵn',
+      senderId: 'system',
+      senderName: 'Hệ thống',
+      attachments: [],
+      reactions: [],
+      readBy: [],
+    });
+
+    const result = await useCase.execute({
+      roomId,
+      content: 'Tin nhắn hệ thống với memberIds có sẵn',
+      memberIds: ['user-1', 'user-2', 'user-3'],
+    });
+
+    expect(roomRepository.findRoomMembers).not.toHaveBeenCalled();
+    expect(messageRepository.save).toHaveBeenCalled();
+    expect(roomRepository.updateLastMessageId).toHaveBeenCalledWith(
+      roomId,
+      'msg-456',
+    );
+    expect(result.memberIds).toEqual(['user-1', 'user-2', 'user-3']);
+  });
 });

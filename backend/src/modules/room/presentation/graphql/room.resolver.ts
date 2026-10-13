@@ -12,7 +12,6 @@ import { CreateSingleRoomUseCase } from '../../application/use-cases/create-sing
 import { GetRoomsByStatusUseCase } from '../../application/use-cases/get-rooms-by-status';
 import { GetRoomDetailUseCase } from '../../application/use-cases/get-room-detail.use-case';
 import { UpdateMemberLastReadMessageUseCase } from '../../application/use-cases/update-member-last-read-message';
-import { GetMeUseCase } from '../../../user/applications/use-case/get-me.use-case';
 import { MemberStatus } from '../../domain/chat.enum';
 import { WebsocketService } from 'src/infrastructure/websocket/ws.service';
 import { ROOM_SOCKET_EVENTS } from '../gateway/event.type';
@@ -48,7 +47,6 @@ export class RoomResolver {
     private readonly getRoomDetailUseCase: GetRoomDetailUseCase,
     private readonly updateMemberLastReadMessageUseCase: UpdateMemberLastReadMessageUseCase,
     private readonly websocketService: WebsocketService,
-    private readonly getMeUseCase: GetMeUseCase,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -86,17 +84,9 @@ export class RoomResolver {
       otherUserId,
     );
 
-    let senderName = result.title;
-    let senderAvatar = result.avatar;
-    try {
-      const sender = await this.getMeUseCase.execute(myId);
-      if (sender) {
-        senderName = sender.name;
-        senderAvatar = sender.avatar;
-      }
-    } catch {
-      // fallback to result values
-    }
+    const meMember = result.members?.find((member) => member.userId === myId);
+    const senderName = meMember?.name ?? result.title;
+    const senderAvatar = meMember?.avatar ?? result.avatar;
 
     const roomData = RoomMapper.toOutput(result, {
       title: senderName,
@@ -128,15 +118,9 @@ export class RoomResolver {
         ?.emit(ROOM_SOCKET_EVENTS.SERVER_SEND_ROOM, roomOutput);
     }
 
-    let creatorName: string | undefined;
-    let creatorAvatar: string | undefined;
-    try {
-      const sender = await this.getMeUseCase.execute(myId);
-      creatorName = sender?.name;
-      creatorAvatar = sender?.avatar;
-    } catch {
-      // fallback to result values
-    }
+    const meMember = result.members?.find((member) => member.userId === myId);
+    const creatorName = meMember?.name ?? undefined;
+    const creatorAvatar = meMember?.avatar ?? undefined;
 
     const payload: RoomCreatedEventPayload = {
       roomId: result.id,

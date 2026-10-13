@@ -42,18 +42,23 @@ export class ChatListener {
       const displayTarget = targetUserName || 'thành viên';
       const content = buildContent(displayActor, displayTarget);
 
-      const { message, memberIds: roomMemberIds } =
+      const roomMemberIds = (room.members || [])
+        .map((member) => member.userId)
+        .filter(Boolean);
+
+      const { message, memberIds: returnedMemberIds } =
         await this.sendSystemMessageUseCase.execute({
           roomId: room.id,
           content,
           senderName: 'Hệ thống',
+          memberIds: roomMemberIds,
         });
 
       const recipientIds = Array.from(
         new Set(
           [
-            ...(room.members || []).map((member) => member.userId),
-            ...(roomMemberIds || []),
+            ...roomMemberIds,
+            ...(returnedMemberIds || []),
             ...(extraRecipientId ? [extraRecipientId] : []),
           ].filter(Boolean),
         ),

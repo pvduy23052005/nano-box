@@ -1,31 +1,30 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { WebsocketService } from 'src/infrastructure/websocket/ws.service';
-import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
 import { FRIENDSHIP_SOCKET_EVENTS } from '../gateway/friendship.event';
-import { NOTIFICATION_EVENTS } from 'src/modules/notification/presentation/listener/notification.event';
-import { type FriendRequestEventPayload } from 'src/modules/notification/presentation/listener/notification.event';
+import {
+  NOTIFICATION_EVENTS,
+  type FriendRequestEventPayload,
+} from 'src/modules/notification/presentation/listener/notification.event';
 
 @Injectable()
 export class FriendshipListener {
   private readonly logger = new Logger(FriendshipListener.name);
 
-  constructor(
-    private readonly websocketService: WebsocketService,
-    private readonly userRepository: UserRepositoryAdapter,
-  ) {}
+  constructor(private readonly websocketService: WebsocketService) {}
 
   @OnEvent(NOTIFICATION_EVENTS.FRIEND_REQUEST)
-  async handleFriendRequest(payload: FriendRequestEventPayload): Promise<void> {
+  handleFriendRequest(payload: FriendRequestEventPayload): void {
     try {
-      const { requesterId, addresseeId, friendshipId, createdAt } = payload;
-
-      const requester = await this.userRepository.findById(requesterId);
-      if (!requester) return;
-
-      const requesterName = requester.getName();
-      const requesterAvatar = requester.getAvatar();
-      const requesterEmail = requester.getEmail();
+      const {
+        requesterId,
+        addresseeId,
+        friendshipId,
+        createdAt,
+        requesterName,
+        requesterAvatar,
+        requesterEmail,
+      } = payload;
 
       this.websocketService.server
         ?.to(addresseeId)
