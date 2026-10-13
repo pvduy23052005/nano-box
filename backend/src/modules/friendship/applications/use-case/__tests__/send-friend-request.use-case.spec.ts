@@ -19,6 +19,14 @@ describe('SendFriendRequestUseCase', () => {
   const requesterId = 'user-requester-id';
   const addresseeId = 'user-addressee-id';
 
+  const mockRequesterUser = UserEntity.restore({
+    id: requesterId,
+    name: 'Requester User',
+    email: 'requester@example.com',
+    password: 'hashed-password',
+    status: 'ACTIVE',
+  });
+
   const mockTargetUser = UserEntity.restore({
     id: addresseeId,
     name: 'Addressee User',
@@ -37,7 +45,11 @@ describe('SendFriendRequestUseCase', () => {
     mockUserRepo = {
       save: jest.fn(),
       findByEmail: jest.fn(),
-      findById: jest.fn(),
+      findById: jest.fn().mockImplementation(async (id: string) => {
+        if (id === requesterId) return mockRequesterUser;
+        if (id === addresseeId) return mockTargetUser;
+        return null;
+      }),
       findAll: jest.fn(),
     };
 
@@ -53,7 +65,6 @@ describe('SendFriendRequestUseCase', () => {
   });
 
   it('nên gửi lời mời kết bạn thành công khi chưa từng có quan hệ trước đó', async () => {
-    mockUserRepo.findById.mockResolvedValue(mockTargetUser);
     mockFriendshipRepo.findBetweenUsers.mockResolvedValue(null);
 
     const savedProps: FriendshipProps = {
@@ -68,6 +79,7 @@ describe('SendFriendRequestUseCase', () => {
 
     const result = await useCase.execute(requesterId, addresseeId);
 
+    expect(mockUserRepo.findById).toHaveBeenCalledWith(requesterId);
     expect(mockUserRepo.findById).toHaveBeenCalledWith(addresseeId);
     expect(mockFriendshipRepo.findBetweenUsers).toHaveBeenCalledWith(
       requesterId,
@@ -78,15 +90,25 @@ describe('SendFriendRequestUseCase', () => {
     expect(result.status).toBe(FriendshipStatus.PENDING);
     expect(result.requesterId).toBe(requesterId);
     expect(result.addresseeId).toBe(addresseeId);
+    expect(result.requesterName).toBe('Requester User');
+    expect(result.requesterEmail).toBe('requester@example.com');
   });
 
   it('nên chạy song song findById và findBetweenUsers bằng Promise.all', async () => {
-    let findByIdCalled = false;
+    let requesterFound = false;
+    let addresseeFound = false;
     let findBetweenUsersCalled = false;
 
-    mockUserRepo.findById.mockImplementation(async () => {
-      findByIdCalled = true;
-      return mockTargetUser;
+    mockUserRepo.findById.mockImplementation(async (id: string) => {
+      if (id === requesterId) {
+        requesterFound = true;
+        return mockRequesterUser;
+      }
+      if (id === addresseeId) {
+        addresseeFound = true;
+        return mockTargetUser;
+      }
+      return null;
     });
 
     mockFriendshipRepo.findBetweenUsers.mockImplementation(async () => {
@@ -106,7 +128,8 @@ describe('SendFriendRequestUseCase', () => {
 
     await useCase.execute(requesterId, addresseeId);
 
-    expect(findByIdCalled).toBe(true);
+    expect(requesterFound).toBe(true);
+    expect(addresseeFound).toBe(true);
     expect(findBetweenUsersCalled).toBe(true);
   });
 
@@ -191,16 +214,33 @@ describe('SendFriendRequestUseCase', () => {
   });
 
   it('nên ném lỗi khi người nhận không tồn tại (chạy song song findById và findBetweenUsers)', async () => {
-    mockUserRepo.findById.mockResolvedValue(null);
+    mockUserRepo.findById.mockImplementation(async (id: string) => {
+      if (id === requesterId) return mockRequesterUser;
+      return null;
+    });
     mockFriendshipRepo.findBetweenUsers.mockResolvedValue(null);
 
     await expect(useCase.execute(requesterId, addresseeId)).rejects.toThrow(
       DomainValidationException,
     );
+    expect(mockUserRepo.findById).toHaveBeenCalledWith(requesterId);
     expect(mockUserRepo.findById).toHaveBeenCalledWith(addresseeId);
     expect(mockFriendshipRepo.findBetweenUsers).toHaveBeenCalledWith(
       requesterId,
       addresseeId,
+    );
+    expect(mockFriendshipRepo.save).not.toHaveBeenCalled();
+  });
+
+  it('nên ném lỗi khi người gửi không tồn tại', async () => {
+    mockUserRepo.findById.mockImplementation(async (id: string) => {
+      if (id === addresseeId) return mockTargetUser;
+      return null;
+    });
+    mockFriendshipRepo.findBetweenUsers.mockResolvedValue(null);
+
+    await expect(useCase.execute(requesterId, addresseeId)).rejects.toThrow(
+      DomainValidationException,
     );
     expect(mockFriendshipRepo.save).not.toHaveBeenCalled();
   });

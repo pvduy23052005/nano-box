@@ -40,11 +40,9 @@ export class FriendshipRepository implements FriendshipRepositoryAdapter {
 
     if (friendshipId) {
       const updated = await this.friendshipModel
-        .findByIdAndUpdate(
-          friendshipId,
-          persistenceData,
-          { returnDocument: 'after' },
-        )
+        .findByIdAndUpdate(friendshipId, persistenceData, {
+          returnDocument: 'after',
+        })
         .lean()
         .exec();
 
@@ -101,10 +99,7 @@ export class FriendshipRepository implements FriendshipRepositoryAdapter {
       return null;
     }
 
-    const doc = await this.friendshipModel
-      .findById(friendshipId)
-      .lean()
-      .exec();
+    const doc = await this.friendshipModel.findById(friendshipId).lean().exec();
     return doc ? FriendshipMapper.toDomain(doc) : null;
   }
 

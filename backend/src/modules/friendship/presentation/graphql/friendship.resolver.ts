@@ -21,7 +21,6 @@ import { FRIENDSHIP_SOCKET_EVENTS } from '../gateway/friendship.event';
 import { NOTIFICATION_EVENTS } from 'src/modules/notification/presentation/listener/notification.event';
 import { GetFriendsUseCase } from '../../applications/use-case/get-friends.use-case';
 import { UserProfilePayload } from 'src/modules/user/presentation/dto/profile.payload';
-import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
 
 @Resolver()
 @UseGuards(AuthGuard)
@@ -35,7 +34,6 @@ export class FriendshipResolver {
     private readonly getFriendsUseCase: GetFriendsUseCase,
     private readonly websocketService: WebsocketService,
     private readonly eventEmitter: EventEmitter2,
-    private readonly userRepository: UserRepositoryAdapter,
   ) {}
 
   @Query(() => [GetReceivedFriendRequestPayload])
@@ -71,19 +69,14 @@ export class FriendshipResolver {
         : 'Gửi lời mời kết bạn thành công';
 
     if (result.status === FriendshipStatus.PENDING) {
-      const requester = await this.userRepository.findById(myId);
-      const requesterName = requester?.getName() || 'Người dùng';
-      const requesterAvatar = requester?.getAvatar() || null;
-      const requesterEmail = requester?.getEmail() || undefined;
-
       this.eventEmitter.emit(NOTIFICATION_EVENTS.FRIEND_REQUEST, {
         requesterId: myId,
         addresseeId,
         friendshipId: result.id ?? '',
         createdAt: result.createdAt,
-        requesterName,
-        requesterAvatar,
-        requesterEmail,
+        requesterName: result.requesterName || 'Người dùng',
+        requesterAvatar: result.requesterAvatar ?? null,
+        requesterEmail: result.requesterEmail,
       });
     } else if (result.status === FriendshipStatus.ACCEPTED) {
       this.websocketService.server
