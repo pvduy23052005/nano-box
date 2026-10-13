@@ -129,6 +129,7 @@ export class MessageRepository implements MessageRepositoryAdapter {
         { $set: { reactions } },
         { returnDocument: 'after' },
       )
+      .lean()
       .exec();
 
     if (!updated) {
@@ -139,7 +140,7 @@ export class MessageRepository implements MessageRepositoryAdapter {
 
   async findById(id: string): Promise<MessageEntity | null> {
     if (!id || !Types.ObjectId.isValid(id)) return null;
-    const doc = await this.messageModel.findById(id).exec();
+    const doc = await this.messageModel.findById(id).lean().exec();
     if (!doc) return null;
     return MessageEntity.restore(this.toDTO(doc));
   }

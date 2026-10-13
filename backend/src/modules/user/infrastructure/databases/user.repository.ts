@@ -49,11 +49,14 @@ export class UserRepository implements UserRepositoryAdapter {
     const persistenceData = this.toPersistence(user);
 
     if (id) {
-      const updated = await this.userModel.findByIdAndUpdate(
-        id,
-        persistenceData,
-        { returnDocument: 'after' },
-      );
+      const updated = await this.userModel
+        .findByIdAndUpdate(
+          id,
+          persistenceData,
+          { returnDocument: 'after' },
+        )
+        .lean()
+        .exec();
 
       if (!updated) {
         throw new NotFoundException(`Người dùng không tồn tại`);

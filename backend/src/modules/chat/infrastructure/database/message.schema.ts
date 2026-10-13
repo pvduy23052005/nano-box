@@ -28,7 +28,7 @@ export class Message {
   @Prop({ type: String, default: null })
   sender_name?: string | null;
 
-  @Prop({ required: true, index: true })
+  @Prop({ required: true })
   room_id: string;
 
   @Prop({ trim: true })

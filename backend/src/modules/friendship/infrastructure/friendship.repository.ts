@@ -39,11 +39,14 @@ export class FriendshipRepository implements FriendshipRepositoryAdapter {
     const persistenceData = FriendshipMapper.toPersistence(friendship);
 
     if (friendshipId) {
-      const updated = await this.friendshipModel.findByIdAndUpdate(
-        friendshipId,
-        persistenceData,
-        { returnDocument: 'after' },
-      );
+      const updated = await this.friendshipModel
+        .findByIdAndUpdate(
+          friendshipId,
+          persistenceData,
+          { returnDocument: 'after' },
+        )
+        .lean()
+        .exec();
 
       if (!updated) {
         throw new NotFoundException('Không tìm thấy lời mời kết bạn');
@@ -59,22 +62,29 @@ export class FriendshipRepository implements FriendshipRepositoryAdapter {
       };
     }
 
-    const saved = await this.friendshipModel.findOneAndUpdate(
-      {
-        $or: [
-          {
-            requester_id: persistenceData.requester_id,
-            addressee_id: persistenceData.addressee_id,
-          },
-          {
-            requester_id: persistenceData.addressee_id,
-            addressee_id: persistenceData.requester_id,
-          },
-        ],
-      },
-      persistenceData,
-      { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true },
-    );
+    const saved = await this.friendshipModel
+      .findOneAndUpdate(
+        {
+          $or: [
+            {
+              requester_id: persistenceData.requester_id,
+              addressee_id: persistenceData.addressee_id,
+            },
+            {
+              requester_id: persistenceData.addressee_id,
+              addressee_id: persistenceData.requester_id,
+            },
+          ],
+        },
+        persistenceData,
+        { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true },
+      )
+      .lean()
+      .exec();
+
+    if (!saved) {
+      throw new NotFoundException('Không thể lưu lời mời kết bạn');
+    }
 
     return {
       id: saved._id.toString(),
@@ -91,7 +101,10 @@ export class FriendshipRepository implements FriendshipRepositoryAdapter {
       return null;
     }
 
-    const doc = await this.friendshipModel.findById(friendshipId).exec();
+    const doc = await this.friendshipModel
+      .findById(friendshipId)
+      .lean()
+      .exec();
     return doc ? FriendshipMapper.toDomain(doc) : null;
   }
 
@@ -110,6 +123,7 @@ export class FriendshipRepository implements FriendshipRepositoryAdapter {
           { requester_id: user2Id, addressee_id: user1Id },
         ],
       })
+      .lean()
       .exec();
 
     return doc ? FriendshipMapper.toDomain(doc) : null;

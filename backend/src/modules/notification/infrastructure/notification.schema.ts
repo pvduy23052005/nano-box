@@ -22,7 +22,7 @@ export class NotificationMetadataSchema {
   collection: 'notifications',
 })
 export class Notification {
-  @Prop({ required: true, trim: true, index: true })
+  @Prop({ required: true, trim: true })
   recipient_id: string;
 
   @Prop({ required: true, trim: true })
