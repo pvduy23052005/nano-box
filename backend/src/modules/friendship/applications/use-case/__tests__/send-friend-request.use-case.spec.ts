@@ -80,6 +80,36 @@ describe('SendFriendRequestUseCase', () => {
     expect(result.addresseeId).toBe(addresseeId);
   });
 
+  it('nên chạy song song findById và findBetweenUsers bằng Promise.all', async () => {
+    let findByIdCalled = false;
+    let findBetweenUsersCalled = false;
+
+    mockUserRepo.findById.mockImplementation(async () => {
+      findByIdCalled = true;
+      return mockTargetUser;
+    });
+
+    mockFriendshipRepo.findBetweenUsers.mockImplementation(async () => {
+      findBetweenUsersCalled = true;
+      return null;
+    });
+
+    const savedProps: FriendshipProps = {
+      id: 'friendship-id-1',
+      requesterId,
+      addresseeId,
+      status: FriendshipStatus.PENDING,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    mockFriendshipRepo.save.mockResolvedValue(savedProps);
+
+    await useCase.execute(requesterId, addresseeId);
+
+    expect(findByIdCalled).toBe(true);
+    expect(findBetweenUsersCalled).toBe(true);
+  });
+
   it('nên tự động chấp nhận và trở thành bạn bè khi đối phương đã gửi lời mời trước đó', async () => {
     mockUserRepo.findById.mockResolvedValue(mockTargetUser);
 
@@ -160,13 +190,18 @@ describe('SendFriendRequestUseCase', () => {
     expect(mockFriendshipRepo.save).not.toHaveBeenCalled();
   });
 
-  it('nên ném lỗi khi người nhận không tồn tại', async () => {
+  it('nên ném lỗi khi người nhận không tồn tại (chạy song song findById và findBetweenUsers)', async () => {
     mockUserRepo.findById.mockResolvedValue(null);
+    mockFriendshipRepo.findBetweenUsers.mockResolvedValue(null);
 
     await expect(useCase.execute(requesterId, addresseeId)).rejects.toThrow(
       DomainValidationException,
     );
-    expect(mockFriendshipRepo.findBetweenUsers).not.toHaveBeenCalled();
+    expect(mockUserRepo.findById).toHaveBeenCalledWith(addresseeId);
+    expect(mockFriendshipRepo.findBetweenUsers).toHaveBeenCalledWith(
+      requesterId,
+      addresseeId,
+    );
     expect(mockFriendshipRepo.save).not.toHaveBeenCalled();
   });
 });

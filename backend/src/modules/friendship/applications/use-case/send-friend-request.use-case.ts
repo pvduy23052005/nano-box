@@ -16,18 +16,17 @@ export class SendFriendRequestUseCase {
     requesterId: string,
     addresseeId: string,
   ): Promise<FriendshipProps> {
-    const addressee = await this.userRepository.findById(addresseeId);
+    const [addressee, friendship] = await Promise.all([
+      this.userRepository.findById(addresseeId),
+      this.friendshipRepository.findBetweenUsers(requesterId, addresseeId),
+    ]);
+
     if (!addressee) {
       throw new DomainValidationException(
         'addresseeId',
         'Người dùng nhận lời mời không tồn tại',
       );
     }
-
-    const friendship = await this.friendshipRepository.findBetweenUsers(
-      requesterId,
-      addresseeId,
-    );
 
     if (friendship?.isAccepted()) {
       throw new DomainValidationException('status', 'Hai người đã là bạn bè');

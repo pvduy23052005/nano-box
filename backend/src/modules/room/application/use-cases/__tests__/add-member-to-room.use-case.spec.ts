@@ -99,6 +99,33 @@ describe('AddMemberToRoomUseCase', () => {
     expect(result.members.some((m) => m.userId === targetFriendId)).toBe(true);
   });
 
+  it('nên chạy song song findById và checkAllAreFriends bằng Promise.all', async () => {
+    let findByIdCalled = false;
+    let checkAllAreFriendsCalled = false;
+
+    roomRepository.findById.mockImplementation(async () => {
+      findByIdCalled = true;
+      return mockGroupRoom;
+    });
+
+    friendshipRepository.checkAllAreFriends.mockImplementation(async () => {
+      checkAllAreFriendsCalled = true;
+      return true;
+    });
+
+    roomRepository.save.mockImplementation((roomEntity) =>
+      Promise.resolve(roomEntity.toObject()),
+    );
+
+    await useCase.execute(superAdminId, {
+      roomId: validRoomId,
+      userId: targetFriendId,
+    });
+
+    expect(findByIdCalled).toBe(true);
+    expect(checkAllAreFriendsCalled).toBe(true);
+  });
+
   it('nên thêm thành viên thành công khi người gọi là ADMIN và hai người là bạn bè', async () => {
     roomRepository.findById.mockResolvedValue(mockGroupRoom);
     friendshipRepository.checkAllAreFriends.mockResolvedValue(true);
