@@ -1,6 +1,6 @@
 import { LoginResponse } from '../dto/login.type';
 import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
-import { IpasswordHasher } from 'src/modules/user/applications/ports/password-hasher.port';
+import { IPasswordHasher } from 'src/modules/user/applications/ports/password-hasher.port';
 import { ITokenGenerator } from '../ports/token-generator.port';
 import { IGoogleAuthVerifier } from '../ports/google-auth-verifier.port';
 import { UserEntity } from 'src/modules/user/domain/user.entity';
@@ -10,7 +10,7 @@ import { DomainValidationException } from 'src/common/customs/domain-validation.
 export class LoginGoogleUseCase {
   constructor(
     private readonly userRepository: UserRepositoryAdapter,
-    private readonly passwordHasher: IpasswordHasher,
+    private readonly passwordHasher: IPasswordHasher,
     private readonly tokenGenerator: ITokenGenerator,
     private readonly googleAuthVerifier: IGoogleAuthVerifier,
   ) {}

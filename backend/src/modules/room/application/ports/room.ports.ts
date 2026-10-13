@@ -51,9 +51,10 @@ export abstract class RoomRepositoryAdapter {
 
   abstract isUserMember?(roomId: string, userId: string): Promise<boolean>;
 
-  abstract findRoomMembers(
+  abstract findRoomMembers(roomId: string): Promise<RoomMembersResult | null>;
+
+  abstract findRoomMembersWithProfile(
     roomId: string,
-    includeProfile?: boolean,
   ): Promise<RoomMembersResult | null>;
 
   abstract findRelatedUserIdsByRooms(

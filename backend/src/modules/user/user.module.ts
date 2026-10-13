@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { IpasswordHasher } from './applications/ports/password-hasher.port';
+import { IPasswordHasher } from './applications/ports/password-hasher.port';
 import { UserRepositoryAdapter } from './applications/ports/user.port';
 import { GetMeUseCase } from './applications/use-case/get-me.use-case';
 import { GetUsersUseCase } from './applications/use-case/get-users.use-case';
@@ -22,16 +22,16 @@ import { UserResolver } from './presentation/graphql/user.resolver';
       useClass: UserRepository,
     },
     {
-      provide: IpasswordHasher,
+      provide: IPasswordHasher,
       useClass: PasswordHasher,
     },
     {
       provide: RegisterUseCase,
       useFactory: (
         userRepository: UserRepositoryAdapter,
-        passwordHasher: IpasswordHasher,
+        passwordHasher: IPasswordHasher,
       ) => new RegisterUseCase(userRepository, passwordHasher),
-      inject: [UserRepositoryAdapter, IpasswordHasher],
+      inject: [UserRepositoryAdapter, IPasswordHasher],
     },
     {
       provide: GetMeUseCase,
@@ -56,7 +56,7 @@ import { UserResolver } from './presentation/graphql/user.resolver';
     MongooseModule,
     RegisterUseCase,
     UserRepositoryAdapter,
-    IpasswordHasher,
+    IPasswordHasher,
     GetMeUseCase,
     UpdateProfileUseCase,
   ],

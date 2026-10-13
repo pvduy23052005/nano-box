@@ -52,9 +52,8 @@ export class AddEmojiMessageUseCase {
       });
     }
 
-    const room = await this.roomRepository.findRoomMembers(
+    const room = await this.roomRepository.findRoomMembersWithProfile(
       message.getRoomId(),
-      true,
     );
     if (!room) {
       throw new DomainValidationException({

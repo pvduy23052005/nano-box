@@ -307,44 +307,9 @@ export class RoomRepository implements RoomRepositoryAdapter {
     return count > 0;
   }
 
-  async findRoomMembers(
-    roomId: string,
-    includeProfile = false,
-  ): Promise<RoomMembersResult | null> {
+  async findRoomMembers(roomId: string): Promise<RoomMembersResult | null> {
     if (!roomId || !Types.ObjectId.isValid(roomId)) {
       return null;
-    }
-
-    if (includeProfile) {
-      const room = await this.roomModel
-        .findById(roomId)
-        .select('members')
-        .populate({
-          path: 'members.user_id',
-          select: 'name avatar',
-        })
-        .lean()
-        .exec();
-
-      if (!room) {
-        return null;
-      }
-
-      return {
-        roomId: room._id.toString(),
-        members: (room.members || []).map((member) => {
-          const rawUserId = member.user_id as unknown;
-          const user = isPopulatedUser(rawUserId) ? rawUserId : null;
-
-          return {
-            userId: getMemberUserId(rawUserId),
-            role: member.role,
-            status: member.status,
-            name: user?.name ?? null,
-            avatar: user?.avatar ?? null,
-          };
-        }),
-      };
     }
 
     const room = await this.roomModel
@@ -366,6 +331,44 @@ export class RoomRepository implements RoomRepositoryAdapter {
         name: null,
         avatar: null,
       })),
+    };
+  }
+
+  async findRoomMembersWithProfile(
+    roomId: string,
+  ): Promise<RoomMembersResult | null> {
+    if (!roomId || !Types.ObjectId.isValid(roomId)) {
+      return null;
+    }
+
+    const room = await this.roomModel
+      .findById(roomId)
+      .select('members')
+      .populate({
+        path: 'members.user_id',
+        select: 'name avatar',
+      })
+      .lean()
+      .exec();
+
+    if (!room) {
+      return null;
+    }
+
+    return {
+      roomId: room._id.toString(),
+      members: (room.members || []).map((member) => {
+        const rawUserId = member.user_id as unknown;
+        const user = isPopulatedUser(rawUserId) ? rawUserId : null;
+
+        return {
+          userId: getMemberUserId(rawUserId),
+          role: member.role,
+          status: member.status,
+          name: user?.name ?? null,
+          avatar: user?.avatar ?? null,
+        };
+      }),
     };
   }
 

@@ -34,10 +34,7 @@ export class SendSystemMessageUseCase {
 
     let memberIds = input.memberIds;
     if (memberIds === undefined) {
-      const room = await this.roomRepository.findRoomMembers(
-        input.roomId,
-        false,
-      );
+      const room = await this.roomRepository.findRoomMembers(input.roomId);
       if (!room) {
         throw new DomainValidationException({
           roomId: 'Phòng chat không tồn tại',

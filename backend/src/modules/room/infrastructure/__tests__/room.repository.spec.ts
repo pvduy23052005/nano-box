@@ -32,7 +32,7 @@ describe('RoomRepository - Lightweight methods', () => {
       expect(mockRoomModel.findById).not.toHaveBeenCalled();
     });
 
-    it('should query without populate when includeProfile is false', async () => {
+    it('should query without populate', async () => {
       const mockExec = jest.fn().mockResolvedValue({
         _id: new Types.ObjectId(validRoomId),
         members: [
@@ -52,7 +52,7 @@ describe('RoomRepository - Lightweight methods', () => {
       const mockSelect = jest.fn().mockReturnValue({ lean: mockLean });
       mockRoomModel.findById.mockReturnValue({ select: mockSelect });
 
-      const result = await roomRepository.findRoomMembers(validRoomId, false);
+      const result = await roomRepository.findRoomMembers(validRoomId);
 
       expect(mockRoomModel.findById).toHaveBeenCalledWith(validRoomId);
       expect(mockSelect).toHaveBeenCalledWith(
@@ -79,7 +79,28 @@ describe('RoomRepository - Lightweight methods', () => {
       });
     });
 
-    it('should query with user_id populate when includeProfile is true', async () => {
+    it('should return null if room not found in DB', async () => {
+      const mockExec = jest.fn().mockResolvedValue(null);
+      const mockLean = jest.fn().mockReturnValue({ exec: mockExec });
+      const mockSelect = jest.fn().mockReturnValue({ lean: mockLean });
+      mockRoomModel.findById.mockReturnValue({ select: mockSelect });
+
+      const result = await roomRepository.findRoomMembers(validRoomId);
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('findRoomMembersWithProfile', () => {
+    const validRoomId = new Types.ObjectId().toString();
+
+    it('should return null if roomId is invalid', async () => {
+      const result =
+        await roomRepository.findRoomMembersWithProfile('invalid-id');
+      expect(result).toBeNull();
+      expect(mockRoomModel.findById).not.toHaveBeenCalled();
+    });
+
+    it('should query with user_id populate', async () => {
       const mockExec = jest.fn().mockResolvedValue({
         _id: new Types.ObjectId(validRoomId),
         members: [
@@ -99,7 +120,8 @@ describe('RoomRepository - Lightweight methods', () => {
       const mockSelect = jest.fn().mockReturnValue({ populate: mockPopulate });
       mockRoomModel.findById.mockReturnValue({ select: mockSelect });
 
-      const result = await roomRepository.findRoomMembers(validRoomId, true);
+      const result =
+        await roomRepository.findRoomMembersWithProfile(validRoomId);
 
       expect(mockRoomModel.findById).toHaveBeenCalledWith(validRoomId);
       expect(mockSelect).toHaveBeenCalledWith('members');
@@ -124,10 +146,12 @@ describe('RoomRepository - Lightweight methods', () => {
     it('should return null if room not found in DB', async () => {
       const mockExec = jest.fn().mockResolvedValue(null);
       const mockLean = jest.fn().mockReturnValue({ exec: mockExec });
-      const mockSelect = jest.fn().mockReturnValue({ lean: mockLean });
+      const mockPopulate = jest.fn().mockReturnValue({ lean: mockLean });
+      const mockSelect = jest.fn().mockReturnValue({ populate: mockPopulate });
       mockRoomModel.findById.mockReturnValue({ select: mockSelect });
 
-      const result = await roomRepository.findRoomMembers(validRoomId, false);
+      const result =
+        await roomRepository.findRoomMembersWithProfile(validRoomId);
       expect(result).toBeNull();
     });
   });

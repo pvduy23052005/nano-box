@@ -177,7 +177,7 @@ export class MessageRepository implements MessageRepositoryAdapter {
     return {
       items: itemsToReturn.reverse().map((doc) => this.toDTO(doc)),
       nextCursor: nextCursor,
-      hasmore: hasMore,
+      hasMore,
     };
   }
 }

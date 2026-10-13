@@ -1,13 +1,13 @@
 import { UserEntity } from '../../domain/user.entity';
 import { RegisterInput, UserProfile } from '../dto/user.dto';
 import type { UserRepositoryAdapter } from '../ports/user.port';
-import { IpasswordHasher } from '../ports/password-hasher.port';
+import { IPasswordHasher } from '../ports/password-hasher.port';
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 
 export class RegisterUseCase {
   constructor(
     private readonly userRepository: UserRepositoryAdapter,
-    private readonly passwordHasher: IpasswordHasher,
+    private readonly passwordHasher: IPasswordHasher,
   ) {}
 
   async execute(input: RegisterInput): Promise<UserProfile> {

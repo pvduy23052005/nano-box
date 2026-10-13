@@ -2,7 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { UserModule } from '../user/user.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-import { IpasswordHasher } from '../user/applications/ports/password-hasher.port';
+import { IPasswordHasher } from '../user/applications/ports/password-hasher.port';
 import { UserRepositoryAdapter } from '../user/applications/ports/user.port';
 import { ITokenGenerator } from './applications/ports/token-generator.port';
 import { IGoogleAuthVerifier } from './applications/ports/google-auth-verifier.port';
@@ -44,16 +44,16 @@ import { AuthResolver } from './presentation/graphql/auth.resolver';
       provide: LoginUseCase,
       useFactory: (
         userRepository: UserRepositoryAdapter,
-        passwordHasher: IpasswordHasher,
+        passwordHasher: IPasswordHasher,
         tokenGenerator: ITokenGenerator,
       ) => new LoginUseCase(userRepository, passwordHasher, tokenGenerator),
-      inject: [UserRepositoryAdapter, IpasswordHasher, ITokenGenerator],
+      inject: [UserRepositoryAdapter, IPasswordHasher, ITokenGenerator],
     },
     {
       provide: LoginGoogleUseCase,
       useFactory: (
         userRepository: UserRepositoryAdapter,
-        passwordHasher: IpasswordHasher,
+        passwordHasher: IPasswordHasher,
         tokenGenerator: ITokenGenerator,
         googleAuthVerifier: IGoogleAuthVerifier,
       ) =>
@@ -65,7 +65,7 @@ import { AuthResolver } from './presentation/graphql/auth.resolver';
         ),
       inject: [
         UserRepositoryAdapter,
-        IpasswordHasher,
+        IPasswordHasher,
         ITokenGenerator,
         IGoogleAuthVerifier,
       ],

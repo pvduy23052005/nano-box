@@ -18,7 +18,7 @@ export class GetMessagesUseCase {
   ): Promise<PaginationResult<MessageType>> {
     const errors: Record<string, string> = {};
 
-    const room = await this.roomRepository.findRoomMembers(roomId, false);
+    const room = await this.roomRepository.findRoomMembers(roomId);
     if (!room) {
       errors.roomId = 'Phòng chat không tồn tại';
     } else {

@@ -16,9 +16,8 @@ export class SendMessageUseCase {
   ) {}
 
   async execute(messageData: MessageType): Promise<SendMessageOutputDto> {
-    const room = await this.roomRepository.findRoomMembers(
+    const room = await this.roomRepository.findRoomMembersWithProfile(
       messageData.roomId,
-      true,
     );
     if (!room) {
       throw new DomainValidationException({

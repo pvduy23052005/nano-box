@@ -66,6 +66,7 @@ describe('AddEmojiMessageUseCase', () => {
       acceptAllMembers: jest.fn(),
       deleteRoom: jest.fn(),
       findRoomMembers: jest.fn(),
+      findRoomMembersWithProfile: jest.fn(),
       findRelatedUserIdsByRooms: jest.fn(),
     };
 
@@ -121,7 +122,7 @@ describe('AddEmojiMessageUseCase', () => {
     messageRepository.findById.mockResolvedValue(
       MessageEntity.restore(mockMessageData),
     );
-    roomRepository.findRoomMembers.mockResolvedValue(null);
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue(null);
 
     await expect(
       addEmojiMessageUseCase.execute({
@@ -136,7 +137,7 @@ describe('AddEmojiMessageUseCase', () => {
     messageRepository.findById.mockResolvedValue(
       MessageEntity.restore(mockMessageData),
     );
-    roomRepository.findRoomMembers.mockResolvedValue({
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue({
       roomId: 'room-1',
       members: mockRoom.members,
     });
@@ -154,7 +155,7 @@ describe('AddEmojiMessageUseCase', () => {
     messageRepository.findById.mockResolvedValue(
       MessageEntity.restore(mockMessageData),
     );
-    roomRepository.findRoomMembers.mockResolvedValue({
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue({
       roomId: 'room-1',
       members: mockRoom.members,
     });
@@ -174,7 +175,9 @@ describe('AddEmojiMessageUseCase', () => {
       userId: 'user-1',
     });
 
-    expect(roomRepository.findRoomMembers).toHaveBeenCalledWith('room-1', true);
+    expect(roomRepository.findRoomMembersWithProfile).toHaveBeenCalledWith(
+      'room-1',
+    );
     expect(result.memberIds).toEqual(['user-1', 'user-2']);
     expect(result.reactorName).toBe('User 1');
     expect(result.reactorAvatar).toBe('https://example.com/avatar1.jpg');
@@ -191,7 +194,7 @@ describe('AddEmojiMessageUseCase', () => {
         reactions: [{ emoji: '👍', userIds: ['user-1'] }],
       }),
     );
-    roomRepository.findRoomMembers.mockResolvedValue({
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue({
       roomId: 'room-1',
       members: mockRoom.members,
     });
@@ -222,7 +225,7 @@ describe('AddEmojiMessageUseCase', () => {
         reactions: [{ emoji: '👍', userIds: ['user-1'] }],
       }),
     );
-    roomRepository.findRoomMembers.mockResolvedValue({
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue({
       roomId: 'room-1',
       members: mockRoom.members,
     });

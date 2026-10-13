@@ -1,6 +1,6 @@
 import { RegisterUseCase } from '../register.use-case';
 import { UserRepositoryAdapter } from '../../ports/user.port';
-import { IpasswordHasher } from '../../ports/password-hasher.port';
+import { IPasswordHasher } from '../../ports/password-hasher.port';
 import { UserEntity } from '../../../domain/user.entity';
 import { UserStatus } from '../../../domain/user.type';
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
@@ -12,7 +12,7 @@ const makeMockUserRepository = (): jest.Mocked<UserRepositoryAdapter> => ({
   findAll: jest.fn(),
 });
 
-const makeMockPasswordHasher = (): jest.Mocked<IpasswordHasher> => ({
+const makeMockPasswordHasher = (): jest.Mocked<IPasswordHasher> => ({
   hash: jest.fn(),
   compare: jest.fn(),
 });
@@ -30,7 +30,7 @@ const makePersistedUser = () =>
 describe('RegisterUseCase', () => {
   let registerUseCase: RegisterUseCase;
   let userRepository: jest.Mocked<UserRepositoryAdapter>;
-  let passwordHasher: jest.Mocked<IpasswordHasher>;
+  let passwordHasher: jest.Mocked<IPasswordHasher>;
 
   const validInput = {
     name: 'Nguyen Van A',

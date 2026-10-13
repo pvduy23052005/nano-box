@@ -16,7 +16,7 @@ export class SendFriendRequestUseCase {
     private readonly friendshipRepository: FriendshipRepositoryAdapter,
     private readonly userRepository: UserRepositoryAdapter,
     private readonly ensureFriendRoomUseCase: EnsureFriendRoomUseCase,
-  ) { }
+  ) {}
 
   async execute(
     requesterId: string,

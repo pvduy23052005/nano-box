@@ -59,7 +59,7 @@ export class ChatResolver {
         createdAt: msg.createdAt ? new Date(msg.createdAt) : null,
       })),
       nextCursor: result.nextCursor ?? null,
-      hasMore: result.hasmore,
+      hasMore: result.hasMore,
     };
   }
 
