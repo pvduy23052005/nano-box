@@ -26,12 +26,16 @@ describe('AddEmojiMessageUseCase', () => {
         role: MemberRole.ADMIN,
         status: MemberStatus.ACCEPTED,
         lastReadMessageId: null,
+        name: 'User 1',
+        avatar: 'https://example.com/avatar1.jpg',
       },
       {
         userId: 'user-2',
         role: MemberRole.MEMBER,
         status: MemberStatus.ACCEPTED,
         lastReadMessageId: null,
+        name: 'User 2',
+        avatar: 'https://example.com/avatar2.jpg',
       },
     ],
   };
@@ -59,6 +63,11 @@ describe('AddEmojiMessageUseCase', () => {
       findById: jest.fn(),
       updateLastMessageId: jest.fn(),
       updateMemberLastReadMessage: jest.fn(),
+      acceptAllMembers: jest.fn(),
+      deleteRoom: jest.fn(),
+      findRoomMembers: jest.fn(),
+      findRoomMembersWithProfile: jest.fn(),
+      findRelatedUserIdsByRooms: jest.fn(),
     };
 
     addEmojiMessageUseCase = new AddEmojiMessageUseCase(
@@ -113,7 +122,7 @@ describe('AddEmojiMessageUseCase', () => {
     messageRepository.findById.mockResolvedValue(
       MessageEntity.restore(mockMessageData),
     );
-    roomRepository.findById.mockResolvedValue(null);
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue(null);
 
     await expect(
       addEmojiMessageUseCase.execute({
@@ -128,7 +137,10 @@ describe('AddEmojiMessageUseCase', () => {
     messageRepository.findById.mockResolvedValue(
       MessageEntity.restore(mockMessageData),
     );
-    roomRepository.findById.mockResolvedValue(mockRoom);
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue({
+      roomId: 'room-1',
+      members: mockRoom.members,
+    });
 
     await expect(
       addEmojiMessageUseCase.execute({
@@ -143,14 +155,19 @@ describe('AddEmojiMessageUseCase', () => {
     messageRepository.findById.mockResolvedValue(
       MessageEntity.restore(mockMessageData),
     );
-    roomRepository.findById.mockResolvedValue(mockRoom);
-    messageRepository.update.mockImplementation(async (entity) => ({
-      id: entity.getId(),
-      roomId: entity.getRoomId(),
-      senderId: entity.getSenderId(),
-      content: entity.getContent(),
-      reactions: entity.getReactions(),
-    }));
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue({
+      roomId: 'room-1',
+      members: mockRoom.members,
+    });
+    messageRepository.update.mockImplementation((entity) =>
+      Promise.resolve({
+        id: entity.getId(),
+        roomId: entity.getRoomId(),
+        senderId: entity.getSenderId(),
+        content: entity.getContent(),
+        reactions: entity.getReactions(),
+      }),
+    );
 
     const result = await addEmojiMessageUseCase.execute({
       messageId: 'msg-1',
@@ -158,7 +175,12 @@ describe('AddEmojiMessageUseCase', () => {
       userId: 'user-1',
     });
 
+    expect(roomRepository.findRoomMembersWithProfile).toHaveBeenCalledWith(
+      'room-1',
+    );
     expect(result.memberIds).toEqual(['user-1', 'user-2']);
+    expect(result.reactorName).toBe('User 1');
+    expect(result.reactorAvatar).toBe('https://example.com/avatar1.jpg');
     expect(result.message.reactions).toEqual([
       { emoji: '👍', userIds: ['user-1'] },
     ]);
@@ -172,14 +194,19 @@ describe('AddEmojiMessageUseCase', () => {
         reactions: [{ emoji: '👍', userIds: ['user-1'] }],
       }),
     );
-    roomRepository.findById.mockResolvedValue(mockRoom);
-    messageRepository.update.mockImplementation(async (entity) => ({
-      id: entity.getId(),
-      roomId: entity.getRoomId(),
-      senderId: entity.getSenderId(),
-      content: entity.getContent(),
-      reactions: entity.getReactions(),
-    }));
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue({
+      roomId: 'room-1',
+      members: mockRoom.members,
+    });
+    messageRepository.update.mockImplementation((entity) =>
+      Promise.resolve({
+        id: entity.getId(),
+        roomId: entity.getRoomId(),
+        senderId: entity.getSenderId(),
+        content: entity.getContent(),
+        reactions: entity.getReactions(),
+      }),
+    );
 
     const result = await addEmojiMessageUseCase.execute({
       messageId: 'msg-1',
@@ -198,14 +225,19 @@ describe('AddEmojiMessageUseCase', () => {
         reactions: [{ emoji: '👍', userIds: ['user-1'] }],
       }),
     );
-    roomRepository.findById.mockResolvedValue(mockRoom);
-    messageRepository.update.mockImplementation(async (entity) => ({
-      id: entity.getId(),
-      roomId: entity.getRoomId(),
-      senderId: entity.getSenderId(),
-      content: entity.getContent(),
-      reactions: entity.getReactions(),
-    }));
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue({
+      roomId: 'room-1',
+      members: mockRoom.members,
+    });
+    messageRepository.update.mockImplementation((entity) =>
+      Promise.resolve({
+        id: entity.getId(),
+        roomId: entity.getRoomId(),
+        senderId: entity.getSenderId(),
+        content: entity.getContent(),
+        reactions: entity.getReactions(),
+      }),
+    );
 
     const result = await addEmojiMessageUseCase.execute({
       messageId: 'msg-1',

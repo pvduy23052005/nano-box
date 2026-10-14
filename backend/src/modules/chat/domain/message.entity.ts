@@ -24,7 +24,7 @@ export class MessageEntity {
     this.attachments = props.attachments || [];
     this.reactions = props.reactions || [];
     this.readBy = props.readBy || [];
-    this.isSystem = props.isSystem ?? (props.senderId === 'system');
+    this.isSystem = props.isSystem ?? props.senderId === 'system';
     this.createdAt = props.createdAt ?? null;
   }
 
@@ -46,7 +46,7 @@ export class MessageEntity {
     return new MessageEntity({
       ...props,
       roomId: props.roomId.trim(),
-      isSystem: props.isSystem ?? (props.senderId === 'system'),
+      isSystem: props.isSystem ?? props.senderId === 'system',
     });
   }
 

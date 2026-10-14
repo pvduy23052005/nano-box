@@ -28,7 +28,7 @@ export class Message {
   @Prop({ type: String, default: null })
   sender_name?: string | null;
 
-  @Prop({ required: true, index: true })
+  @Prop({ required: true })
   room_id: string;
 
   @Prop({ trim: true })
@@ -50,4 +50,4 @@ export class Message {
 export type MessageDocument = HydratedDocument<Message>;
 export const MessageSchema = SchemaFactory.createForClass(Message);
 
-MessageSchema.index({ room_id: 1, created_at: -1 });
+MessageSchema.index({ room_id: 1, _id: -1 });

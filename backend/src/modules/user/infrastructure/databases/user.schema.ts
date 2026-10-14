@@ -10,7 +10,7 @@ import { UserStatus } from 'src/modules/user/domain/user.type';
   collection: 'users',
 })
 export class User {
-  @Prop({ required: true, trim: true })
+  @Prop({ required: true, trim: true, index: true })
   name: string;
 
   @Prop({ required: true, unique: true, trim: true, index: true })
@@ -19,7 +19,7 @@ export class User {
   @Prop({ required: true })
   password: string;
 
-  @Prop({ default: UserStatus.ACTIVE, enum: UserStatus })
+  @Prop({ type: String, default: UserStatus.ACTIVE, enum: UserStatus })
   status: UserStatus;
 
   @Prop({ default: '' })

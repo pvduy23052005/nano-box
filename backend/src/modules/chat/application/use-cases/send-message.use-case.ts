@@ -16,24 +16,26 @@ export class SendMessageUseCase {
   ) {}
 
   async execute(messageData: MessageType): Promise<SendMessageOutputDto> {
-    const room = await this.roomRepository.findById(messageData.roomId);
+    const room = await this.roomRepository.findRoomMembersWithProfile(
+      messageData.roomId,
+    );
     if (!room) {
       throw new DomainValidationException({
         roomId: 'Phòng chat không tồn tại',
       });
     }
 
-    const isMember = room.members?.some(
+    const currentMember = room.members?.find(
       (member) => member.userId === messageData.senderId,
     );
-    if (!isMember) {
+    if (!currentMember) {
       throw new DomainValidationException({
         roomId: 'Bạn không phải thành viên của phòng này',
       });
     }
 
-    const senderAvatar = messageData.senderAvatar ?? messageData.avatar ?? null;
-    const senderName = messageData.senderName ?? null;
+    const senderAvatar = currentMember.avatar ?? null;
+    const senderName = currentMember.name ?? null;
 
     const newMessage = MessageEntity.create({
       ...messageData,

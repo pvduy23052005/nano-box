@@ -1,18 +1,26 @@
 import { MemberRole, MemberStatus, RoomType } from './chat.enum';
 import { RoomMember } from './member.object';
 import { LastMessageProps, RoomMemberProps, RoomProps } from './room.type';
-import { randomUUID } from 'node:crypto';
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 
+interface CreateRoomEntityData {
+  id?: string;
+  title: string | null;
+  typeRoom: RoomType;
+  lastMessageId: string | null | LastMessageProps;
+  avatar: string | null;
+  members: (RoomMember | RoomMemberProps)[];
+}
+
 export class RoomEntity {
-  private id: string;
+  private id?: string;
   private title: string | null;
   private typeRoom: RoomType;
   private lastMessageId: string | null | LastMessageProps;
   private avatar: string | null;
   private members: RoomMember[];
 
-  private constructor(data: RoomProps) {
+  private constructor(data: CreateRoomEntityData) {
     this.id = data.id;
     this.title = data.title;
     this.typeRoom = data.typeRoom;
@@ -34,13 +42,13 @@ export class RoomEntity {
     const errors: Record<string, string> = {};
 
     if (!myId) {
-      errors.myId = 'myId is required';
+      errors.myId = 'ID người dùng hiện tại là bắt buộc';
     }
     if (!memberId) {
-      errors.memberId = 'memberId is required';
+      errors.memberId = 'ID thành viên là bắt buộc';
     }
     if (Object.keys(errors).length > 0) {
-      throw new Error(JSON.stringify(errors));
+      throw new DomainValidationException(errors);
     }
 
     const members: RoomMember[] = [
@@ -49,7 +57,6 @@ export class RoomEntity {
     ];
 
     return new RoomEntity({
-      id: randomUUID(),
       title: null,
       typeRoom: RoomType.SINGLE,
       lastMessageId: null,
@@ -62,13 +69,13 @@ export class RoomEntity {
     const errors: Record<string, string> = {};
 
     if (!user1Id) {
-      errors.user1Id = 'user1Id is required';
+      errors.user1Id = 'ID người dùng thứ nhất là bắt buộc';
     }
     if (!user2Id) {
-      errors.user2Id = 'user2Id is required';
+      errors.user2Id = 'ID người dùng thứ hai là bắt buộc';
     }
     if (Object.keys(errors).length > 0) {
-      throw new Error(JSON.stringify(errors));
+      throw new DomainValidationException(errors);
     }
 
     const members: RoomMember[] = [
@@ -77,7 +84,6 @@ export class RoomEntity {
     ];
 
     return new RoomEntity({
-      id: randomUUID(),
       title: null,
       typeRoom: RoomType.SINGLE,
       lastMessageId: null,
@@ -118,7 +124,6 @@ export class RoomEntity {
     ];
 
     return new RoomEntity({
-      id: randomUUID(),
       title: cleanTitle,
       typeRoom: RoomType.GROUP,
       lastMessageId: null,
@@ -310,7 +315,8 @@ export class RoomEntity {
 
     if (isLeavingSuperAdmin && this.members.length > 0) {
       const candidateAdmin = this.members.find(
-        (member) => member.getRole() === MemberRole.ADMIN && member.isAccepted(),
+        (member) =>
+          member.getRole() === MemberRole.ADMIN && member.isAccepted(),
       );
       const successor =
         candidateAdmin ||
@@ -426,7 +432,7 @@ export class RoomEntity {
 
   public toObject(): RoomProps {
     return {
-      id: this.id,
+      id: this.id ?? '',
       title: this.title,
       typeRoom: this.typeRoom,
       lastMessageId: this.lastMessageId,
@@ -446,7 +452,7 @@ export class RoomEntity {
     };
   }
 
-  public getId(): string {
+  public getId(): string | undefined {
     return this.id;
   }
   public getTitle(): string | null {

@@ -5,6 +5,12 @@ import { FriendshipProps } from '../../domain/friendship.type';
 import { FriendshipRepositoryAdapter } from '../ports/friendship.port';
 import { EnsureFriendRoomUseCase } from 'src/modules/room/application/use-cases/ensure-friend-room.use-case';
 
+export interface SendFriendRequestOutputProps extends FriendshipProps {
+  requesterName?: string;
+  requesterAvatar?: string | null;
+  requesterEmail?: string;
+}
+
 export class SendFriendRequestUseCase {
   constructor(
     private readonly friendshipRepository: FriendshipRepositoryAdapter,
@@ -15,8 +21,20 @@ export class SendFriendRequestUseCase {
   async execute(
     requesterId: string,
     addresseeId: string,
-  ): Promise<FriendshipProps> {
-    const addressee = await this.userRepository.findById(addresseeId);
+  ): Promise<SendFriendRequestOutputProps> {
+    const [requester, addressee, friendship] = await Promise.all([
+      this.userRepository.findById(requesterId),
+      this.userRepository.findById(addresseeId),
+      this.friendshipRepository.findBetweenUsers(requesterId, addresseeId),
+    ]);
+
+    if (!requester) {
+      throw new DomainValidationException(
+        'requesterId',
+        'Người dùng gửi lời mời không tồn tại',
+      );
+    }
+
     if (!addressee) {
       throw new DomainValidationException(
         'addresseeId',
@@ -24,10 +42,11 @@ export class SendFriendRequestUseCase {
       );
     }
 
-    const friendship = await this.friendshipRepository.findBetweenUsers(
-      requesterId,
-      addresseeId,
-    );
+    const requesterProfile = {
+      requesterName: requester.getName() ?? 'Người dùng',
+      requesterAvatar: requester.getAvatar() ?? null,
+      requesterEmail: requester.getEmail() ?? undefined,
+    };
 
     if (friendship?.isAccepted()) {
       throw new DomainValidationException('status', 'Hai người đã là bạn bè');
@@ -44,10 +63,17 @@ export class SendFriendRequestUseCase {
       friendship.accept(requesterId);
       const saved = await this.friendshipRepository.save(friendship);
       await this.ensureFriendRoomUseCase.execute(requesterId, addresseeId);
-      return saved;
+      return {
+        ...saved,
+        ...requesterProfile,
+      };
     }
 
     const newFriendship = FriendshipEntity.create(requesterId, addresseeId);
-    return await this.friendshipRepository.save(newFriendship);
+    const saved = await this.friendshipRepository.save(newFriendship);
+    return {
+      ...saved,
+      ...requesterProfile,
+    };
   }
 }

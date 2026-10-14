@@ -24,10 +24,10 @@ export class FriendshipEntity {
   ): FriendshipEntity {
     const errors: Record<string, string> = {};
     if (!requesterId) {
-      errors.requesterId = 'Người gửi Không được để trống';
+      errors.requesterId = 'Người gửi không được để trống';
     }
     if (!addresseeId) {
-      errors.addresseeId = 'Người nhận Không được để trống';
+      errors.addresseeId = 'Người nhận không được để trống';
     }
     if (requesterId === addresseeId) {
       errors.addresseeId = 'Không thể gửi lời mời cho chính mình';
@@ -54,7 +54,7 @@ export class FriendshipEntity {
       errors.addresseeId = 'Không có quyền chấp nhận lời mời kết bạn này';
     }
     if (this.status !== FriendshipStatus.PENDING) {
-      errors.status = `Không thể chấp nhận lời mời ở trạng thái ${this.status}`;
+      errors.status = 'Không thể chấp nhận lời mời đã kết thúc hoặc không ở trạng thái chờ';
     }
 
     if (Object.keys(errors).length > 0) {

@@ -1,6 +1,6 @@
 import { LoginUseCase } from '../login.use-case';
 import { ITokenGenerator } from '../../ports/token-generator.port';
-import { IpasswordHasher } from 'src/modules/user/applications/ports/password-hasher.port';
+import { IPasswordHasher } from 'src/modules/user/applications/ports/password-hasher.port';
 import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
 import { UserEntity } from 'src/modules/user/domain/user.entity';
 import { UserStatus } from 'src/modules/user/domain/user.type';
@@ -13,7 +13,7 @@ const makeMockUserRepository = (): jest.Mocked<UserRepositoryAdapter> => ({
   findAll: jest.fn(),
 });
 
-const makeMockPasswordHasher = (): jest.Mocked<IpasswordHasher> => ({
+const makeMockPasswordHasher = (): jest.Mocked<IPasswordHasher> => ({
   hash: jest.fn(),
   compare: jest.fn(),
 });
@@ -35,7 +35,7 @@ const makePersistedUser = () =>
 describe('LoginUseCase', () => {
   let loginUseCase: LoginUseCase;
   let userRepository: jest.Mocked<UserRepositoryAdapter>;
-  let passwordHasher: jest.Mocked<IpasswordHasher>;
+  let passwordHasher: jest.Mocked<IPasswordHasher>;
   let tokenGenerator: jest.Mocked<ITokenGenerator>;
 
   const validInput = {
@@ -125,6 +125,15 @@ describe('LoginUseCase', () => {
         await expect(loginUseCase.execute(validInput)).rejects.toThrow();
 
         expect(tokenGenerator.generateToken).not.toHaveBeenCalled();
+      });
+
+      it('nên so sánh mật khẩu với dummy hash để chống timing attack', async () => {
+        await expect(loginUseCase.execute(validInput)).rejects.toThrow();
+
+        expect(passwordHasher.compare).toHaveBeenCalledWith(
+          validInput.password,
+          expect.stringMatching(/^\$2[aby]?\$\d+\$/),
+        );
       });
     });
 

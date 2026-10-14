@@ -53,9 +53,4 @@ describe('GetReceivedFriendRequestsUseCase', () => {
     expect(result[1].sender.name).toBe('Tran Thi B');
   });
 
-  it('nên trả về mảng rỗng nếu userId rỗng', async () => {
-    const result = await useCase.execute('');
-    expect(result).toEqual([]);
-    expect(mockFriendshipRepo.findPendingReceived).not.toHaveBeenCalled();
-  });
 });

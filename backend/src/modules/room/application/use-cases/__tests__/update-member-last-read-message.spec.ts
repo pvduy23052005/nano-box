@@ -1,7 +1,6 @@
 import { UpdateMemberLastReadMessageUseCase } from '../update-member-last-read-message';
 import { RoomRepositoryAdapter } from '../../ports/room.ports';
-import { RoomProps } from '../../../domain/room.type';
-import { RoomType, MemberRole, MemberStatus } from '../../../domain/chat.enum';
+import { MemberRole, MemberStatus } from '../../../domain/chat.enum';
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 
 const makeMockRoomRepository = (): jest.Mocked<RoomRepositoryAdapter> => ({
@@ -11,6 +10,10 @@ const makeMockRoomRepository = (): jest.Mocked<RoomRepositoryAdapter> => ({
   findById: jest.fn(),
   updateLastMessageId: jest.fn(),
   updateMemberLastReadMessage: jest.fn(),
+  acceptAllMembers: jest.fn(),
+  deleteRoom: jest.fn(),
+  findRoomMembers: jest.fn(),
+  findRelatedUserIdsByRooms: jest.fn(),
 });
 
 describe('UpdateMemberLastReadMessageUseCase', () => {
@@ -21,12 +24,8 @@ describe('UpdateMemberLastReadMessageUseCase', () => {
   const userId = '123456123456123456123456';
   const messageId = '789101112131415161718192';
 
-  const mockRoom: RoomProps = {
-    id: roomId,
-    title: 'Test Room',
-    typeRoom: RoomType.SINGLE,
-    lastMessageId: null,
-    avatar: null,
+  const mockRoomMembers = {
+    roomId: roomId,
     members: [
       {
         userId: userId,
@@ -42,7 +41,7 @@ describe('UpdateMemberLastReadMessageUseCase', () => {
   });
 
   it('should throw DomainValidationException if room does not exist', async () => {
-    roomRepository.findById.mockResolvedValue(null);
+    roomRepository.findRoomMembers.mockResolvedValue(null);
 
     await expect(useCase.execute(roomId, userId, messageId)).rejects.toThrow(
       DomainValidationException,
@@ -51,8 +50,8 @@ describe('UpdateMemberLastReadMessageUseCase', () => {
   });
 
   it('should throw DomainValidationException if user is not a member of the room', async () => {
-    roomRepository.findById.mockResolvedValue({
-      ...mockRoom,
+    roomRepository.findRoomMembers.mockResolvedValue({
+      roomId: roomId,
       members: [
         {
           userId: 'another-user',
@@ -69,12 +68,12 @@ describe('UpdateMemberLastReadMessageUseCase', () => {
   });
 
   it('should call roomRepository.updateMemberLastReadMessage and return true when successful', async () => {
-    roomRepository.findById.mockResolvedValue(mockRoom);
+    roomRepository.findRoomMembers.mockResolvedValue(mockRoomMembers);
     roomRepository.updateMemberLastReadMessage.mockResolvedValue(true);
 
     const result = await useCase.execute(roomId, userId, messageId);
 
-    expect(roomRepository.findById).toHaveBeenCalledWith(roomId);
+    expect(roomRepository.findRoomMembers).toHaveBeenCalledWith(roomId);
     expect(roomRepository.updateMemberLastReadMessage).toHaveBeenCalledWith(
       roomId,
       userId,
@@ -85,7 +84,7 @@ describe('UpdateMemberLastReadMessageUseCase', () => {
   });
 
   it('should return false if roomRepository returns false', async () => {
-    roomRepository.findById.mockResolvedValue(mockRoom);
+    roomRepository.findRoomMembers.mockResolvedValue(mockRoomMembers);
     roomRepository.updateMemberLastReadMessage.mockResolvedValue(false);
 
     const result = await useCase.execute(roomId, userId, messageId);

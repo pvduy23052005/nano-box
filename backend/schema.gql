@@ -204,7 +204,7 @@ type Query {
   getRoomDetail(roomId: String!): RoomOutput!
   getRoomsByStatus(search: String, status: MemberStatus!): [RoomOutput!]!
   getUnreadNotificationCount: Int!
-  getUsers(search: String): [UserProfilePayload!]!
+  getUsers(limit: Int, search: String): [UserProfilePayload!]!
 }
 
 type ReactionPayload {

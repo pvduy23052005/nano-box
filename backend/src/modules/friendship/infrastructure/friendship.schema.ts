@@ -14,7 +14,6 @@ export class Friendship {
     type: MongooseSchema.Types.ObjectId,
     ref: 'User',
     required: true,
-    index: true,
   })
   requester_id: string;
 
@@ -22,7 +21,6 @@ export class Friendship {
     type: MongooseSchema.Types.ObjectId,
     ref: 'User',
     required: true,
-    index: true,
   })
   addressee_id: string;
 

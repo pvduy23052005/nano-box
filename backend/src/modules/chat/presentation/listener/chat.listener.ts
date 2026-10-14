@@ -12,6 +12,7 @@ import {
 import type { RoomProps } from 'src/modules/room/domain/room.type';
 import { CHAT_SOCKET_EVENTS } from '../gateway/event.type';
 import { SendSystemMessageUseCase } from '../../application/use-cases/send-system-message.use-case';
+import { ChatGateway } from '../gateway/chat.gateway';
 
 @Injectable()
 export class ChatListener {
@@ -20,6 +21,7 @@ export class ChatListener {
   constructor(
     private readonly sendSystemMessageUseCase: SendSystemMessageUseCase,
     private readonly websocketService: WebsocketService,
+    private readonly chatGateway: ChatGateway,
   ) {}
 
   private async sendRoomSystemMessage(params: {
@@ -42,25 +44,30 @@ export class ChatListener {
       const displayTarget = targetUserName || 'thành viên';
       const content = buildContent(displayActor, displayTarget);
 
-      const { message, memberIds: roomMemberIds } =
+      const roomMemberIds = (room.members || [])
+        .map((member) => member.userId)
+        .filter(Boolean);
+
+      const { message, memberIds: returnedMemberIds } =
         await this.sendSystemMessageUseCase.execute({
           roomId: room.id,
           content,
           senderName: 'Hệ thống',
+          memberIds: roomMemberIds,
         });
 
       const recipientIds = Array.from(
         new Set(
           [
-            ...(room.members || []).map((member) => member.userId),
-            ...(roomMemberIds || []),
+            ...roomMemberIds,
+            ...(returnedMemberIds || []),
             ...(extraRecipientId ? [extraRecipientId] : []),
           ].filter(Boolean),
         ),
       );
 
       this.websocketService.server
-        ?.to([...recipientIds, room.id])
+        ?.to(recipientIds)
         ?.emit(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, message);
     } catch (error) {
       this.logger.error(
@@ -72,6 +79,12 @@ export class ChatListener {
 
   @OnEvent(ROOM_EVENTS.MEMBER_ADDED)
   async handleRoomMemberAdded(payload: RoomMemberAddedPayload): Promise<void> {
+    const roomId = payload.room?.id;
+    const addedUserId = payload.addedUserId;
+    if (roomId && addedUserId) {
+      this.chatGateway.clearMembershipCache(roomId, addedUserId);
+    }
+
     const added = (payload.room.members || []).find(
       (member) => member.userId === payload.addedUserId,
     );
@@ -88,6 +101,14 @@ export class ChatListener {
   async handleRoomMemberRemoved(
     payload: RoomMemberRemovedPayload,
   ): Promise<void> {
+    const roomId = payload.room?.id;
+    const removedUserId = payload.removedUserId;
+
+    if (roomId && removedUserId) {
+      this.chatGateway.clearMembershipCache(roomId, removedUserId);
+      this.websocketService.server?.in(removedUserId)?.socketsLeave(roomId);
+    }
+
     await this.sendRoomSystemMessage({
       room: payload.room,
       actorId: payload.actorId,
@@ -134,6 +155,14 @@ export class ChatListener {
 
   @OnEvent(ROOM_EVENTS.MEMBER_LEFT)
   async handleRoomMemberLeft(payload: RoomMemberLeftPayload): Promise<void> {
+    const roomId = payload.roomId;
+    const actorId = payload.actorId;
+
+    if (roomId && actorId) {
+      this.chatGateway.clearMembershipCache(roomId, actorId);
+      this.websocketService.server?.in(actorId)?.socketsLeave(roomId);
+    }
+
     if (payload.isRoomEmpty || !payload.room) return;
     await this.sendRoomSystemMessage({
       room: payload.room,

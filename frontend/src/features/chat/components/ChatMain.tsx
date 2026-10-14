@@ -9,6 +9,7 @@ import ChatMessage from "./ChatMessage";
 import ChatSystemMessage from "./ChatSystemMessage";
 import ChatTypingIndicator from "./ChatTypingIndicator";
 import { useMarkAsRead } from "../hooks/useMarkAsRead";
+import { useChatRoomSubscription } from "../hooks/useChatRoomSubscription";
 import { useTypingStore } from "../stores/useTypingStore";
 import { useReadReceiptStore } from "../stores/useReadReceiptStore";
 import { useRoomStore } from "../../room/stores/useRoomStore";
@@ -36,6 +37,7 @@ export default function ChatMain() {
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  useChatRoomSubscription(activeRoomId);
   useMarkAsRead(activeRoomId, messages);
 
   const typingList = useMemo(() => {

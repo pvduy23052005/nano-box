@@ -4,6 +4,7 @@ import type { TokenPayload } from 'src/modules/auth/applications/dto/login.type'
 export interface AppSocketData {
   user?: TokenPayload;
   userId?: string;
+  relatedUserIds?: string[];
 }
 
 export type AuthenticatedSocket = Socket<

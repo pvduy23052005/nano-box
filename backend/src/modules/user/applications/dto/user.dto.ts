@@ -9,3 +9,10 @@ export interface UpdateProfileInput {
   name?: string;
   avatar?: string;
 }
+
+export interface RegisterInput {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword?: string;
+}

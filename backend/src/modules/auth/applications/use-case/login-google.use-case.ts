@@ -1,30 +1,22 @@
 import { LoginResponse } from '../dto/login.type';
 import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
-import { IpasswordHasher } from 'src/modules/user/applications/ports/password-hasher.port';
+import { IPasswordHasher } from 'src/modules/user/applications/ports/password-hasher.port';
 import { ITokenGenerator } from '../ports/token-generator.port';
+import { IGoogleAuthVerifier } from '../ports/google-auth-verifier.port';
 import { UserEntity } from 'src/modules/user/domain/user.entity';
 import * as crypto from 'crypto';
-import { OAuth2Client } from 'google-auth-library';
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 
 export class LoginGoogleUseCase {
-  private client: OAuth2Client;
-
   constructor(
     private readonly userRepository: UserRepositoryAdapter,
-    private readonly passwordHasher: IpasswordHasher,
+    private readonly passwordHasher: IPasswordHasher,
     private readonly tokenGenerator: ITokenGenerator,
-  ) {
-    this.client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-  }
+    private readonly googleAuthVerifier: IGoogleAuthVerifier,
+  ) {}
 
   async execute(idToken: string): Promise<LoginResponse> {
-    const ticket = await this.client.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-
-    const payload = ticket.getPayload();
+    const payload = await this.googleAuthVerifier.verify(idToken);
 
     if (!payload || !payload.email) {
       throw new DomainValidationException({
@@ -41,7 +33,7 @@ export class LoginGoogleUseCase {
         email: payload.email || '',
         name: payload.name || 'Google User',
         password: hashedPassword,
-        avatar: payload.picture || '',
+        avatar: payload.picture ?? '',
       });
       user = await this.userRepository.save(newUser);
     }
@@ -55,7 +47,7 @@ export class LoginGoogleUseCase {
       accessToken,
       user: {
         id: user.getId() || '',
-        name: user.getName() || '',
+        name: user.getName(),
         email: user.getEmail(),
       },
     };

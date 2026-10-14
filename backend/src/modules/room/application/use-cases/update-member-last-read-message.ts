@@ -1,7 +1,7 @@
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 import { RoomRepositoryAdapter } from '../ports/room.ports';
 
-export interface UpdateMemberLastReadOuput {
+export interface UpdateMemberLastReadOutput {
   isSuccess: boolean;
   memberIds: string[];
 }
@@ -13,8 +13,8 @@ export class UpdateMemberLastReadMessageUseCase {
     roomId: string,
     userId: string,
     messageId: string,
-  ): Promise<UpdateMemberLastReadOuput> {
-    const room = await this.roomRepository.findById(roomId);
+  ): Promise<UpdateMemberLastReadOutput> {
+    const room = await this.roomRepository.findRoomMembers(roomId);
     const isMember = room?.members?.some((member) => member.userId === userId);
 
     const errors: Record<string, string> = {};

@@ -55,11 +55,11 @@ export class ChatResolver {
         attachments: msg.attachments || [],
         readBy: msg.readBy || [],
         reactions: msg.reactions || [],
-        isSystem: msg.isSystem ?? (msg.senderId === 'system'),
+        isSystem: msg.isSystem ?? msg.senderId === 'system',
         createdAt: msg.createdAt ? new Date(msg.createdAt) : null,
       })),
       nextCursor: result.nextCursor ?? null,
-      hasMore: result.hasmore,
+      hasMore: result.hasMore,
     };
   }
 
@@ -84,8 +84,6 @@ export class ChatResolver {
     const { message, memberIds } = await this.sendMessageUseCase.execute({
       content: input.content,
       senderId: userId,
-      senderAvatar: input.senderAvatar,
-      senderName: input.senderName,
       roomId: input.roomId,
       attachments,
     });
@@ -98,9 +96,7 @@ export class ChatResolver {
 
     const server = this.webSocketService.server;
     if (server && memberIds.length) {
-      server
-        .to([...memberIds, input.roomId])
-        .emit(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, message);
+      server.to(memberIds).emit(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, message);
     }
 
     return {
@@ -114,16 +110,17 @@ export class ChatResolver {
     @Args('input') input: AddEmojiMessageInput,
     @CurrentUser('id') userId: string,
   ): Promise<ChatPayload> {
-    const { message, memberIds } = await this.addEmojiMessageUseCase.execute({
-      messageId: input.messageId,
-      emoji: input.emoji,
-      userId,
-    });
+    const { message, memberIds, reactorName, reactorAvatar } =
+      await this.addEmojiMessageUseCase.execute({
+        messageId: input.messageId,
+        emoji: input.emoji,
+        userId,
+      });
 
     const server = this.webSocketService.server;
     if (server && memberIds.length) {
       server
-        .to([...memberIds, message.roomId])
+        .to(memberIds)
         .emit(CHAT_SOCKET_EVENTS.UPDATE_MESSAGE_REACTION, message);
     }
 
@@ -131,8 +128,8 @@ export class ChatResolver {
       message,
       memberIds,
       reactorId: userId,
-      reactorName: input.userName,
-      reactorAvatar: input.userAvatar,
+      reactorName: reactorName ?? undefined,
+      reactorAvatar: reactorAvatar ?? undefined,
       emoji: input.emoji,
     });
 

@@ -14,6 +14,9 @@ import { WebsocketService } from './ws.service';
 import { PresenceService } from './presence.service';
 import type { TokenPayload } from 'src/modules/auth/applications/dto/login.type';
 import { type AuthenticatedSocket, PRESENCE_SOCKET_EVENTS } from './ws.type';
+import { RoomRepositoryAdapter } from 'src/modules/room/application/ports/room.ports';
+import { FriendshipRepositoryAdapter } from 'src/modules/friendship/applications/ports/friendship.port';
+import { MemberStatus } from 'src/modules/room/domain/chat.enum';
 
 @WebSocketGateway({
   cors: {
@@ -42,11 +45,23 @@ export class WebsocketGateway
   @WebSocketServer()
   server: Server;
 
+  private readonly relatedUsersCache = new Map<
+    string,
+    { ids: string[]; expiresAt: number }
+  >();
+  private readonly CACHE_TTL_MS = 5 * 60 * 1000;
+
   constructor(
     private readonly websocketService: WebsocketService,
     private readonly jwtService: JwtService,
     private readonly presenceService: PresenceService,
+    private readonly roomRepository: RoomRepositoryAdapter,
+    private readonly friendshipRepository: FriendshipRepositoryAdapter,
   ) {}
+
+  public clearUserRelatedCache(userId: string): void {
+    this.relatedUsersCache.delete(userId);
+  }
 
   afterInit(server: Server) {
     this.websocketService.server = server;
@@ -56,7 +71,7 @@ export class WebsocketGateway
         try {
           const token = this.extractToken(socket);
           if (!token) {
-            return next(new Error('Unauthorized: Thiếu token xác thực'));
+            return next(new Error('Thiếu token xác thực'));
           }
 
           const payload =
@@ -65,13 +80,13 @@ export class WebsocketGateway
           socket.data.userId = payload.id;
           next();
         } catch {
-          next(new Error('Unauthorized: Token không hợp lệ hoặc đã hết hạn'));
+          next(new Error('Token không hợp lệ hoặc đã hết hạn'));
         }
       })();
     });
   }
 
-  handleConnection(client: AuthenticatedSocket) {
+  async handleConnection(client: AuthenticatedSocket) {
     const userId = client.data.userId;
     if (userId) {
       void client.join(userId);
@@ -81,15 +96,24 @@ export class WebsocketGateway
         client.id,
       );
 
-      client.emit(
-        PRESENCE_SOCKET_EVENTS.INITIAL_ONLINE_USERS,
-        this.presenceService.getOnlineUserIds(),
+      const relatedUserIds = await this.getRelatedUserIds(userId);
+      client.data.relatedUserIds = relatedUserIds;
+
+      const onlineRelatedUserIds = relatedUserIds.filter((id) =>
+        this.presenceService.isUserOnline(id),
       );
 
-      if (isJustOnline) {
-        client.broadcast.emit(PRESENCE_SOCKET_EVENTS.USER_ONLINE, {
-          userId,
-        });
+      client.emit(
+        PRESENCE_SOCKET_EVENTS.INITIAL_ONLINE_USERS,
+        onlineRelatedUserIds,
+      );
+
+      if (isJustOnline && relatedUserIds.length > 0) {
+        this.server
+          .to(relatedUserIds)
+          .emit(PRESENCE_SOCKET_EVENTS.USER_ONLINE, {
+            userId,
+          });
       }
     }
   }
@@ -98,10 +122,17 @@ export class WebsocketGateway
   handleLogout(client: AuthenticatedSocket) {
     const userId = client.data.userId;
     if (userId) {
+      const relatedUserIds =
+        client.data.relatedUserIds ?? this.getCachedRelatedUserIds(userId);
+
       this.presenceService.removeUserImmediately(userId, () => {
-        this.server.emit(PRESENCE_SOCKET_EVENTS.USER_OFFLINE, {
-          userId,
-        });
+        if (relatedUserIds && relatedUserIds.length > 0) {
+          this.server
+            .to(relatedUserIds)
+            .emit(PRESENCE_SOCKET_EVENTS.USER_OFFLINE, {
+              userId,
+            });
+        }
       });
       client.disconnect(true);
     }
@@ -110,11 +141,78 @@ export class WebsocketGateway
   handleDisconnect(client: AuthenticatedSocket) {
     const userId = client.data.userId;
     if (userId) {
+      const relatedUserIds =
+        client.data.relatedUserIds ?? this.getCachedRelatedUserIds(userId);
+
       this.presenceService.removeConnection(userId, client.id, () => {
-        this.server.emit(PRESENCE_SOCKET_EVENTS.USER_OFFLINE, {
-          userId,
-        });
+        const targetIds =
+          relatedUserIds ?? this.getCachedRelatedUserIds(userId);
+        if (targetIds && targetIds.length > 0) {
+          this.server.to(targetIds).emit(PRESENCE_SOCKET_EVENTS.USER_OFFLINE, {
+            userId,
+          });
+        }
       });
+    }
+  }
+
+  private getCachedRelatedUserIds(userId: string): string[] | null {
+    const cached = this.relatedUsersCache.get(userId);
+    if (!cached) return null;
+    if (Date.now() > cached.expiresAt) {
+      this.relatedUsersCache.delete(userId);
+      return null;
+    }
+    return cached.ids;
+  }
+
+  private pruneExpiredCache(): void {
+    if (this.relatedUsersCache.size < 1000) return;
+    const now = Date.now();
+    for (const [key, item] of this.relatedUsersCache.entries()) {
+      if (now > item.expiresAt) {
+        this.relatedUsersCache.delete(key);
+      }
+    }
+  }
+
+  private async getRelatedUserIds(userId: string): Promise<string[]> {
+    const cached = this.getCachedRelatedUserIds(userId);
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      const [friends, roomMemberIds] = await Promise.all([
+        this.friendshipRepository.findFriends(userId),
+        this.roomRepository.findRelatedUserIdsByRooms(
+          userId,
+          MemberStatus.ACCEPTED,
+        ),
+      ]);
+
+      const relatedIds = new Set<string>();
+
+      for (const friend of friends) {
+        if (friend.id && friend.id !== userId) {
+          relatedIds.add(friend.id);
+        }
+      }
+
+      for (const memberId of roomMemberIds) {
+        relatedIds.add(memberId);
+      }
+
+      const result = Array.from(relatedIds);
+      this.pruneExpiredCache();
+      this.relatedUsersCache.set(userId, {
+        ids: result,
+        expiresAt: Date.now() + this.CACHE_TTL_MS,
+      });
+
+      return result;
+    } catch {
+      return [];
     }
   }
 

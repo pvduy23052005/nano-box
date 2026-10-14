@@ -71,8 +71,8 @@ describe('AddMemberToRoomUseCase', () => {
   it('nên thêm thành viên thành công khi người gọi là SUPER_ADMIN và hai người là bạn bè', async () => {
     roomRepository.findById.mockResolvedValue(mockGroupRoom);
     friendshipRepository.checkAllAreFriends.mockResolvedValue(true);
-    roomRepository.save.mockImplementation(async (roomEntity) =>
-      roomEntity.toObject(),
+    roomRepository.save.mockImplementation((roomEntity) =>
+      Promise.resolve(roomEntity.toObject()),
     );
 
     const result = await useCase.execute(superAdminId, {
@@ -93,17 +93,44 @@ describe('AddMemberToRoomUseCase', () => {
     const savedEntity = roomRepository.save.mock.calls[0][0];
     const newMember = savedEntity.getMember(targetFriendId);
     expect(newMember).toBeDefined();
-    expect(newMember?.role).toBe(MemberRole.MEMBER);
-    expect(newMember?.status).toBe(MemberStatus.ACCEPTED);
+    expect(newMember?.getRole()).toBe(MemberRole.MEMBER);
+    expect(newMember?.getStatus()).toBe(MemberStatus.ACCEPTED);
 
     expect(result.members.some((m) => m.userId === targetFriendId)).toBe(true);
+  });
+
+  it('nên chạy song song findById và checkAllAreFriends bằng Promise.all', async () => {
+    let findByIdCalled = false;
+    let checkAllAreFriendsCalled = false;
+
+    roomRepository.findById.mockImplementation(async () => {
+      findByIdCalled = true;
+      return mockGroupRoom;
+    });
+
+    friendshipRepository.checkAllAreFriends.mockImplementation(async () => {
+      checkAllAreFriendsCalled = true;
+      return true;
+    });
+
+    roomRepository.save.mockImplementation((roomEntity) =>
+      Promise.resolve(roomEntity.toObject()),
+    );
+
+    await useCase.execute(superAdminId, {
+      roomId: validRoomId,
+      userId: targetFriendId,
+    });
+
+    expect(findByIdCalled).toBe(true);
+    expect(checkAllAreFriendsCalled).toBe(true);
   });
 
   it('nên thêm thành viên thành công khi người gọi là ADMIN và hai người là bạn bè', async () => {
     roomRepository.findById.mockResolvedValue(mockGroupRoom);
     friendshipRepository.checkAllAreFriends.mockResolvedValue(true);
-    roomRepository.save.mockImplementation(async (roomEntity) =>
-      roomEntity.toObject(),
+    roomRepository.save.mockImplementation((roomEntity) =>
+      Promise.resolve(roomEntity.toObject()),
     );
 
     const result = await useCase.execute(adminId, {
@@ -133,8 +160,8 @@ describe('AddMemberToRoomUseCase', () => {
 
     roomRepository.findById.mockResolvedValue(roomWithWaitingMember);
     friendshipRepository.checkAllAreFriends.mockResolvedValue(true);
-    roomRepository.save.mockImplementation(async (roomEntity) =>
-      roomEntity.toObject(),
+    roomRepository.save.mockImplementation((roomEntity) =>
+      Promise.resolve(roomEntity.toObject()),
     );
 
     const result = await useCase.execute(superAdminId, {

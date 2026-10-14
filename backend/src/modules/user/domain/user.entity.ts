@@ -5,7 +5,7 @@ export class UserEntity {
   private id?: string;
   private name: string;
   private email: string;
-  private password: string;
+  private password?: string;
   private status: UserStatus;
   private avatar: string;
 
@@ -110,7 +110,7 @@ export class UserEntity {
     return this.email;
   }
   public getPassword(): string {
-    return this.password;
+    return this.password ?? '';
   }
   public getStatus(): UserStatus {
     return this.status;

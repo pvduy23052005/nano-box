@@ -55,11 +55,11 @@ export class FriendshipResolver {
 
   @Mutation(() => SendFriendRequestPayload)
   async sendFriendRequest(
-    @CurrentUser('id') userId: string,
+    @CurrentUser('id') myId: string,
     @Args('addresseeId') addresseeId: string,
   ): Promise<SendFriendRequestPayload> {
     const result = await this.sendFriendRequestUseCase.execute(
-      userId,
+      myId,
       addresseeId,
     );
 
@@ -70,16 +70,19 @@ export class FriendshipResolver {
 
     if (result.status === FriendshipStatus.PENDING) {
       this.eventEmitter.emit(NOTIFICATION_EVENTS.FRIEND_REQUEST, {
-        requesterId: userId,
+        requesterId: myId,
         addresseeId,
-        friendshipId: result.id || '',
+        friendshipId: result.id ?? '',
         createdAt: result.createdAt,
+        requesterName: result.requesterName || 'Người dùng',
+        requesterAvatar: result.requesterAvatar ?? null,
+        requesterEmail: result.requesterEmail,
       });
     } else if (result.status === FriendshipStatus.ACCEPTED) {
       this.websocketService.server
         .to(addresseeId)
         .emit(FRIENDSHIP_SOCKET_EVENTS.FRIEND_REQUEST_ACCEPTED, {
-          id: result.id || '',
+          id: result.id ?? '',
           requesterId: result.addresseeId,
           addresseeId: result.requesterId,
           status: result.status,
@@ -92,7 +95,7 @@ export class FriendshipResolver {
       success: true,
       message,
       data: {
-        id: result.id || '',
+        id: result.id ?? '',
         requesterId: result.requesterId,
         addresseeId: result.addresseeId,
         status: result.status,

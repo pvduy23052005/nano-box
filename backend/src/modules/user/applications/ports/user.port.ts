@@ -7,5 +7,5 @@ export abstract class UserRepositoryAdapter {
 
   abstract findById(id: string): Promise<UserEntity | null>;
 
-  abstract findAll(search?: string): Promise<UserEntity[]>;
+  abstract findAll(search?: string, limit?: number): Promise<UserEntity[]>;
 }

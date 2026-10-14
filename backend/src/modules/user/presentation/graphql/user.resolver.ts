@@ -1,5 +1,5 @@
 import { UseGuards } from '@nestjs/common';
-import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
+import { Resolver, Query, Args, Mutation, Int } from '@nestjs/graphql';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { CurrentUser } from 'src/common/customs/current-user.decorator';
 import { GetMeUseCase } from '../../applications/use-case/get-me.use-case';
@@ -29,12 +29,17 @@ export class UserResolver {
 
   @Query(() => [UserProfilePayload])
   @UseGuards(AuthGuard)
-  async getUsers(@Args('search', { nullable: true }) search?: string) {
-    return await this.getUsersUseCase.execute(search);
+  async getUsers(
+    @Args('search', { nullable: true }) search?: string,
+    @Args('limit', { nullable: true, type: () => Int }) limit?: number,
+  ) {
+    return await this.getUsersUseCase.execute(search, limit);
   }
 
   @Mutation(() => RegisterPayload)
-  async register(@Args('input') input: RegisterInputDto) {
+  async register(
+    @Args('input') input: RegisterInputDto,
+  ): Promise<RegisterPayload> {
     const result = await this.registerUseCase.execute(input);
     return {
       success: true,

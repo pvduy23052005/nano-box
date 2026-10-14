@@ -19,7 +19,10 @@ export class AddMemberToRoomUseCase {
     myId: string,
     input: AddMemberToRoomInputProps,
   ): Promise<RoomProps> {
-    const room = await this.roomRepository.findById(input.roomId, myId);
+    const [room, areFriends] = await Promise.all([
+      this.roomRepository.findById(input.roomId, myId),
+      this.friendshipRepository.checkAllAreFriends(myId, [input.userId]),
+    ]);
 
     if (!room) {
       throw new DomainValidationException(
@@ -30,11 +33,6 @@ export class AddMemberToRoomUseCase {
 
     const roomEntity = RoomEntity.restore(room);
     roomEntity.addMember(myId, input.userId);
-
-    const areFriends = await this.friendshipRepository.checkAllAreFriends(
-      myId,
-      [input.userId],
-    );
 
     if (!areFriends) {
       throw new DomainValidationException(
