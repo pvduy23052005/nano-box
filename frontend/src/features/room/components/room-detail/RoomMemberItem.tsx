@@ -52,8 +52,7 @@ export default function RoomMemberItem({
             variant="default"
             className="text-[11px] sm:text-xs shrink-0 whitespace-nowrap transition-all duration-200"
           >
-            <span className="sm:hidden">Admin</span>
-            <span className="hidden sm:inline">Trưởng nhóm</span>
+            Trưởng nhóm
           </Badge>
         );
       case MemberRole.ADMIN:
@@ -62,8 +61,7 @@ export default function RoomMemberItem({
             variant="secondary"
             className="text-[11px] sm:text-xs shrink-0 whitespace-nowrap transition-all duration-200"
           >
-            <span className="sm:hidden">Mod</span>
-            <span className="hidden sm:inline">Quản trị viên</span>
+            Quản trị viên
           </Badge>
         );
       default:
@@ -114,7 +112,7 @@ export default function RoomMemberItem({
             )}
           </div>
           <span className="text-[11px] sm:text-xs text-muted-foreground truncate">
-            {isOnline ? "Đang hoạt động" : "Offline"}
+            {isOnline ? "Đang hoạt động" : "Ngoại tuyến"}
           </span>
         </div>
       </div>

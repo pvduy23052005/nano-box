@@ -12,7 +12,7 @@ import {
 @InputType()
 export class CreateRoomNotFriendInput {
   @Field()
-  @IsString()
+  @IsString({ message: 'ID người dùng phải là chuỗi ký tự' })
   otherUserId: string;
 }
 

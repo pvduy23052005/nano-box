@@ -108,7 +108,7 @@ export default function LoginPage() {
               <form onSubmit={handleSubmit(onSubmit)}>
                 <FieldGroup>
                   <Field data-invalid={!!errors.email}>
-                    <FieldLabel htmlFor="email">Họ và tên</FieldLabel>
+                    <FieldLabel htmlFor="email">Email</FieldLabel>
 
                     <Controller
                       control={control}
@@ -132,7 +132,7 @@ export default function LoginPage() {
                     )}
                   </Field>
                   <Field data-invalid={!!errors.password}>
-                    <FieldLabel htmlFor="password">Password</FieldLabel>
+                    <FieldLabel htmlFor="password">Mật khẩu</FieldLabel>
                     <Controller
                       control={control}
                       name="password"

@@ -33,7 +33,7 @@ export class LoginGoogleUseCase {
         email: payload.email || '',
         name: payload.name || 'Google User',
         password: hashedPassword,
-        avatar: payload.picture || '',
+        avatar: payload.picture ?? '',
       });
       user = await this.userRepository.save(newUser);
     }
@@ -47,7 +47,7 @@ export class LoginGoogleUseCase {
       accessToken,
       user: {
         id: user.getId() || '',
-        name: user.getName() || '',
+        name: user.getName(),
         email: user.getEmail(),
       },
     };

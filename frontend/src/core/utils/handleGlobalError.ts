@@ -5,6 +5,8 @@ import { ErrorLike } from "@apollo/client";
 const SERVER_ERROR_CODE_MAP: Record<string, string> = {
   UNAUTHENTICATED: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!",
   FORBIDDEN: "Bạn không có quyền thực hiện hành động này.",
+  NOT_FOUND: "Không tìm thấy dữ liệu yêu cầu.",
+  BAD_USER_INPUT: "Dữ liệu gửi lên không hợp lệ.",
   INTERNAL_SERVER_ERROR: "Hệ thống gặp sự cố. Vui lòng thử lại sau.",
 };
 
@@ -54,7 +56,7 @@ export const handleGlobalError = (
       errMsg.includes("NetworkError") ||
       errMsg.includes("attempting to fetch resource")
     ) {
-      // toast.error("Đang bảo trì hệ thống");
+      toast.error("Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.");
       console.error("[Network Server Error]", errMsg);
     } else {
       toast.error(`Lỗi hệ thống: ${errMsg}`);

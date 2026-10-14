@@ -42,10 +42,10 @@ export class RoomEntity {
     const errors: Record<string, string> = {};
 
     if (!myId) {
-      errors.myId = 'myId is required';
+      errors.myId = 'ID người dùng hiện tại là bắt buộc';
     }
     if (!memberId) {
-      errors.memberId = 'memberId is required';
+      errors.memberId = 'ID thành viên là bắt buộc';
     }
     if (Object.keys(errors).length > 0) {
       throw new DomainValidationException(errors);
@@ -69,10 +69,10 @@ export class RoomEntity {
     const errors: Record<string, string> = {};
 
     if (!user1Id) {
-      errors.user1Id = 'user1Id is required';
+      errors.user1Id = 'ID người dùng thứ nhất là bắt buộc';
     }
     if (!user2Id) {
-      errors.user2Id = 'user2Id is required';
+      errors.user2Id = 'ID người dùng thứ hai là bắt buộc';
     }
     if (Object.keys(errors).length > 0) {
       throw new DomainValidationException(errors);

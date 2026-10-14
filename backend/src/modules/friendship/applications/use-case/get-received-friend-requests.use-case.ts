@@ -7,9 +7,6 @@ export class GetReceivedFriendRequestsUseCase {
   ) {}
 
   async execute(userId: string): Promise<ReceivedFriendRequestProps[]> {
-    if (!userId) {
-      return [];
-    }
     return await this.friendshipRepository.findPendingReceived(userId);
   }
 }

@@ -71,7 +71,7 @@ export class WebsocketGateway
         try {
           const token = this.extractToken(socket);
           if (!token) {
-            return next(new Error('Unauthorized: Thiếu token xác thực'));
+            return next(new Error('Thiếu token xác thực'));
           }
 
           const payload =
@@ -80,7 +80,7 @@ export class WebsocketGateway
           socket.data.userId = payload.id;
           next();
         } catch {
-          next(new Error('Unauthorized: Token không hợp lệ hoặc đã hết hạn'));
+          next(new Error('Token không hợp lệ hoặc đã hết hạn'));
         }
       })();
     });

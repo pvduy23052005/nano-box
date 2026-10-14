@@ -18,6 +18,22 @@ export class GlobalGraphQLExceptionFilter
 {
   private readonly logger = new Logger(GlobalGraphQLExceptionFilter.name);
 
+  private static readonly DEFAULT_HTTP_ERROR_MESSAGES: Record<string, string> = {
+    Unauthorized: 'Phiên làm việc không hợp lệ hoặc đã hết hạn.',
+    Forbidden: 'Bạn không có quyền thực hiện hành động này.',
+    'Not Found': 'Không tìm thấy tài nguyên yêu cầu.',
+    'Bad Request': 'Dữ liệu yêu cầu không hợp lệ.',
+  };
+
+  private localizeHttpErrorMessage(rawMessage: string): string {
+    const key = Object.keys(
+      GlobalGraphQLExceptionFilter.DEFAULT_HTTP_ERROR_MESSAGES,
+    ).find((k) => k.toLowerCase() === rawMessage?.trim().toLowerCase());
+    return key
+      ? GlobalGraphQLExceptionFilter.DEFAULT_HTTP_ERROR_MESSAGES[key]
+      : rawMessage;
+  }
+
   private mapHttpStatusToErrorCode(status: HttpStatus): string {
     switch (status) {
       case HttpStatus.BAD_REQUEST:
@@ -37,33 +53,96 @@ export class GlobalGraphQLExceptionFilter
     }
   }
 
+  private flattenValidationErrors(
+    validationErrors: ValidationError[],
+    parentPath = '',
+  ): Record<string, string> {
+    const result: Record<string, string> = {};
+
+    for (const err of validationErrors) {
+      const propertyPath = parentPath
+        ? `${parentPath}.${err.property}`
+        : err.property;
+
+      if (err.constraints) {
+        const firstKey = Object.keys(err.constraints)[0];
+        if (firstKey) {
+          result[propertyPath] = err.constraints[firstKey];
+        }
+      }
+
+      if (err.children && err.children.length > 0) {
+        Object.assign(
+          result,
+          this.flattenValidationErrors(err.children, propertyPath),
+        );
+      }
+    }
+
+    return result;
+  }
+
   catch(exception: unknown, host: ArgumentsHost) {
-    if (host.getType<'http' | 'graphql'>() === 'http') {
+    const hostType = host.getType<'http' | 'graphql' | 'ws'>();
+
+    if (hostType === 'http') {
       const ctx = host.switchToHttp();
       const response = ctx.getResponse<Response>();
 
       let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-      let message: string | object =
-        'Hệ thống gặp sự cố. Vui lòng thử lại sau.';
+      let responseBody: Record<string, unknown> = {
+        statusCode,
+        message: 'Hệ thống gặp sự cố. Vui lòng thử lại sau.',
+      };
 
-      if (exception instanceof HttpException) {
+      if (exception instanceof DomainValidationException) {
+        statusCode = HttpStatus.BAD_REQUEST;
+        responseBody = {
+          statusCode,
+          message: exception.message,
+          errors: exception.errors,
+        };
+      } else if (exception instanceof HttpException) {
         statusCode = exception.getStatus();
-        message = exception.getResponse();
+        const res = exception.getResponse();
+
+        if (typeof res === 'string') {
+          responseBody = {
+            statusCode,
+            message: this.localizeHttpErrorMessage(res),
+          };
+        } else if (res && typeof res === 'object') {
+          const resObj = res as Record<string, unknown>;
+          const rawMsg = resObj.message;
+
+          responseBody = {
+            ...resObj,
+            statusCode,
+            message:
+              typeof rawMsg === 'string'
+                ? this.localizeHttpErrorMessage(rawMsg)
+                : Array.isArray(rawMsg)
+                  ? rawMsg
+                  : this.localizeHttpErrorMessage(exception.message),
+          };
+        }
       } else if (exception instanceof Error) {
         this.logger.error(exception.message, exception.stack);
       } else {
-        this.logger.error('Unhandled exception', exception);
+        this.logger.error('Unhandled HTTP exception', exception);
       }
 
-      return response
-        .status(statusCode)
-        .json(typeof message === 'object' ? message : { statusCode, message });
+      return response.status(statusCode).json(responseBody);
+    }
+
+    if (exception instanceof GraphQLError) {
+      return exception;
     }
 
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
     let errorCode = 'INTERNAL_SERVER_ERROR';
     let message = 'Hệ thống gặp sự cố. Vui lòng thử lại sau.';
-    let formattedErrors: Record<string, string> | string | undefined =
+    let formattedErrors: Record<string, string> | string[] | string | undefined =
       undefined;
 
     if (exception instanceof DomainValidationException) {
@@ -73,23 +152,35 @@ export class GlobalGraphQLExceptionFilter
       formattedErrors = exception.errors;
     } else if (
       Array.isArray(exception) &&
+      exception.length > 0 &&
       exception[0] instanceof ValidationError
     ) {
       statusCode = HttpStatus.BAD_REQUEST;
       errorCode = 'BAD_USER_INPUT';
       message = 'Dữ liệu đầu vào không hợp lệ.';
-      formattedErrors = {};
-
-      exception.forEach((err: ValidationError) => {
-        if (err.constraints) {
-          const firstKey = Object.keys(err.constraints)[0];
-          formattedErrors![err.property] = err.constraints[firstKey];
-        }
-      });
+      formattedErrors = this.flattenValidationErrors(
+        exception as ValidationError[],
+      );
     } else if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
       errorCode = this.mapHttpStatusToErrorCode(statusCode);
-      message = exception.message;
+      const res = exception.getResponse();
+
+      if (typeof res === 'string') {
+        message = this.localizeHttpErrorMessage(res);
+      } else if (res && typeof res === 'object') {
+        const resObj = res as Record<string, unknown>;
+        if (typeof resObj.message === 'string') {
+          message = this.localizeHttpErrorMessage(resObj.message);
+        } else if (Array.isArray(resObj.message)) {
+          message = 'Dữ liệu đầu vào không hợp lệ.';
+          formattedErrors = resObj.message as string[];
+        } else {
+          message = this.localizeHttpErrorMessage(exception.message);
+        }
+      } else {
+        message = this.localizeHttpErrorMessage(exception.message);
+      }
     } else if (exception instanceof Error) {
       this.logger.error(exception.message, exception.stack);
     } else {
@@ -100,7 +191,7 @@ export class GlobalGraphQLExceptionFilter
       extensions: {
         statusCode,
         code: errorCode,
-        errors: formattedErrors,
+        ...(formattedErrors !== undefined && { errors: formattedErrors }),
       },
     });
   }
