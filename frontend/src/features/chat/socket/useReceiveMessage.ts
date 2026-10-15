@@ -11,17 +11,17 @@ import { updateRoomLastMessageInCache } from "../../room/room.cache";
 export const useReceiveMessage = () => {
   const client = useApolloClient();
   const { socket } = useSocket();
-  const { user } = useAuthStore();
+  const currentUserId = useAuthStore((state) => state.user?.id);
 
   useEffect(() => {
     if (!socket) return;
 
     const handleReceiveMessage = (newMessage: Message) => {
-      if (newMessage.senderId === user?.id) return;
+      if (newMessage.senderId === currentUserId) return;
 
       appendMessageToCache(client.cache, GET_MESSAGE_QUERY, {
         ...newMessage,
-        isMe: newMessage.senderId === user?.id,
+        isMe: newMessage.senderId === currentUserId,
         isSystem: newMessage.isSystem ?? (newMessage.senderId === "system"),
       });
 
@@ -40,5 +40,5 @@ export const useReceiveMessage = () => {
     return () => {
       socket.off(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, handleReceiveMessage);
     };
-  }, [client, socket, user?.id]);
+  }, [client, socket, currentUserId]);
 };

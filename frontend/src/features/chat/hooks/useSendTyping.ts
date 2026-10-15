@@ -6,7 +6,7 @@ import { useRoomStore } from "../../room/stores/useRoomStore";
 
 export const useSendTyping = (roomId?: string, timeout = 2000) => {
   const { socket } = useSocket();
-  const { activeRoomId } = useRoomStore();
+  const activeRoomId = useRoomStore((state) => state.activeRoomId);
   const targetRoomId = roomId ?? activeRoomId;
 
   const isTypingRef = useRef(false);

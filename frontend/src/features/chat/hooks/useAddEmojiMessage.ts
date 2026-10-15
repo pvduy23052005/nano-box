@@ -10,8 +10,8 @@ import { useAuthStore } from "../../auth/store/useAuthStore";
 import { useRoomStore } from "../../room/stores/useRoomStore";
 
 export const useAddEmojiMessage = () => {
-  const { user } = useAuthStore();
-  const { activeRoomId } = useRoomStore();
+  const user = useAuthStore((state) => state.user);
+  const activeRoomId = useRoomStore((state) => state.activeRoomId);
   const client = useApolloClient();
   const [addEmojiMutation] = useMutation(ADD_EMOJI_MESSAGE_MUTATION);
 

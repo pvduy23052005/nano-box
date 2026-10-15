@@ -7,15 +7,15 @@ import { TypingPayload } from "../types/chat.types";
 
 export const useReceiveTyping = () => {
   const { socket } = useSocket();
-  const { user } = useAuthStore();
-  const { setTyping } = useTypingStore();
+  const currentUserId = useAuthStore((state) => state.user?.id);
+  const setTyping = useTypingStore((state) => state.setTyping);
   const timeoutsRef = useRef<Record<string, NodeJS.Timeout>>({});
 
   useEffect(() => {
     if (!socket) return;
 
     const handleReceiveTyping = (payload: TypingPayload) => {
-      if (!payload.userId || payload.userId === user?.id || !payload.roomId)
+      if (!payload.userId || payload.userId === currentUserId || !payload.roomId)
         return;
 
       const timerKey = `${payload.roomId}:${payload.userId}`;
@@ -48,5 +48,5 @@ export const useReceiveTyping = () => {
       Object.values(timeoutsRef.current).forEach(clearTimeout);
       timeoutsRef.current = {};
     };
-  }, [socket, user?.id, setTyping]);
+  }, [socket, currentUserId, setTyping]);
 };

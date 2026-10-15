@@ -17,6 +17,7 @@
     "@hookform/resolvers": "^5.4.0",
     "@react-oauth/google": "^0.13.5",
     "@shadcn/react": "^0.2.1",
+    "@tanstack/react-virtual": "^3.14.19",
     "@tiptap/extension-link": "^3.29.2",
     "@tiptap/extension-placeholder": "^3.29.2",
     "@tiptap/extension-underline": "^3.29.2",

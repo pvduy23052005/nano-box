@@ -19,7 +19,8 @@ import { usePresenceStore } from "@/src/features/user/stores/usePresenceStore";
 
 export default function ChatHeader() {
   const router = useRouter();
-  const { activeRoom, setActiveRoom } = useRoomStore();
+  const activeRoom = useRoomStore((state) => state.activeRoom);
+  const setActiveRoom = useRoomStore((state) => state.setActiveRoom);
   const currentUserId = useAuthStore((state) => state.user?.id);
   const onlineUsers = usePresenceStore((state) => state.onlineUsers);
 

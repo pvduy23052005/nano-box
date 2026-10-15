@@ -6,8 +6,8 @@ import { Message, PAGINATION_LIMIT } from "../types/chat.types";
 import { useCallback, useMemo, useState } from "react";
 
 export const useGetMessages = () => {
-  const { user } = useAuthStore();
-  const { activeRoomId } = useRoomStore();
+  const currentUserId = useAuthStore((state) => state.user?.id);
+  const activeRoomId = useRoomStore((state) => state.activeRoomId);
   const [isFetchingNextPage, setIsFetchingNextPage] = useState(false);
   const { data, loading, fetchMore } = useQuery(GET_MESSAGE_QUERY, {
     variables: {
@@ -24,10 +24,10 @@ export const useGetMessages = () => {
     return items.map((message) => ({
       ...message,
       roomId: message.roomId || activeRoomId,
-      isMe: message.senderId === user?.id,
+      isMe: message.senderId === currentUserId,
       isSystem: message.isSystem ?? (message.senderId === "system"),
     }));
-  }, [data?.getMessages?.items, user?.id, activeRoomId]);
+  }, [data?.getMessages?.items, currentUserId, activeRoomId]);
 
   const hasNextPage = data?.getMessages?.hasMore ?? false;
   const nextCursor = data?.getMessages?.nextCursor;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import {
   Message,
   MessageAvatar,
@@ -24,11 +24,7 @@ import {
 } from "@/src/components/ui/popover";
 import DOMPurify from "isomorphic-dompurify";
 import { MessageGroup } from "../types/chat.types";
-import Lightbox from "yet-another-react-lightbox";
-import Zoom from "yet-another-react-lightbox/plugins/zoom";
-import Fullscreen from "yet-another-react-lightbox/plugins/fullscreen";
-import Download from "yet-another-react-lightbox/plugins/download";
-import "yet-another-react-lightbox/styles.css";
+import { useLightboxStore } from "../stores/useLightboxStore";
 import { CheckCheck, Smile } from "lucide-react";
 import Image from "next/image";
 import { useAddEmojiMessage } from "../hooks/useAddEmojiMessage";
@@ -57,7 +53,7 @@ export interface ChatMessageGroupProps extends MessageGroup {
   isSeen?: boolean;
 }
 
-export default function ChatMessage({
+export function ChatMessage({
   isMe,
   avatar,
   senderName,
@@ -66,11 +62,10 @@ export default function ChatMessage({
   isSeen,
 }: ChatMessageGroupProps) {
   const { addEmoji } = useAddEmojiMessage();
+  const openLightbox = useLightboxStore((state) => state.openLightbox);
   const [activePopoverMsgId, setActivePopoverMsgId] = useState<string | null>(
     null,
   );
-  const [lightboxIndex, setLightboxIndex] = useState<number>(-1);
-  const [lightboxSlides, setLightboxSlides] = useState<{ src: string }[]>([]);
 
   const lastMessage = messages[messages.length - 1];
   const isSending = lastMessage?.id?.startsWith("temp-");
@@ -92,8 +87,10 @@ export default function ChatMessage({
           (img) => ({ src: img.src }),
         );
         const index = allImgs.findIndex((img) => img.src === clickedSrc);
-        setLightboxSlides(allImgs.length > 0 ? allImgs : [{ src: clickedSrc }]);
-        setLightboxIndex(index >= 0 ? index : 0);
+        openLightbox(
+          allImgs.length > 0 ? allImgs : [{ src: clickedSrc }],
+          index >= 0 ? index : 0,
+        );
       }
     }
   };
@@ -103,8 +100,7 @@ export default function ChatMessage({
     : "U";
 
   return (
-    <>
-      <Message align={isMe ? "end" : "start"}>
+    <Message align={isMe ? "end" : "start"}>
         {!isMe && (
           <MessageAvatar>
             <Avatar className="size-8 rounded-full after:hidden">
@@ -326,14 +322,7 @@ export default function ChatMessage({
           )}
         </MessageContent>
       </Message>
-
-      <Lightbox
-        open={lightboxIndex >= 0}
-        index={lightboxIndex}
-        close={() => setLightboxIndex(-1)}
-        slides={lightboxSlides}
-        plugins={[Zoom, Fullscreen, Download]}
-      />
-    </>
   );
 }
+
+export default memo(ChatMessage);
