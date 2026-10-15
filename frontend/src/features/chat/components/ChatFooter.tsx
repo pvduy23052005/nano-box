@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 
 export default function ChatFooter() {
-  const { activeRoomId } = useRoomStore();
+  const activeRoomId = useRoomStore((state) => state.activeRoomId);
   const { sendMessage } = useSendMessage();
   const { sendTyping, stopTyping } = useSendTyping(activeRoomId ?? undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);

@@ -1,22 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useMemo, useLayoutEffect, useState } from "react";
-import { useInView } from "react-intersection-observer";
+import { useMemo } from "react";
 import { useGetMessages } from "../hooks/useGetMessages";
-import LogoSpinner from "@/src/components/common/LogoSpinner";
-import ChatLoading from "./ChatLoading";
-import ChatMessage from "./ChatMessage";
-import ChatSystemMessage from "./ChatSystemMessage";
-import ChatTypingIndicator from "./ChatTypingIndicator";
+import { useMessageGroups } from "../hooks/useMessageGroups";
+import { useChatVirtualScroll } from "../hooks/useChatVirtualScroll";
 import { useMarkAsRead } from "../hooks/useMarkAsRead";
 import { useChatRoomSubscription } from "../hooks/useChatRoomSubscription";
 import { useTypingStore } from "../stores/useTypingStore";
 import { useReadReceiptStore } from "../stores/useReadReceiptStore";
 import { useRoomStore } from "../../room/stores/useRoomStore";
 import { useAuthStore } from "../../auth/store/useAuthStore";
-import { Message, MessageGroup } from "../types/chat.types";
-import { MessageSquareDashed } from "lucide-react";
-import { Typography } from "@/src/components/ui/typography";
+import LogoSpinner from "@/src/components/common/LogoSpinner";
+import ChatLoading from "./ChatLoading";
+import ChatMessage from "./ChatMessage";
+import ChatSystemMessage from "./ChatSystemMessage";
+import ChatTypingIndicator from "./ChatTypingIndicator";
+import ChatLightbox from "./ChatLightbox";
+import ChatEmptyPlaceholder from "./ChatEmptyPlaceholder";
 
 export default function ChatMain() {
   const {
@@ -26,7 +26,7 @@ export default function ChatMain() {
     hasNextPage,
     isFetchingNextPage,
   } = useGetMessages();
-  const { activeRoomId } = useRoomStore();
+  const activeRoomId = useRoomStore((state) => state.activeRoomId);
   const currentUserId = useAuthStore((state) => state.user?.id);
   const typingByRoom = useTypingStore((state) => state.typingByRoom);
 
@@ -35,7 +35,6 @@ export default function ChatMain() {
       ? state.getOtherMembersMaxReadMessageId(activeRoomId, currentUserId)
       : null,
   );
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useChatRoomSubscription(activeRoomId);
   useMarkAsRead(activeRoomId, messages);
@@ -44,202 +43,96 @@ export default function ChatMain() {
     if (!activeRoomId || !typingByRoom[activeRoomId]) return [];
     return Object.values(typingByRoom[activeRoomId]);
   }, [activeRoomId, typingByRoom]);
-  const { ref: loadMoreRef, inView } = useInView();
 
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const previousScrollHeight = useRef<number>(0);
-  const previousScrollTop = useRef<number>(0);
+  const messageGroups = useMessageGroups(messages);
 
-  useEffect(() => {
-    if (isFetchingNextPage && scrollContainerRef.current) {
-      previousScrollHeight.current = scrollContainerRef.current.scrollHeight;
-      previousScrollTop.current = scrollContainerRef.current.scrollTop;
-    }
-  }, [isFetchingNextPage]);
-
-  useLayoutEffect(() => {
-    if (
-      !isFetchingNextPage &&
-      previousScrollHeight.current > 0 &&
-      scrollContainerRef.current
-    ) {
-      const newScrollHeight = scrollContainerRef.current.scrollHeight;
-      const heightDifference = newScrollHeight - previousScrollHeight.current;
-
-      if (heightDifference > 0) {
-        scrollContainerRef.current.scrollTop =
-          previousScrollTop.current + heightDifference;
-      }
-      previousScrollHeight.current = 0;
-    }
-  }, [isFetchingNextPage, messages.length]);
-
-  useEffect(() => {
-    if (inView && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
-    }
-  }, [inView, hasNextPage, fetchNextPage, isFetchingNextPage]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-  const lastMessageId =
-    messages.length > 0 ? messages[messages.length - 1].id : null;
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [lastMessageId, typingList.length]);
-
-  const messageGroups = useMemo(() => {
-    const seenMessageIds = new Set<string>();
-
-    return messages.reduce<MessageGroup[]>(
-      (groups: MessageGroup[], message: Message, index: number) => {
-        if (message.id) {
-          if (seenMessageIds.has(message.id)) {
-            return groups;
-          }
-          seenMessageIds.add(message.id);
-        }
-
-        const isSystem = Boolean(message.isSystem || message.senderId === "system");
-        if (isSystem) {
-          groups.push({
-            id: `system-${message.id || index}`,
-            isMe: false,
-            senderId: "system",
-            isSystem: true,
-            messages: [message],
-          });
-          return groups;
-        }
-
-        const lastGroup = groups[groups.length - 1];
-        const isSameSender =
-          lastGroup &&
-          !lastGroup.isSystem &&
-          lastGroup.isMe === message.isMe &&
-          (!lastGroup.senderId || !message.senderId || lastGroup.senderId === message.senderId);
-
-        if (isSameSender) {
-          if (!lastGroup.avatar && (message.senderAvatar || message.avatar)) {
-            lastGroup.avatar = message.senderAvatar || message.avatar;
-          }
-          lastGroup.messages.push(message);
-        } else {
-          const groupId = `group-${message.senderId || (message.isMe ? "me" : "other")}-${message.createdAt || index}-${index}`;
-          groups.push({
-            id: groupId,
-            isMe: message.isMe,
-            senderId: message.senderId,
-            avatar: message.senderAvatar || message.avatar,
-            senderAvatar: message.senderAvatar || message.avatar,
-            senderName: message.senderName,
-            messages: [message],
-          });
-        }
-        return groups;
-      },
-      [],
-    );
-  }, [messages]);
-
-  const [cachedGroups, setCachedGroups] = useState<MessageGroup[]>(messageGroups);
-  if (messageGroups.length > 0 && messageGroups !== cachedGroups) {
-    setCachedGroups(messageGroups);
-  }
+  const { scrollContainerRef, virtualizer, virtualItems } =
+    useChatVirtualScroll({
+      messageGroups,
+      messages,
+      activeRoomId,
+      hasNextPage,
+      isFetchingNextPage,
+      fetchNextPage,
+      typingCount: typingList.length,
+    });
 
   if (!activeRoomId) {
-    return (
-      <>
-        <div className="hidden sm:flex flex-1 flex-col items-center justify-center p-4 text-center text-muted-foreground gap-3">
-          <div className="flex items-center justify-center size-12 rounded-full bg-muted/60 text-muted-foreground/80">
-            <MessageSquareDashed className="size-6 stroke-[1.5]" />
-          </div>
-          <Typography variant="small" className="text-xs text-muted-foreground">
-            Chọn một cuộc trò chuyện để bắt đầu
-          </Typography>
-        </div>
-        {cachedGroups.length > 0 && (
-          <div className="sm:hidden flex-1 min-h-0 flex flex-col gap-4 px-3 py-3 overflow-hidden opacity-75">
-            {cachedGroups.map((group) => {
-              if (group.isSystem) {
-                return (
-                  <ChatSystemMessage
-                    key={group.id}
-                    content={group.messages[0]?.content ?? ""}
-                    createdAt={group.messages[0]?.createdAt}
-                  />
-                );
-              }
-              return (
-                <ChatMessage
-                  key={group.id}
-                  isLastGroup={false}
-                  isSeen={false}
-                  {...group}
-                />
-              );
-            })}
-          </div>
-        )}
-      </>
-    );
+    return <ChatEmptyPlaceholder />;
   }
 
   return (
     <div
       ref={scrollContainerRef}
-      className="flex-1 min-h-0 flex flex-col gap-4 px-3 py-3 overflow-y-auto overflow-x-hidden"
+      className="flex-1 min-h-0 flex flex-col px-3 overflow-y-auto overflow-x-hidden relative"
     >
       {isLoading && messages.length === 0 ? (
         <ChatLoading />
       ) : (
         <>
-          {hasNextPage && (
-            <div ref={loadMoreRef} className="h-4 w-full flex-shrink-0" />
-          )}
-
           {isFetchingNextPage && (
-            <div className="flex justify-center py-4 w-full">
-              <LogoSpinner size="sm" showText={true} />
+            <div className="sticky top-2 z-20 flex justify-center w-full pointer-events-none mb-2">
+              <div className="bg-background/90 backdrop-blur-md shadow-md rounded-full px-3 py-1.5 border border-border flex items-center gap-2 text-xs text-muted-foreground animate-in fade-in duration-200">
+                <LogoSpinner size="sm" showText={false} />
+                <span>Đang tải thêm tin nhắn...</span>
+              </div>
             </div>
           )}
 
-          {messageGroups.map((group, index) => {
-            if (group.isSystem) {
-              const systemMessage = group.messages[0];
+          <div
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              width: "100%",
+              position: "relative",
+            }}
+          >
+            {virtualItems.map((virtualItem) => {
+              const group = messageGroups[virtualItem.index];
+              if (!group) return null;
+
+              const isLastGroup = virtualItem.index === messageGroups.length - 1;
+              const lastGroupMessage = group.messages[group.messages.length - 1];
+              const isSeen =
+                group.isMe &&
+                !lastGroupMessage?.id?.startsWith("temp-") &&
+                !!otherMemberMaxReadMessageId &&
+                lastGroupMessage.id <= otherMemberMaxReadMessageId;
+
               return (
-                <ChatSystemMessage
-                  key={group.id}
-                  content={systemMessage?.content ?? ""}
-                  createdAt={systemMessage?.createdAt}
-                />
+                <div
+                  key={virtualItem.key}
+                  data-index={virtualItem.index}
+                  ref={virtualizer.measureElement}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    transform: `translateY(${virtualItem.start}px)`,
+                  }}
+                >
+                  {group.isSystem ? (
+                    <ChatSystemMessage
+                      content={group.messages[0]?.content ?? ""}
+                      createdAt={group.messages[0]?.createdAt}
+                    />
+                  ) : (
+                    <ChatMessage
+                      isLastGroup={isLastGroup}
+                      isSeen={isSeen}
+                      {...group}
+                    />
+                  )}
+                </div>
               );
-            }
-
-            const isLastGroup = index === messageGroups.length - 1;
-            const lastGroupMessage = group.messages[group.messages.length - 1];
-            const isSeen =
-              group.isMe &&
-              !lastGroupMessage?.id?.startsWith("temp-") &&
-              !!otherMemberMaxReadMessageId &&
-              lastGroupMessage.id <= otherMemberMaxReadMessageId;
-
-            return (
-              <ChatMessage
-                key={group.id}
-                isLastGroup={isLastGroup}
-                isSeen={isSeen}
-                {...group}
-              />
-            );
-          })}
+            })}
+          </div>
         </>
       )}
 
       <ChatTypingIndicator typingUsers={typingList} />
-      <div ref={messagesEndRef} />
+      <div className="h-px shrink-0" />
+      <ChatLightbox />
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { Toaster } from "sonner";
 import { Metadata } from "next";
 
 const roboto = Roboto({
-  weight: ["300", "400", "500", "700"],
+  weight: ["400", "700"],
   subsets: ["latin", "vietnamese"],
   variable: "--font-sans",
   display: "swap",

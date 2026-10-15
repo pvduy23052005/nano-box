@@ -12,7 +12,7 @@ import {
   InputGroupInput,
 } from "@/src/components/ui/input-group";
 import { Button } from "@/src/components/ui/button";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import RoomFriend from "../../room/components/RoomFriend";
 import RoomStranger from "../../room/components/RoomStranger";
 import { useGetRooms } from "../../room/hooks/useGetRooms";
@@ -29,10 +29,13 @@ export enum RoomTypeSearch {
 }
 
 export default function ChatSidebar() {
-  const [activeTab, setActiveTab] = useState<RoomTypeSearch>(
-    RoomTypeSearch.FRIEND,
-  );
-  const [prevActiveRoomId, setPrevActiveRoomId] = useState<string | null>(null);
+  const [userTabState, setUserTabState] = useState<{
+    tab: RoomTypeSearch;
+    forRoomId: string | null;
+  }>({
+    tab: RoomTypeSearch.FRIEND,
+    forRoomId: null,
+  });
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = useDebounce(searchValue.trim(), 350);
 
@@ -50,27 +53,28 @@ export default function ChatSidebar() {
 
   useReceiveRoom();
 
-  const { activeRoomId, activeRoom, setActiveRoom, setIsCreateGroupOpen } =
-    useRoomStore();
+  const activeRoomId = useRoomStore((state) => state.activeRoomId);
+  const activeRoom = useRoomStore((state) => state.activeRoom);
+  const setActiveRoom = useRoomStore((state) => state.setActiveRoom);
+  const setIsCreateGroupOpen = useRoomStore((state) => state.setIsCreateGroupOpen);
 
-  if (activeRoomId !== prevActiveRoomId) {
-    setPrevActiveRoomId(activeRoomId);
-    if (activeRoomId) {
-      const isStrangerRoom = (strangerRooms as ChatRoom[]).some(
-        (strangerRoom) => strangerRoom.id === activeRoomId,
-      );
-      if (isStrangerRoom) {
-        setActiveTab(RoomTypeSearch.STRANGER);
-      } else {
-        const isFriendRoom = (friendRooms as ChatRoom[]).some(
-          (friendRoom) => friendRoom.id === activeRoomId,
-        );
-        if (isFriendRoom) {
-          setActiveTab(RoomTypeSearch.FRIEND);
-        }
-      }
-    }
-  }
+  const roomTab = useMemo(() => {
+    if (!activeRoomId) return null;
+    const isStranger = (strangerRooms as ChatRoom[]).some(
+      (r) => r.id === activeRoomId,
+    );
+    if (isStranger) return RoomTypeSearch.STRANGER;
+    const isFriend = (friendRooms as ChatRoom[]).some(
+      (r) => r.id === activeRoomId,
+    );
+    if (isFriend) return RoomTypeSearch.FRIEND;
+    return null;
+  }, [activeRoomId, strangerRooms, friendRooms]);
+
+  const activeTab =
+    userTabState.forRoomId === activeRoomId
+      ? userTabState.tab
+      : (roomTab ?? userTabState.tab);
 
   const hasAutoSelectedRef = useRef(false);
 
@@ -111,7 +115,12 @@ export default function ChatSidebar() {
     >
       <Tabs
         value={activeTab}
-        onValueChange={(val) => setActiveTab(val as RoomTypeSearch)}
+        onValueChange={(val) =>
+          setUserTabState({
+            tab: val as RoomTypeSearch,
+            forRoomId: activeRoomId,
+          })
+        }
         className="w-full flex flex-col min-h-0 gap-0 h-full"
       >
         <div className="p-2 border-b flex flex-col gap-1.5">

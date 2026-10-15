@@ -7,8 +7,8 @@ import { updateRoomLastMessageInCache } from "../../room/room.cache";
 import { Message } from "../types/chat.types";
 
 export const useSendMessage = () => {
-  const { user } = useAuthStore();
-  const { activeRoomId } = useRoomStore();
+  const user = useAuthStore((state) => state.user);
+  const activeRoomId = useRoomStore((state) => state.activeRoomId);
   const client = useApolloClient();
   const [sendMessageMutation] = useMutation(SEND_MESSAGE_MUTATION);
 
