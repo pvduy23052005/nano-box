@@ -54,7 +54,8 @@ export class FriendshipEntity {
       errors.addresseeId = 'Không có quyền chấp nhận lời mời kết bạn này';
     }
     if (this.status !== FriendshipStatus.PENDING) {
-      errors.status = 'Không thể chấp nhận lời mời đã kết thúc hoặc không ở trạng thái chờ';
+      errors.status =
+        'Không thể chấp nhận lời mời đã kết thúc hoặc không ở trạng thái chờ';
     }
 
     if (Object.keys(errors).length > 0) {

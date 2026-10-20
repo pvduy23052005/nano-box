@@ -30,6 +30,12 @@ services:
       - ./backend/.env
     environment:
       - MONGO_URI=mongodb://host.docker.internal:27017/nano-box
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"   
+        max-file: "3"       
     networks:
       - nano_network
 
@@ -52,4 +58,5 @@ services:
 
 networks:
   nano_network:
+    name: nano_network
     driver: bridge

@@ -18,12 +18,13 @@ export class GlobalGraphQLExceptionFilter
 {
   private readonly logger = new Logger(GlobalGraphQLExceptionFilter.name);
 
-  private static readonly DEFAULT_HTTP_ERROR_MESSAGES: Record<string, string> = {
-    Unauthorized: 'Phiên làm việc không hợp lệ hoặc đã hết hạn.',
-    Forbidden: 'Bạn không có quyền thực hiện hành động này.',
-    'Not Found': 'Không tìm thấy tài nguyên yêu cầu.',
-    'Bad Request': 'Dữ liệu yêu cầu không hợp lệ.',
-  };
+  private static readonly DEFAULT_HTTP_ERROR_MESSAGES: Record<string, string> =
+    {
+      Unauthorized: 'Phiên làm việc không hợp lệ hoặc đã hết hạn.',
+      Forbidden: 'Bạn không có quyền thực hiện hành động này.',
+      'Not Found': 'Không tìm thấy tài nguyên yêu cầu.',
+      'Bad Request': 'Dữ liệu yêu cầu không hợp lệ.',
+    };
 
   private localizeHttpErrorMessage(rawMessage: string): string {
     const key = Object.keys(
@@ -126,6 +127,14 @@ export class GlobalGraphQLExceptionFilter
                   : this.localizeHttpErrorMessage(exception.message),
           };
         }
+
+        if (statusCode >= HttpStatus.INTERNAL_SERVER_ERROR) {
+          const errMsg =
+            typeof responseBody.message === 'string'
+              ? responseBody.message
+              : 'Internal Server Error';
+          this.logger.error(`[HTTP ${statusCode}] ${errMsg}`, exception.stack);
+        }
       } else if (exception instanceof Error) {
         this.logger.error(exception.message, exception.stack);
       } else {
@@ -142,8 +151,8 @@ export class GlobalGraphQLExceptionFilter
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
     let errorCode = 'INTERNAL_SERVER_ERROR';
     let message = 'Hệ thống gặp sự cố. Vui lòng thử lại sau.';
-    let formattedErrors: Record<string, string> | string[] | string | undefined =
-      undefined;
+    let formattedErrors:
+      Record<string, string> | string[] | string | undefined = undefined;
 
     if (exception instanceof DomainValidationException) {
       statusCode = HttpStatus.BAD_REQUEST;
@@ -180,6 +189,12 @@ export class GlobalGraphQLExceptionFilter
         }
       } else {
         message = this.localizeHttpErrorMessage(exception.message);
+      }
+
+      if (statusCode >= HttpStatus.INTERNAL_SERVER_ERROR) {
+        const errMsg =
+          typeof message === 'string' ? message : 'Internal Server Error';
+        this.logger.error(`[GraphQL ${statusCode}] ${errMsg}`, exception.stack);
       }
     } else if (exception instanceof Error) {
       this.logger.error(exception.message, exception.stack);

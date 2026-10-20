@@ -2,10 +2,12 @@ import { AppModule } from './app.module';
 import { NestFactory } from '@nestjs/core';
 import { ValidationError, ValidationPipe } from '@nestjs/common';
 import { GlobalGraphQLExceptionFilter } from './common/pipes/validator.pipe';
+import { Logger } from 'nestjs-pino';
 import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(app.get(Logger));
   app.use(cookieParser());
 
   const allowedOrigins = process.env.ALLOWED_ORIGINS
