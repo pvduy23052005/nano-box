@@ -5,6 +5,7 @@ import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.
 import { UserEntity } from 'src/modules/user/domain/user.entity';
 import { UserStatus } from 'src/modules/user/domain/user.type';
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
+import { ILogger } from 'src/common/ports/logger.port';
 
 const makeMockUserRepository = (): jest.Mocked<UserRepositoryAdapter> => ({
   findByEmail: jest.fn(),
@@ -22,6 +23,12 @@ const makeMockTokenGenerator = (): jest.Mocked<ITokenGenerator> => ({
   generateToken: jest.fn(),
 });
 
+const makeMockLogger = (): jest.Mocked<ILogger> => ({
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+});
+
 const makePersistedUser = () =>
   UserEntity.restore({
     id: 'user-id-1',
@@ -37,6 +44,7 @@ describe('LoginUseCase', () => {
   let userRepository: jest.Mocked<UserRepositoryAdapter>;
   let passwordHasher: jest.Mocked<IPasswordHasher>;
   let tokenGenerator: jest.Mocked<ITokenGenerator>;
+  let logger: jest.Mocked<ILogger>;
 
   const validInput = {
     email: 'test@example.com',
@@ -47,10 +55,12 @@ describe('LoginUseCase', () => {
     userRepository = makeMockUserRepository();
     passwordHasher = makeMockPasswordHasher();
     tokenGenerator = makeMockTokenGenerator();
+    logger = makeMockLogger();
     loginUseCase = new LoginUseCase(
       userRepository,
       passwordHasher,
       tokenGenerator,
+      logger,
     );
   });
 

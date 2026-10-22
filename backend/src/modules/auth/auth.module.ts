@@ -11,6 +11,8 @@ import { LoginGoogleUseCase } from './applications/use-case/login-google.use-cas
 import { GoogleAuthVerifier } from './infrastructure/externals/google-auth-verifier.external';
 import { JwtTokenGenerator } from './infrastructure/externals/jwt-token-generator.external';
 import { AuthResolver } from './presentation/graphql/auth.resolver';
+import { ILogger } from 'src/common/ports/logger.port';
+import { PinoLoggerAdapter } from 'src/infrastructure/logger/pino-logger.adapter';
 
 @Global()
 @Module({
@@ -41,13 +43,29 @@ import { AuthResolver } from './presentation/graphql/auth.resolver';
       useClass: GoogleAuthVerifier,
     },
     {
+      provide: ILogger,
+      useClass: PinoLoggerAdapter,
+    },
+    {
       provide: LoginUseCase,
       useFactory: (
         userRepository: UserRepositoryAdapter,
         passwordHasher: IPasswordHasher,
         tokenGenerator: ITokenGenerator,
-      ) => new LoginUseCase(userRepository, passwordHasher, tokenGenerator),
-      inject: [UserRepositoryAdapter, IPasswordHasher, ITokenGenerator],
+        logger: ILogger,
+      ) =>
+        new LoginUseCase(
+          userRepository,
+          passwordHasher,
+          tokenGenerator,
+          logger,
+        ),
+      inject: [
+        UserRepositoryAdapter,
+        IPasswordHasher,
+        ITokenGenerator,
+        ILogger,
+      ],
     },
     {
       provide: LoginGoogleUseCase,
@@ -56,18 +74,21 @@ import { AuthResolver } from './presentation/graphql/auth.resolver';
         passwordHasher: IPasswordHasher,
         tokenGenerator: ITokenGenerator,
         googleAuthVerifier: IGoogleAuthVerifier,
+        logger: ILogger,
       ) =>
         new LoginGoogleUseCase(
           userRepository,
           passwordHasher,
           tokenGenerator,
           googleAuthVerifier,
+          logger,
         ),
       inject: [
         UserRepositoryAdapter,
         IPasswordHasher,
         ITokenGenerator,
         IGoogleAuthVerifier,
+        ILogger,
       ],
     },
   ],
