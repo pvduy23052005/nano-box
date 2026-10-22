@@ -1,12 +1,16 @@
-import { AppModule } from './app.module';
-import { NestFactory } from '@nestjs/core';
 import { ValidationError, ValidationPipe } from '@nestjs/common';
-import { GlobalGraphQLExceptionFilter } from './common/pipes/validator.pipe';
-import { Logger } from 'nestjs-pino';
+import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
+import { Logger } from 'nestjs-pino';
+import { GlobalGraphQLExceptionFilter } from './common/pipes/validator.pipe';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true,
+  });
+  app.set('trust proxy', true);
   app.useLogger(app.get(Logger));
   app.use(cookieParser());
 

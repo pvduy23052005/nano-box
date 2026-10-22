@@ -1,5 +1,26 @@
-import { Params } from 'nestjs-pino';
+import { IncomingMessage } from 'http';
 import { randomUUID } from 'crypto';
+import { Params } from 'nestjs-pino';
+
+const extractClientIp = (
+  req: IncomingMessage & { ip?: string },
+): string | undefined => {
+  const forwarded = req.headers['x-forwarded-for'];
+  let rawIp: string | undefined;
+
+  if (typeof forwarded === 'string') {
+    rawIp = forwarded.split(',')[0].trim();
+  } else if (Array.isArray(forwarded) && forwarded.length > 0) {
+    rawIp = forwarded[0].split(',')[0].trim();
+  } else {
+    rawIp =
+      (req.headers['x-real-ip'] as string | undefined) ||
+      req.ip ||
+      req.socket?.remoteAddress;
+  }
+
+  return rawIp ? rawIp.replace(/^::ffff:/, '') : undefined;
+};
 
 export const loggerConfig: Params = {
   pinoHttp: {
@@ -31,6 +52,7 @@ export const loggerConfig: Params = {
     },
     customProps: (req) => ({
       reqId: req.id,
+      ip: extractClientIp(req),
     }),
     redact: [
       'req.headers.authorization',
@@ -45,6 +67,9 @@ export const loggerConfig: Params = {
         id: req.id,
         method: req.method,
         url: req.url,
+        ip: extractClientIp(
+          req as unknown as IncomingMessage & { ip?: string },
+        ),
       }),
       res: (res: Record<string, unknown>) => ({
         statusCode: res.statusCode,
