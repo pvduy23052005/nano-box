@@ -1,8 +1,8 @@
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
-import { SendMessageUseCase } from '../send-message.use-case';
-import { MessageRepositoryAdapter } from '../../ports/message.port';
-import { RoomRepositoryAdapter } from '../../../../room/application/ports/room.ports';
 import { MemberRole, MemberStatus } from '../../../../room/domain/chat.enum';
+import { RoomRepositoryAdapter } from '../../../../room/application/ports/room.ports';
+import { MessageRepositoryAdapter } from '../../ports/message.port';
+import { SendMessageUseCase } from '../send-message.use-case';
 
 describe('SendMessageUseCase', () => {
   let sendMessageUseCase: SendMessageUseCase;

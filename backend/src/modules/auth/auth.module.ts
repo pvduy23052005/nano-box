@@ -1,18 +1,16 @@
 import { Global, Module } from '@nestjs/common';
-import { UserModule } from '../user/user.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { IPasswordHasher } from '../user/applications/ports/password-hasher.port';
 import { UserRepositoryAdapter } from '../user/applications/ports/user.port';
-import { ITokenGenerator } from './applications/ports/token-generator.port';
+import { UserModule } from '../user/user.module';
 import { IGoogleAuthVerifier } from './applications/ports/google-auth-verifier.port';
-import { LoginUseCase } from './applications/use-case/login.use-case';
+import { ITokenGenerator } from './applications/ports/token-generator.port';
 import { LoginGoogleUseCase } from './applications/use-case/login-google.use-case';
+import { LoginUseCase } from './applications/use-case/login.use-case';
 import { GoogleAuthVerifier } from './infrastructure/externals/google-auth-verifier.external';
 import { JwtTokenGenerator } from './infrastructure/externals/jwt-token-generator.external';
 import { AuthResolver } from './presentation/graphql/auth.resolver';
-import { ILogger } from 'src/common/ports/logger.port';
-import { PinoLoggerAdapter } from 'src/infrastructure/logger/pino-logger.adapter';
 
 @Global()
 @Module({
@@ -43,29 +41,13 @@ import { PinoLoggerAdapter } from 'src/infrastructure/logger/pino-logger.adapter
       useClass: GoogleAuthVerifier,
     },
     {
-      provide: ILogger,
-      useClass: PinoLoggerAdapter,
-    },
-    {
       provide: LoginUseCase,
       useFactory: (
         userRepository: UserRepositoryAdapter,
         passwordHasher: IPasswordHasher,
         tokenGenerator: ITokenGenerator,
-        logger: ILogger,
-      ) =>
-        new LoginUseCase(
-          userRepository,
-          passwordHasher,
-          tokenGenerator,
-          logger,
-        ),
-      inject: [
-        UserRepositoryAdapter,
-        IPasswordHasher,
-        ITokenGenerator,
-        ILogger,
-      ],
+      ) => new LoginUseCase(userRepository, passwordHasher, tokenGenerator),
+      inject: [UserRepositoryAdapter, IPasswordHasher, ITokenGenerator],
     },
     {
       provide: LoginGoogleUseCase,
@@ -74,21 +56,18 @@ import { PinoLoggerAdapter } from 'src/infrastructure/logger/pino-logger.adapter
         passwordHasher: IPasswordHasher,
         tokenGenerator: ITokenGenerator,
         googleAuthVerifier: IGoogleAuthVerifier,
-        logger: ILogger,
       ) =>
         new LoginGoogleUseCase(
           userRepository,
           passwordHasher,
           tokenGenerator,
           googleAuthVerifier,
-          logger,
         ),
       inject: [
         UserRepositoryAdapter,
         IPasswordHasher,
         ITokenGenerator,
         IGoogleAuthVerifier,
-        ILogger,
       ],
     },
   ],

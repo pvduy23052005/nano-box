@@ -9,7 +9,7 @@ import {
 import { Response } from 'express';
 import { GraphQLError } from 'graphql';
 import { ValidationError } from 'class-validator';
-import { GqlExceptionFilter } from '@nestjs/graphql';
+import { GqlArgumentsHost, GqlExceptionFilter } from '@nestjs/graphql';
 import { DomainValidationException } from '../customs/domain-validation.exception';
 
 export enum HostType {
@@ -49,11 +49,9 @@ export class GlobalGraphQLExceptionFilter
     const parsed = this.parseException(exception);
 
     if (parsed.statusCode >= HttpStatus.INTERNAL_SERVER_ERROR) {
-      const prefix = hostType === HostType.HTTP ? 'HTTP' : 'GraphQL';
-      this.logger.error(
-        `[${prefix} ${parsed.statusCode}] ${parsed.message}`,
-        parsed.stack,
-      );
+      this.logInternalServerError(hostType, parsed);
+    } else if (parsed.statusCode === HttpStatus.BAD_REQUEST) {
+      this.logValidationWarning(host, hostType, parsed);
     }
 
     if (hostType === HostType.HTTP) {
@@ -61,6 +59,63 @@ export class GlobalGraphQLExceptionFilter
     }
 
     return this.sendGraphQLError(parsed);
+  }
+
+  private logInternalServerError(
+    hostType: HostType,
+    parsed: ParsedError,
+  ): void {
+    const prefix = hostType === HostType.HTTP ? 'HTTP' : 'GraphQL';
+    this.logger.error(
+      `[${prefix} ${parsed.statusCode}] ${parsed.message}`,
+      parsed.stack,
+    );
+  }
+
+  private logValidationWarning(
+    host: ArgumentsHost,
+    hostType: HostType,
+    parsed: ParsedError,
+  ): void {
+    const { operationName, userId } = this.extractRequestContext(
+      host,
+      hostType,
+    );
+
+    this.logger.warn(
+      {
+        type: 'DOMAIN_VALIDATION_ERROR',
+        operation: operationName,
+        userId,
+        errors: parsed.errors,
+      },
+      `[Validation Warning] ${operationName} -> ${parsed.message}`,
+    );
+  }
+
+  private extractRequestContext(
+    host: ArgumentsHost,
+    hostType: HostType,
+  ): { operationName: string; userId?: string } {
+    if (hostType === HostType.HTTP) {
+      const req = host.switchToHttp().getRequest<{
+        method?: string;
+        url?: string;
+        user?: { id?: string };
+      }>();
+      return {
+        operationName: `${req?.method ?? 'UNKNOWN'} ${req?.url ?? ''}`.trim(),
+        userId: req?.user?.id,
+      };
+    }
+
+    const gqlHost = GqlArgumentsHost.create(host);
+    const operationName = gqlHost.getInfo()?.fieldName ?? 'GraphQL';
+    const ctx = gqlHost.getContext<{ req?: { user?: { id?: string } } }>();
+    return {
+      operationName,
+      userId: ctx?.req?.user?.id,
+    };
   }
 
   private parseException(exception: unknown): ParsedError {
