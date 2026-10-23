@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
-import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
 import type { Request, Response } from 'express';
+import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
 import { extractClientIp } from 'src/common/utils/client-ip.util';
 import { LoginGoogleUseCase } from '../../applications/use-case/login-google.use-case';
 import { LoginUseCase } from '../../applications/use-case/login.use-case';
@@ -101,7 +101,7 @@ export class AuthResolver {
         ip,
         userAgent,
       },
-      `[Auth] User ${user.email} (${user.id}) logged in successfully`,
+      `[Auth] User ${user.email} (${user.id}) Đăng nhập thành công`,
     );
   }
 

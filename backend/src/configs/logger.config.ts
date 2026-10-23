@@ -5,6 +5,7 @@ import { extractClientIp } from 'src/common/utils/client-ip.util';
 
 export const loggerConfig: Params = {
   pinoHttp: {
+    level: process.env.LOG_LEVEL || 'info',
     formatters: {
       level: (label) => ({ level: label }),
     },
