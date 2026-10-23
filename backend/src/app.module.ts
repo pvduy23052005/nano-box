@@ -5,7 +5,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ApolloDriverConfig } from '@nestjs/apollo';
 import { graphqlConfig } from './configs/graphql.config';
 import { MongooseConfig } from './configs/database.config';
+import { loggerConfig } from './configs/logger.config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { LoggerModule } from 'nestjs-pino';
 import { UserModule } from './modules/user/user.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { WebsocketModule } from './infrastructure/websocket/ws.module';
@@ -17,6 +19,7 @@ import { FriendshipModule } from './modules/friendship/friendship.module';
 
 @Module({
   imports: [
+    LoggerModule.forRoot(loggerConfig),
     GraphQLModule.forRoot<ApolloDriverConfig>(graphqlConfig),
     ConfigModule.forRoot({
       isGlobal: true,

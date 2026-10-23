@@ -1,11 +1,11 @@
-import { LoginResponse } from '../dto/login.type';
-import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
-import { IPasswordHasher } from 'src/modules/user/applications/ports/password-hasher.port';
-import { ITokenGenerator } from '../ports/token-generator.port';
-import { IGoogleAuthVerifier } from '../ports/google-auth-verifier.port';
-import { UserEntity } from 'src/modules/user/domain/user.entity';
 import * as crypto from 'crypto';
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
+import { IPasswordHasher } from 'src/modules/user/applications/ports/password-hasher.port';
+import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
+import { UserEntity } from 'src/modules/user/domain/user.entity';
+import { LoginResponse } from '../dto/login.type';
+import { IGoogleAuthVerifier } from '../ports/google-auth-verifier.port';
+import { ITokenGenerator } from '../ports/token-generator.port';
 
 export class LoginGoogleUseCase {
   constructor(
@@ -38,15 +38,16 @@ export class LoginGoogleUseCase {
       user = await this.userRepository.save(newUser);
     }
 
+    const userId = user.getId() || '';
     const accessToken = this.tokenGenerator.generateToken({
-      id: user.getId() || '',
+      id: userId,
       email: user.getEmail(),
     });
 
     return {
       accessToken,
       user: {
-        id: user.getId() || '',
+        id: userId,
         name: user.getName(),
         email: user.getEmail(),
       },

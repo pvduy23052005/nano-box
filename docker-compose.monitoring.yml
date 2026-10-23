@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: nano-box-loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./monitoring/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki_data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - nano_network
+
+  promtail:
+    image: grafana/promtail:3.0.0
+    container_name: nano-box-promtail
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    networks:
+      - nano_network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: nano-box-grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    env_file:
+      - ./monitoring/.env
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - loki
+    networks:
+      - nano_network
+
+volumes:
+  loki_data:
+  grafana_data:
+
+networks:
+  nano_network:
+    name: nano_network
+    driver: bridge

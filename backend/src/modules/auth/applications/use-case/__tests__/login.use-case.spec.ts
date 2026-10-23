@@ -1,10 +1,10 @@
-import { LoginUseCase } from '../login.use-case';
-import { ITokenGenerator } from '../../ports/token-generator.port';
+import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 import { IPasswordHasher } from 'src/modules/user/applications/ports/password-hasher.port';
 import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
 import { UserEntity } from 'src/modules/user/domain/user.entity';
 import { UserStatus } from 'src/modules/user/domain/user.type';
-import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
+import { ITokenGenerator } from '../../ports/token-generator.port';
+import { LoginUseCase } from '../login.use-case';
 
 const makeMockUserRepository = (): jest.Mocked<UserRepositoryAdapter> => ({
   findByEmail: jest.fn(),

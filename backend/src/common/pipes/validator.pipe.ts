@@ -9,8 +9,30 @@ import {
 import { Response } from 'express';
 import { GraphQLError } from 'graphql';
 import { ValidationError } from 'class-validator';
-import { GqlExceptionFilter } from '@nestjs/graphql';
+import { GqlArgumentsHost, GqlExceptionFilter } from '@nestjs/graphql';
 import { DomainValidationException } from '../customs/domain-validation.exception';
+
+export enum HostType {
+  HTTP = 'http',
+  GRAPHQL = 'graphql',
+  WS = 'ws',
+}
+
+interface ParsedError {
+  statusCode: HttpStatus;
+  errorCode: string;
+  message: string;
+  errors?: Record<string, string> | string[];
+  rawResponse?: Record<string, unknown>;
+  stack?: string;
+}
+
+const DEFAULT_HTTP_ERROR_MESSAGES: Record<string, string> = {
+  Unauthorized: 'Phiên làm việc không hợp lệ hoặc đã hết hạn.',
+  Forbidden: 'Bạn không có quyền thực hiện hành động này.',
+  'Not Found': 'Không tìm thấy tài nguyên yêu cầu.',
+  'Bad Request': 'Dữ liệu yêu cầu không hợp lệ.',
+};
 
 @Catch()
 export class GlobalGraphQLExceptionFilter
@@ -18,20 +40,185 @@ export class GlobalGraphQLExceptionFilter
 {
   private readonly logger = new Logger(GlobalGraphQLExceptionFilter.name);
 
-  private static readonly DEFAULT_HTTP_ERROR_MESSAGES: Record<string, string> = {
-    Unauthorized: 'Phiên làm việc không hợp lệ hoặc đã hết hạn.',
-    Forbidden: 'Bạn không có quyền thực hiện hành động này.',
-    'Not Found': 'Không tìm thấy tài nguyên yêu cầu.',
-    'Bad Request': 'Dữ liệu yêu cầu không hợp lệ.',
-  };
+  catch(exception: unknown, host: ArgumentsHost) {
+    if (exception instanceof GraphQLError) {
+      return exception;
+    }
+
+    const hostType = host.getType<HostType>();
+    const parsed = this.parseException(exception);
+
+    if (parsed.statusCode >= HttpStatus.INTERNAL_SERVER_ERROR) {
+      this.logInternalServerError(hostType, parsed);
+    } else if (parsed.statusCode === HttpStatus.BAD_REQUEST) {
+      this.logValidationWarning(host, hostType, parsed);
+    }
+
+    if (hostType === HostType.HTTP) {
+      return this.sendHttpResponse(host, parsed);
+    }
+
+    return this.sendGraphQLError(parsed);
+  }
+
+  private logInternalServerError(
+    hostType: HostType,
+    parsed: ParsedError,
+  ): void {
+    const prefix = hostType === HostType.HTTP ? 'HTTP' : 'GraphQL';
+    this.logger.error(
+      `[${prefix} ${parsed.statusCode}] ${parsed.message}`,
+      parsed.stack,
+    );
+  }
+
+  private logValidationWarning(
+    host: ArgumentsHost,
+    hostType: HostType,
+    parsed: ParsedError,
+  ): void {
+    const { operationName, userId } = this.extractRequestContext(
+      host,
+      hostType,
+    );
+
+    this.logger.warn(
+      {
+        type: 'DOMAIN_VALIDATION_ERROR',
+        operation: operationName,
+        userId,
+        errors: parsed.errors,
+      },
+      `[Validation Warning] ${operationName} -> ${parsed.message}`,
+    );
+  }
+
+  private extractRequestContext(
+    host: ArgumentsHost,
+    hostType: HostType,
+  ): { operationName: string; userId?: string } {
+    if (hostType === HostType.HTTP) {
+      const req = host.switchToHttp().getRequest<{
+        method?: string;
+        url?: string;
+        user?: { id?: string };
+      }>();
+      return {
+        operationName: `${req?.method ?? 'UNKNOWN'} ${req?.url ?? ''}`.trim(),
+        userId: req?.user?.id,
+      };
+    }
+
+    const gqlHost = GqlArgumentsHost.create(host);
+    const operationName = gqlHost.getInfo()?.fieldName ?? 'GraphQL';
+    const ctx = gqlHost.getContext<{ req?: { user?: { id?: string } } }>();
+    return {
+      operationName,
+      userId: ctx?.req?.user?.id,
+    };
+  }
+
+  private parseException(exception: unknown): ParsedError {
+    if (exception instanceof DomainValidationException) {
+      return {
+        statusCode: HttpStatus.BAD_REQUEST,
+        errorCode: 'BAD_USER_INPUT',
+        message: exception.message,
+        errors: exception.errors,
+      };
+    }
+
+    if (
+      Array.isArray(exception) &&
+      exception.length > 0 &&
+      exception[0] instanceof ValidationError
+    ) {
+      return {
+        statusCode: HttpStatus.BAD_REQUEST,
+        errorCode: 'BAD_USER_INPUT',
+        message: 'Dữ liệu đầu vào không hợp lệ.',
+        errors: this.flattenValidationErrors(exception as ValidationError[]),
+      };
+    }
+
+    if (exception instanceof HttpException) {
+      const statusCode = exception.getStatus();
+      const res = exception.getResponse();
+      const resObj =
+        typeof res === 'object' && res !== null
+          ? (res as Record<string, unknown>)
+          : {};
+
+      const rawMsg =
+        resObj.message ?? (typeof res === 'string' ? res : exception.message);
+
+      let message = 'Dữ liệu đầu vào không hợp lệ.';
+      let errors: Record<string, string> | string[] | undefined;
+
+      if (typeof rawMsg === 'string') {
+        message = this.localizeHttpErrorMessage(rawMsg);
+      } else if (Array.isArray(rawMsg)) {
+        errors = rawMsg as string[];
+      } else {
+        message = this.localizeHttpErrorMessage(exception.message);
+      }
+
+      return {
+        statusCode,
+        errorCode: this.mapHttpStatusToErrorCode(statusCode),
+        message,
+        errors,
+        rawResponse: resObj,
+        stack: exception.stack,
+      };
+    }
+
+    if (exception instanceof Error) {
+      return {
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        errorCode: 'INTERNAL_SERVER_ERROR',
+        message: 'Hệ thống gặp sự cố. Vui lòng thử lại sau.',
+        stack: exception.stack,
+      };
+    }
+
+    return {
+      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      errorCode: 'INTERNAL_SERVER_ERROR',
+      message: 'Hệ thống gặp sự cố. Vui lòng thử lại sau.',
+    };
+  }
+
+  private sendHttpResponse(host: ArgumentsHost, parsed: ParsedError) {
+    const response = host.switchToHttp().getResponse<Response>();
+    const body: Record<string, unknown> = {
+      ...parsed.rawResponse,
+      statusCode: parsed.statusCode,
+      message: parsed.message,
+    };
+
+    if (parsed.errors) {
+      body.errors = parsed.errors;
+    }
+
+    return response.status(parsed.statusCode).json(body);
+  }
+
+  private sendGraphQLError(parsed: ParsedError) {
+    return new GraphQLError(parsed.message, {
+      extensions: {
+        statusCode: parsed.statusCode,
+        code: parsed.errorCode,
+        ...(parsed.errors && { errors: parsed.errors }),
+      },
+    });
+  }
 
   private localizeHttpErrorMessage(rawMessage: string): string {
-    const key = Object.keys(
-      GlobalGraphQLExceptionFilter.DEFAULT_HTTP_ERROR_MESSAGES,
-    ).find((k) => k.toLowerCase() === rawMessage?.trim().toLowerCase());
-    return key
-      ? GlobalGraphQLExceptionFilter.DEFAULT_HTTP_ERROR_MESSAGES[key]
-      : rawMessage;
+    const key = Object.keys(DEFAULT_HTTP_ERROR_MESSAGES).find(
+      (k) => k.toLowerCase() === rawMessage?.trim().toLowerCase(),
+    );
+    return key ? DEFAULT_HTTP_ERROR_MESSAGES[key] : rawMessage;
   }
 
   private mapHttpStatusToErrorCode(status: HttpStatus): string {
@@ -80,119 +267,5 @@ export class GlobalGraphQLExceptionFilter
     }
 
     return result;
-  }
-
-  catch(exception: unknown, host: ArgumentsHost) {
-    const hostType = host.getType<'http' | 'graphql' | 'ws'>();
-
-    if (hostType === 'http') {
-      const ctx = host.switchToHttp();
-      const response = ctx.getResponse<Response>();
-
-      let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-      let responseBody: Record<string, unknown> = {
-        statusCode,
-        message: 'Hệ thống gặp sự cố. Vui lòng thử lại sau.',
-      };
-
-      if (exception instanceof DomainValidationException) {
-        statusCode = HttpStatus.BAD_REQUEST;
-        responseBody = {
-          statusCode,
-          message: exception.message,
-          errors: exception.errors,
-        };
-      } else if (exception instanceof HttpException) {
-        statusCode = exception.getStatus();
-        const res = exception.getResponse();
-
-        if (typeof res === 'string') {
-          responseBody = {
-            statusCode,
-            message: this.localizeHttpErrorMessage(res),
-          };
-        } else if (res && typeof res === 'object') {
-          const resObj = res as Record<string, unknown>;
-          const rawMsg = resObj.message;
-
-          responseBody = {
-            ...resObj,
-            statusCode,
-            message:
-              typeof rawMsg === 'string'
-                ? this.localizeHttpErrorMessage(rawMsg)
-                : Array.isArray(rawMsg)
-                  ? rawMsg
-                  : this.localizeHttpErrorMessage(exception.message),
-          };
-        }
-      } else if (exception instanceof Error) {
-        this.logger.error(exception.message, exception.stack);
-      } else {
-        this.logger.error('Unhandled HTTP exception', exception);
-      }
-
-      return response.status(statusCode).json(responseBody);
-    }
-
-    if (exception instanceof GraphQLError) {
-      return exception;
-    }
-
-    let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-    let errorCode = 'INTERNAL_SERVER_ERROR';
-    let message = 'Hệ thống gặp sự cố. Vui lòng thử lại sau.';
-    let formattedErrors: Record<string, string> | string[] | string | undefined =
-      undefined;
-
-    if (exception instanceof DomainValidationException) {
-      statusCode = HttpStatus.BAD_REQUEST;
-      errorCode = 'BAD_USER_INPUT';
-      message = exception.message;
-      formattedErrors = exception.errors;
-    } else if (
-      Array.isArray(exception) &&
-      exception.length > 0 &&
-      exception[0] instanceof ValidationError
-    ) {
-      statusCode = HttpStatus.BAD_REQUEST;
-      errorCode = 'BAD_USER_INPUT';
-      message = 'Dữ liệu đầu vào không hợp lệ.';
-      formattedErrors = this.flattenValidationErrors(
-        exception as ValidationError[],
-      );
-    } else if (exception instanceof HttpException) {
-      statusCode = exception.getStatus();
-      errorCode = this.mapHttpStatusToErrorCode(statusCode);
-      const res = exception.getResponse();
-
-      if (typeof res === 'string') {
-        message = this.localizeHttpErrorMessage(res);
-      } else if (res && typeof res === 'object') {
-        const resObj = res as Record<string, unknown>;
-        if (typeof resObj.message === 'string') {
-          message = this.localizeHttpErrorMessage(resObj.message);
-        } else if (Array.isArray(resObj.message)) {
-          message = 'Dữ liệu đầu vào không hợp lệ.';
-          formattedErrors = resObj.message as string[];
-        } else {
-          message = this.localizeHttpErrorMessage(exception.message);
-        }
-      } else {
-        message = this.localizeHttpErrorMessage(exception.message);
-      }
-    } else if (exception instanceof Error) {
-      this.logger.error(exception.message, exception.stack);
-    } else {
-      this.logger.error('Unhandled GraphQL exception', exception);
-    }
-
-    return new GraphQLError(message, {
-      extensions: {
-        statusCode,
-        code: errorCode,
-        ...(formattedErrors !== undefined && { errors: formattedErrors }),
-      },
-    });
   }
 }

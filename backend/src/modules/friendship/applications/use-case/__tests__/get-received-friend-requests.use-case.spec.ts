@@ -52,5 +52,4 @@ describe('GetReceivedFriendRequestsUseCase', () => {
     expect(result[0].sender.name).toBe('Nguyen Van A');
     expect(result[1].sender.name).toBe('Tran Thi B');
   });
-
 });

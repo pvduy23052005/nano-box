@@ -1,8 +1,8 @@
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
-import { LoginResponse, LoginRequest } from '../dto/login.type';
-import { ITokenGenerator } from '../ports/token-generator.port';
 import { IPasswordHasher } from 'src/modules/user/applications/ports/password-hasher.port';
 import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
+import { LoginRequest, LoginResponse } from '../dto/login.type';
+import { ITokenGenerator } from '../ports/token-generator.port';
 
 const DUMMY_PASSWORD_HASH =
   '$2b$10$yrsSJCLiQMTKduqz0zEgr.40LXUHn2XuNZYW3.tl7xZOA9GkooAfe';
@@ -28,15 +28,16 @@ export class LoginUseCase {
       });
     }
 
+    const userId = user.getId() || '';
     const accessToken = this.tokenGenerator.generateToken({
-      id: user.getId() || '',
+      id: userId,
       email: user.getEmail(),
     });
 
     return {
       accessToken,
       user: {
-        id: user.getId() || '',
+        id: userId,
         name: user.getName() || '',
         email: user.getEmail(),
       },
