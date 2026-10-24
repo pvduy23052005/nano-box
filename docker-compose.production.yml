@@ -1,0 +1,94 @@
+name: nano-box
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: nano-mongodb
+    restart: unless-stopped
+    env_file:
+      - ./database/.env
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - nano_network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backend:
+    image: ghcr.io/pvduy23052005/nano-box-backend:latest
+    container_name: nano-box-backend
+    restart: unless-stopped
+    expose:
+      - "5050"
+    env_file:
+      - ./backend/.env
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - nano_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
+
+  frontend:
+    image: ghcr.io/pvduy23052005/nano-box-frontend:latest
+    container_name: nano-box-frontend
+    restart: unless-stopped
+    expose:
+      - "3000"
+    env_file:
+      - ./frontend/.env
+    depends_on:
+      - backend
+    networks:
+      - nano_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  nginx:
+    image: nginx:alpine
+    container_name: nano-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - nano_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  mongodb_data:
+    name: nano_mongodb_data
+    driver: local
+
+
+networks:
+  nano_network:
+    name: nano_network
+    external: true

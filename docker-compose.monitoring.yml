@@ -1,3 +1,4 @@
+name: nano-monitoring
 version: '3.8'
 
 services:
@@ -51,4 +52,4 @@ volumes:
 networks:
   nano_network:
     name: nano_network
-    driver: bridge
+    external: true

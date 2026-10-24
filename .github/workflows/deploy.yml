@@ -22,6 +22,24 @@ jobs:
     runs-on: self-hosted
 
     steps:
+      - name: Checkout mã nguồn từ Private Repo
+        uses: actions/checkout@v4
+
+      - name: Đăng nhập GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Đồng bộ cấu hình lên Production
+        run: |
+          mkdir -p ~/nano-box/monitoring
+          cp docker-compose.production.yml ~/nano-box/docker-compose.yml
+          cp docker-compose.monitoring.yml nginx.conf ~/nano-box/
+          cp -r monitoring/* ~/nano-box/monitoring/
+          docker network inspect nano_network >/dev/null 2>&1 || docker network create nano_network
+
       - name: Pull latest Docker images
         run: |
           cd ~/nano-box
@@ -30,7 +48,7 @@ jobs:
       - name: Recreate containers with new images
         run: |
           cd ~/nano-box
-          docker compose up -d --remove-orphans
+          docker compose up -d
 
       - name: Refresh Nginx reverse proxy
         run: |
