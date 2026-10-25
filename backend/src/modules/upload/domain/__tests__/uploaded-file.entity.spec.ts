@@ -84,6 +84,21 @@ describe('UploadedFileEntity', () => {
     }).toThrow(DomainValidationException);
   });
 
+  it('should throw DomainValidationException if SVG image is uploaded to avatars folder', () => {
+    const svgBuffer = Buffer.from(
+      '<svg xmlns="http://www.w3.org/2000/svg"></svg>',
+    );
+    expect(() => {
+      UploadedFileEntity.create({
+        originalName: 'avatar.svg',
+        size: svgBuffer.length,
+        mimeType: 'image/svg+xml',
+        folder: UploadFolder.AVATARS,
+        buffer: svgBuffer,
+      });
+    }).toThrow(DomainValidationException);
+  });
+
   it('should demote fake image to category other and application/octet-stream in non-avatar folders', () => {
     const fakeBuffer = Buffer.from('plain text script');
     const entity = UploadedFileEntity.create({

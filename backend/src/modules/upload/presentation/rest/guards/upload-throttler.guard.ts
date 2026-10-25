@@ -4,8 +4,9 @@ import {
   ExecutionContext,
   HttpException,
   HttpStatus,
+  OnModuleDestroy,
 } from '@nestjs/common';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 
 interface RateLimitRecord {
   count: number;
@@ -13,13 +14,14 @@ interface RateLimitRecord {
 }
 
 @Injectable()
-export class UploadThrottlerGuard implements CanActivate {
+export class UploadThrottlerGuard implements CanActivate, OnModuleDestroy {
   private static readonly WINDOW_MS = 60 * 1000;
   private static readonly MAX_REQUESTS = 20;
   private readonly records = new Map<string, RateLimitRecord>();
+  private readonly cleanupTimer: NodeJS.Timeout;
 
   constructor() {
-    const timer = setInterval(() => {
+    this.cleanupTimer = setInterval(() => {
       const now = Date.now();
       for (const [key, record] of this.records.entries()) {
         if (now > record.resetTime) {
@@ -28,9 +30,13 @@ export class UploadThrottlerGuard implements CanActivate {
       }
     }, 5 * 60 * 1000);
 
-    if (timer.unref) {
-      timer.unref();
+    if (this.cleanupTimer.unref) {
+      this.cleanupTimer.unref();
     }
+  }
+
+  onModuleDestroy(): void {
+    clearInterval(this.cleanupTimer);
   }
 
   canActivate(context: ExecutionContext): boolean {
@@ -56,6 +62,15 @@ export class UploadThrottlerGuard implements CanActivate {
     }
 
     if (currentRecord.count >= UploadThrottlerGuard.MAX_REQUESTS) {
+      const response = context.switchToHttp().getResponse<Response>();
+      const retryAfter = Math.max(
+        1,
+        Math.ceil((currentRecord.resetTime - now) / 1000),
+      );
+      if (response && typeof response.setHeader === 'function') {
+        response.setHeader('Retry-After', retryAfter.toString());
+      }
+
       throw new HttpException(
         'Bạn đã tải lên quá nhiều lần. Vui lòng thử lại sau 1 phút',
         HttpStatus.TOO_MANY_REQUESTS,

@@ -1,4 +1,4 @@
-import { FileCategory, UploadFolder } from '../../domain/upload.type';
+import { FileCategory, UploadFolder } from './upload.type';
 
 export { UploadFolder };
 export const ALLOWED_UPLOAD_FOLDERS: readonly string[] =
@@ -40,7 +40,6 @@ export const MIME_TYPE_MAP: Record<string, string> = {
   tiff: 'image/tiff',
   tif: 'image/tiff',
 
-  // Audio
   mp3: 'audio/mpeg',
   wav: 'audio/wav',
   ogg: 'audio/ogg',
@@ -49,7 +48,6 @@ export const MIME_TYPE_MAP: Record<string, string> = {
   flac: 'audio/flac',
   wma: 'audio/x-ms-wma',
 
-  // Video
   mp4: 'video/mp4',
   webm: 'video/webm',
   mov: 'video/quicktime',
@@ -58,7 +56,6 @@ export const MIME_TYPE_MAP: Record<string, string> = {
   wmv: 'video/x-ms-wmv',
   flv: 'video/x-flv',
 
-  // Documents / Text
   pdf: 'application/pdf',
   txt: 'text/plain; charset=utf-8',
   css: 'text/css; charset=utf-8',
@@ -87,7 +84,6 @@ export const DISALLOWED_MIME_TYPES: readonly string[] = [
 ];
 
 export const SAFE_INLINE_MIME_TYPES = new Set([
-  // Images (raster only - excluding image/svg+xml to prevent Stored XSS)
   'image/jpeg',
   'image/png',
   'image/gif',
@@ -99,7 +95,6 @@ export const SAFE_INLINE_MIME_TYPES = new Set([
   'image/heif',
   'image/tiff',
 
-  // Audio
   'audio/mpeg',
   'audio/wav',
   'audio/ogg',
@@ -108,7 +103,6 @@ export const SAFE_INLINE_MIME_TYPES = new Set([
   'audio/flac',
   'audio/x-ms-wma',
 
-  // Video
   'video/mp4',
   'video/webm',
   'video/quicktime',
@@ -118,11 +112,28 @@ export const SAFE_INLINE_MIME_TYPES = new Set([
   'video/x-flv',
 ]);
 
+export const RASTER_IMAGE_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/avif',
+  'image/bmp',
+  'image/x-icon',
+  'image/heic',
+  'image/heif',
+  'image/tiff',
+]);
+
+export function isRasterImage(mimeType: string): boolean {
+  const baseMime = mimeType.split(';')[0].trim().toLowerCase();
+  return RASTER_IMAGE_MIME_TYPES.has(baseMime);
+}
+
 export function resolveMimeType(
   filename?: string,
   fallbackMime?: string,
 ): string {
-  // If fallback MIME is explicitly disallowed (executable/html/js), sanitize immediately
   if (
     fallbackMime &&
     DISALLOWED_MIME_TYPES.some((disallowed) =>
@@ -231,12 +242,10 @@ export function isValidImageMagicBytes(buffer?: Buffer): boolean {
     return false;
   }
 
-  // JPEG: FF D8 FF
   if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
     return true;
   }
 
-  // PNG: 89 50 4E 47 (\x89PNG)
   if (
     buffer[0] === 0x89 &&
     buffer[1] === 0x50 &&
@@ -246,12 +255,10 @@ export function isValidImageMagicBytes(buffer?: Buffer): boolean {
     return true;
   }
 
-  // GIF: 47 49 46 (GIF)
   if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46) {
     return true;
   }
 
-  // WEBP: RIFF....WEBP
   if (
     buffer.length >= 12 &&
     buffer.subarray(0, 4).toString('ascii') === 'RIFF' &&
@@ -260,12 +267,10 @@ export function isValidImageMagicBytes(buffer?: Buffer): boolean {
     return true;
   }
 
-  // BMP: 42 4D (BM)
   if (buffer[0] === 0x42 && buffer[1] === 0x4d) {
     return true;
   }
 
-  // AVIF / HEIC / HEIF: byte 4-7 is 'ftyp'
   if (
     buffer.length >= 8 &&
     buffer.subarray(4, 8).toString('ascii') === 'ftyp'
@@ -273,7 +278,6 @@ export function isValidImageMagicBytes(buffer?: Buffer): boolean {
     return true;
   }
 
-  // TIFF: II*\0 or MM\0*
   if (
     (buffer[0] === 0x49 &&
       buffer[1] === 0x49 &&
@@ -287,7 +291,6 @@ export function isValidImageMagicBytes(buffer?: Buffer): boolean {
     return true;
   }
 
-  // ICO: 00 00 01 00
   if (
     buffer[0] === 0x00 &&
     buffer[1] === 0x00 &&
@@ -297,9 +300,11 @@ export function isValidImageMagicBytes(buffer?: Buffer): boolean {
     return true;
   }
 
-  // SVG: <?xml ... <svg or <svg
   const sample = buffer.subarray(0, 256).toString('utf8').trim().toLowerCase();
-  if (sample.startsWith('<svg') || (sample.startsWith('<?xml') && sample.includes('<svg'))) {
+  if (
+    sample.startsWith('<svg') ||
+    (sample.startsWith('<?xml') && sample.includes('<svg'))
+  ) {
     return true;
   }
 

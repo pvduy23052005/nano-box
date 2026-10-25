@@ -47,9 +47,10 @@ export class SendMessageUseCase {
     const attachments: string[] = [...(messageData.attachments || [])];
     const tempKeys = messageData.tempKeys || [];
 
-    if (tempKeys.length > MAX_ATTACHMENTS_PER_MESSAGE) {
+    const totalCount = attachments.length + tempKeys.length;
+    if (totalCount > MAX_ATTACHMENTS_PER_MESSAGE) {
       throw new DomainValidationException({
-        tempKeys: `Chỉ được gửi tối đa ${MAX_ATTACHMENTS_PER_MESSAGE} file đính kèm mỗi tin nhắn`,
+        attachments: `Chỉ được gửi tối đa ${MAX_ATTACHMENTS_PER_MESSAGE} file đính kèm mỗi tin nhắn`,
       });
     }
 

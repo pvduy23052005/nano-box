@@ -1,12 +1,8 @@
-import {
-  Injectable,
-  BadRequestException,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AwsClient } from 'aws4fetch';
 import { UploadAdapter } from '../../applications/ports/upload.port';
+import { StorageException } from '../../domain/upload.exception';
 
 @Injectable()
 export class CloudflareR2Adapter implements UploadAdapter {
@@ -70,21 +66,21 @@ export class CloudflareR2Adapter implements UploadAdapter {
         this.logger.error(
           `R2 Upload failed [${response.status}]: ${errorText}`,
         );
-        throw new BadRequestException('Tải file lên R2 thất bại');
+        throw new StorageException('Tải file lên R2 thất bại');
       }
 
       return `${this.publicUrl}/${key}`;
     } catch (error) {
-      if (error instanceof BadRequestException) throw error;
+      if (error instanceof StorageException) throw error;
       const errorObj = error as { name?: string };
       if (errorObj?.name === 'TimeoutError' || errorObj?.name === 'AbortError') {
         this.logger.error(`R2 Upload timed out for key ${key}`);
-        throw new BadRequestException(
+        throw new StorageException(
           'Quá thời gian tải file lên Cloudflare R2',
         );
       }
       this.logger.error(`Error uploading to R2: ${error}`);
-      throw new InternalServerErrorException(
+      throw new StorageException(
         'Lỗi hệ thống khi tải file lên Cloudflare R2',
       );
     }
@@ -111,7 +107,7 @@ export class CloudflareR2Adapter implements UploadAdapter {
 
   async copyTempToUploads(tempKey: string): Promise<string> {
     if (!tempKey || !CloudflareR2Adapter.TEMP_KEY_REGEX.test(tempKey)) {
-      throw new BadRequestException('Định dạng tempKey không hợp lệ');
+      throw new StorageException('Định dạng tempKey không hợp lệ');
     }
 
     const filename = tempKey.replace(/^temp\//, '');
@@ -128,7 +124,7 @@ export class CloudflareR2Adapter implements UploadAdapter {
       });
 
       if (response.status === 404) {
-        throw new BadRequestException('File tạm không tồn tại hoặc đã hết hạn');
+        throw new StorageException('File tạm không tồn tại hoặc đã hết hạn');
       }
 
       if (!response.ok) {
@@ -136,23 +132,23 @@ export class CloudflareR2Adapter implements UploadAdapter {
         this.logger.error(
           `R2 CopyObject failed [${response.status}]: ${errorText}`,
         );
-        throw new BadRequestException(
+        throw new StorageException(
           'Sao chép file từ temp sang uploads thất bại',
         );
       }
 
       return `${this.publicUrl}/${destKey}`;
     } catch (error) {
-      if (error instanceof BadRequestException) throw error;
+      if (error instanceof StorageException) throw error;
       const errorObj = error as { name?: string };
       if (errorObj?.name === 'TimeoutError' || errorObj?.name === 'AbortError') {
         this.logger.error(`R2 CopyObject timed out for key ${tempKey}`);
-        throw new BadRequestException(
+        throw new StorageException(
           'Quá thời gian sao chép file trên Cloudflare R2',
         );
       }
       this.logger.error(`Error copying object in R2: ${error}`);
-      throw new InternalServerErrorException(
+      throw new StorageException(
         'Lỗi hệ thống khi sao chép file trên Cloudflare R2',
       );
     }

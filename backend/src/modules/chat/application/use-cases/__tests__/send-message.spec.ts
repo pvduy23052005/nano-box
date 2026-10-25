@@ -235,6 +235,37 @@ describe('SendMessageUseCase', () => {
     ).rejects.toThrow(DomainValidationException);
   });
 
+  it('should throw DomainValidationException if combined attachments and tempKeys exceed limit', async () => {
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue({
+      roomId: 'room-1',
+      members: [
+        {
+          userId: 'user-1',
+          name: 'User One',
+          avatar: null,
+          role: MemberRole.MEMBER,
+          status: MemberStatus.ACCEPTED,
+        },
+      ],
+    });
+
+    const existingAttachments = Array.from(
+      { length: 6 },
+      (_, i) => `https://cdn.example.com/uploads/old-${i}.jpg`,
+    );
+    const tempKeys = Array.from({ length: 5 }, (_, i) => `temp/new-${i}.jpg`);
+
+    await expect(
+      sendMessageUseCase.execute({
+        roomId: 'room-1',
+        senderId: 'user-1',
+        content: 'Too many combined files',
+        attachments: existingAttachments,
+        tempKeys,
+      }),
+    ).rejects.toThrow(DomainValidationException);
+  });
+
   it('should throw DomainValidationException if copyTempToUploads fails or times out', async () => {
     roomRepository.findRoomMembersWithProfile.mockResolvedValue({
       roomId: 'room-1',

@@ -11,8 +11,9 @@ import {
   detectFileCategory,
   resolveMimeType,
   isValidImageMagicBytes,
+  isRasterImage,
   MAX_FILE_SIZE,
-} from '../infrastructure/constants/upload.constant';
+} from './upload.constant';
 
 export class UploadedFileEntity {
   private readonly _name: string;
@@ -50,6 +51,14 @@ export class UploadedFileEntity {
     const ext = originalExt.toLowerCase();
     let category = detectFileCategory(input.mimeType, originalName);
     let mimeType = resolveMimeType(originalName, input.mimeType);
+
+    if (input.folder === (UploadFolder.AVATARS as string)) {
+      if (category !== 'image' || !isRasterImage(mimeType)) {
+        throw new DomainValidationException({
+          file: 'Avatar chỉ chấp nhận các định dạng hình ảnh raster (JPEG, PNG, WebP, GIF, AVIF)',
+        });
+      }
+    }
 
     if (category === 'image' && input.buffer) {
       const isRealImage = isValidImageMagicBytes(input.buffer);

@@ -4,7 +4,7 @@ import { UploadResponseDto } from '../dto/upload-response.dto';
 import { FileUploadInput } from '../dto/file-upload.input';
 import { UploadedFileEntity } from '../../domain/uploaded-file.entity';
 import { UploadFolder, ALLOWED_UPLOAD_FOLDERS } from '../../domain/upload.type';
-import { resolveContentDisposition } from '../../infrastructure/constants/upload.constant';
+import { resolveContentDisposition } from '../../domain/upload.constant';
 
 export class UploadFileUseCase {
   constructor(private readonly uploadAdapter: UploadAdapter) {}

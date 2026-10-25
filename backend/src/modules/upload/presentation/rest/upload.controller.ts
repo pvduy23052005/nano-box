@@ -17,7 +17,7 @@ import { UploadResponseDto } from '../../applications/dto/upload-response.dto';
 import { TempUploadResponseDto } from '../../applications/dto/temp-upload-response.dto';
 import { UploadQueryDto } from '../dto/upload-query.dto';
 import { UploadFolder } from '../../domain/upload.type';
-import { MAX_FILE_SIZE } from '../../infrastructure/constants/upload.constant';
+import { MAX_FILE_SIZE } from '../../domain/upload.constant';
 
 @Controller('upload')
 @UseGuards(AuthGuard, UploadThrottlerGuard)
