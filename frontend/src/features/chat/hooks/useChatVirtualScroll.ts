@@ -30,10 +30,10 @@ export function useChatVirtualScroll({
     getItemKey: (index) => messageGroups[index]?.id ?? index,
     anchorTo: "end",
     followOnAppend: true,
-    scrollEndThreshold: 80,
+    scrollEndThreshold: 150,
     gap: 16,
     paddingStart: 12,
-    paddingEnd: 12,
+    paddingEnd: 16,
     overscan: 6,
   });
 
@@ -60,7 +60,13 @@ export function useChatVirtualScroll({
 
   useLayoutEffect(() => {
     if (messageGroups.length > 0 && !isInitialScrollDone.current) {
+      const el = scrollContainerRef.current;
       virtualizer.scrollToIndex(messageGroups.length - 1, { align: "end" });
+      if (el) {
+        requestAnimationFrame(() => {
+          el.scrollTop = el.scrollHeight;
+        });
+      }
       isInitialScrollDone.current = true;
     }
   }, [messageGroups.length, virtualizer]);
@@ -73,23 +79,66 @@ export function useChatVirtualScroll({
     if (!lastMessageId || !isInitialScrollDone.current) return;
     const el = scrollContainerRef.current;
     if (!el) return;
-    const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 150;
+    const isNearBottom =
+      el.scrollHeight - el.scrollTop - el.clientHeight < 150;
 
     if (isNearBottom || lastMessageIsMe) {
-      requestAnimationFrame(() => {
+      const scrollDown = (behavior: ScrollBehavior = "auto") => {
+        if (!el) return;
         virtualizer.scrollToIndex(messageGroups.length - 1, {
           align: "end",
-          behavior: lastMessageIsMe ? "auto" : "smooth",
+          behavior,
         });
-      });
+        requestAnimationFrame(() => {
+          if (el) {
+            el.scrollTop = el.scrollHeight;
+          }
+        });
+      };
+
+      const behavior = lastMessageIsMe ? "auto" : "smooth";
+      scrollDown(behavior);
+
+      const timer1 = setTimeout(() => scrollDown(behavior), 50);
+      const timer2 = setTimeout(() => scrollDown(behavior), 150);
+      const timer3 = setTimeout(() => scrollDown(behavior), 300);
+
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+        clearTimeout(timer3);
+      };
     }
   }, [lastMessageId, lastMessageIsMe, messageGroups.length, virtualizer]);
+
+  const totalSize = virtualizer.getTotalSize();
+  const prevTotalSizeRef = useRef(totalSize);
+
+  useEffect(() => {
+    if (!isInitialScrollDone.current) return;
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    if (totalSize !== prevTotalSizeRef.current) {
+      prevTotalSizeRef.current = totalSize;
+      const isNearBottom =
+        el.scrollHeight - el.scrollTop - el.clientHeight < 150;
+      if (isNearBottom || lastMessageIsMe) {
+        requestAnimationFrame(() => {
+          if (el) {
+            el.scrollTop = el.scrollHeight;
+          }
+        });
+      }
+    }
+  }, [totalSize, lastMessageIsMe]);
 
   useEffect(() => {
     if (typingCount > 0 && isInitialScrollDone.current) {
       const el = scrollContainerRef.current;
       if (el) {
-        const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 150;
+        const isNearBottom =
+          el.scrollHeight - el.scrollTop - el.clientHeight < 150;
         if (isNearBottom) {
           el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
         }

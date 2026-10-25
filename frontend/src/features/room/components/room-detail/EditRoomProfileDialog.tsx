@@ -180,14 +180,14 @@ function EditRoomProfileDialogContent({
             <div
               onClick={() => !isSubmitting && fileInputRef.current?.click()}
               className={cn(
-                "relative size-24 overflow-hidden transition-all duration-200 cursor-pointer flex items-center justify-center ",
+                "relative size-24 rounded-full overflow-hidden transition-all duration-200 cursor-pointer flex items-center justify-center ",
                 !isSubmitting &&
                   "hover:border-primary/80 hover:shadow-lg group-hover/avatar:ring-2 group-hover/avatar:ring-primary/20",
               )}
               title="Nhấn để chọn ảnh mới"
             >
               {currentDisplayAvatar ? (
-                <Avatar className="size-full rounded-2xl">
+                <Avatar className="size-full rounded-full">
                   <AvatarImage
                     src={currentDisplayAvatar}
                     alt={displayName}

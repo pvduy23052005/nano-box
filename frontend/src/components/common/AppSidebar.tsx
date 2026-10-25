@@ -6,6 +6,7 @@ import Image from "next/image";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -14,17 +15,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "../ui/sidebar";
-import {
-  LayoutGrid,
-  MessageSquare,
-  Users,
-  ClipboardList,
-  CheckCircle,
-  Calendar,
-  BarChart,
-  Folder,
-  FileText,
-} from "lucide-react";
+import { LayoutGrid, MessageSquare, Users } from "lucide-react";
+import NavUser from "./NavUser";
 
 const data = {
   overview: [
@@ -48,22 +40,6 @@ const data = {
           url: "/users",
           icon: Users,
         },
-      ],
-    },
-    {
-      label: "CÔNG VIỆC",
-      items: [
-        { title: "Dự án", url: "/project", icon: ClipboardList },
-        { title: "Nhiệm vụ", url: "/task", icon: CheckCircle },
-        { title: "Lịch", url: "/calendar", icon: Calendar },
-      ],
-    },
-    {
-      label: "TÀI NGUYÊN",
-      items: [
-        { title: "Báo cáo", url: "/report", icon: BarChart },
-        { title: "Tập tin", url: "/files", icon: Folder },
-        { title: "Tài liệu", url: "/docs", icon: FileText },
       ],
     },
   ],
@@ -142,6 +118,10 @@ export default function AppSidebar() {
           </SidebarGroup>
         ))}
       </SidebarContent>
+
+      <SidebarFooter className="group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:py-2 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center">
+        <NavUser />
+      </SidebarFooter>
     </Sidebar>
   );
 }
