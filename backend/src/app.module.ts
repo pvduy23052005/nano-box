@@ -11,7 +11,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { UserModule } from './modules/user/user.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { WebsocketModule } from './infrastructure/websocket/ws.module';
-import { UploadModule } from './infrastructure/upload/upload.module';
+import { UploadModule } from './modules/upload/upload.module';
 import { RoomModule } from './modules/room/room.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { NotificationModule } from './modules/notification/notification.module';

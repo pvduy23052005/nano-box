@@ -6,24 +6,12 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AwsClient } from 'aws4fetch';
-import * as path from 'path';
-import * as crypto from 'crypto';
-import 'multer';
-import { UploadResponseDto } from './dto/upload-response.dto';
-import { TempUploadResponseDto } from './dto/temp-upload-response.dto';
-import {
-  detectFileCategory,
-  resolveMimeType,
-  resolveContentDisposition,
-  MAX_FILE_SIZE,
-  ALLOWED_UPLOAD_FOLDERS,
-  UploadFolder,
-} from './constants/upload.constant';
+import { UploadAdapter } from '../../applications/ports/upload.port';
 
 @Injectable()
-export class UploadService {
+export class CloudflareR2Adapter implements UploadAdapter {
   private static readonly TEMP_KEY_REGEX = /^temp\/[a-z0-9-]+(\.[a-z0-9]+)?$/i;
-  private readonly logger = new Logger(UploadService.name);
+  private readonly logger = new Logger(CloudflareR2Adapter.name);
   private readonly awsClient: AwsClient;
   private readonly accountId: string;
   private readonly bucketName: string;
@@ -57,62 +45,24 @@ export class UploadService {
     return `https://${this.accountId}.r2.cloudflarestorage.com/${this.bucketName}`;
   }
 
-  async uploadFile(
-    file: Express.Multer.File,
-    folder: string = UploadFolder.UPLOADS,
-  ): Promise<UploadResponseDto> {
-    if (!file?.buffer) {
-      throw new BadRequestException('Vui lòng chọn file hợp lệ để tải lên');
-    }
-
-    if (!ALLOWED_UPLOAD_FOLDERS.includes(folder)) {
-      throw new BadRequestException(
-        `Thư mục không hợp lệ. Chỉ cho phép: ${ALLOWED_UPLOAD_FOLDERS.join(', ')}`,
-      );
-    }
-
-    if (file.size > MAX_FILE_SIZE) {
-      const maxMb = (MAX_FILE_SIZE / (1024 * 1024)).toFixed(0);
-      throw new BadRequestException(
-        `Kích thước file vượt quá giới hạn tối đa ${maxMb}MB`,
-      );
-    }
-
-    const originalName = file.originalname || 'file';
-    const ext = path.extname(originalName).toLowerCase();
-    const cleanFolder = folder;
-    const category = detectFileCategory(file.mimetype, originalName);
-    const mimeType = resolveMimeType(originalName, file.mimetype);
-
-    const rawBaseName = path
-      .basename(originalName, ext)
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9-]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '')
-      .slice(0, 40);
-    const cleanBaseName = rawBaseName ? `-${rawBaseName}` : '';
-
-    const shortId = `${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}`;
-    const key = `${cleanFolder}/${shortId}${cleanBaseName}${ext}`;
-
+  async upload(
+    buffer: Buffer,
+    key: string,
+    mimeType: string,
+    contentDisposition: string,
+  ): Promise<string> {
     const endpointUrl = `${this.r2Endpoint}/${key}`;
-    const contentDisposition = resolveContentDisposition(
-      originalName,
-      mimeType,
-    );
 
     try {
       const response = await this.awsClient.fetch(endpointUrl, {
         method: 'PUT',
         headers: {
           'Content-Type': mimeType,
-          'Content-Length': file.size.toString(),
+          'Content-Length': buffer.length.toString(),
           'Content-Disposition': contentDisposition,
         },
-        body: new Uint8Array(file.buffer),
+        body: new Uint8Array(buffer),
+        signal: AbortSignal.timeout(15000),
       });
 
       if (!response.ok) {
@@ -123,16 +73,16 @@ export class UploadService {
         throw new BadRequestException('Tải file lên R2 thất bại');
       }
 
-      return {
-        url: `${this.publicUrl}/${key}`,
-        key,
-        name: originalName,
-        size: file.size,
-        mimeType,
-        category,
-      };
+      return `${this.publicUrl}/${key}`;
     } catch (error) {
       if (error instanceof BadRequestException) throw error;
+      const errorObj = error as { name?: string };
+      if (errorObj?.name === 'TimeoutError' || errorObj?.name === 'AbortError') {
+        this.logger.error(`R2 Upload timed out for key ${key}`);
+        throw new BadRequestException(
+          'Quá thời gian tải file lên Cloudflare R2',
+        );
+      }
       this.logger.error(`Error uploading to R2: ${error}`);
       throw new InternalServerErrorException(
         'Lỗi hệ thống khi tải file lên Cloudflare R2',
@@ -140,18 +90,8 @@ export class UploadService {
     }
   }
 
-  async uploadToTemp(
-    file: Express.Multer.File,
-  ): Promise<TempUploadResponseDto> {
-    const result = await this.uploadFile(file, UploadFolder.TEMP);
-    return {
-      tempKey: result.key,
-      url: result.url,
-    };
-  }
-
   async validateTempKey(tempKey: string): Promise<boolean> {
-    if (!tempKey || !UploadService.TEMP_KEY_REGEX.test(tempKey)) {
+    if (!tempKey || !CloudflareR2Adapter.TEMP_KEY_REGEX.test(tempKey)) {
       return false;
     }
 
@@ -160,6 +100,7 @@ export class UploadService {
         `${this.r2Endpoint}/${tempKey}`,
         {
           method: 'HEAD',
+          signal: AbortSignal.timeout(3000),
         },
       );
       return response.ok;
@@ -169,13 +110,8 @@ export class UploadService {
   }
 
   async copyTempToUploads(tempKey: string): Promise<string> {
-    if (!tempKey || !UploadService.TEMP_KEY_REGEX.test(tempKey)) {
+    if (!tempKey || !CloudflareR2Adapter.TEMP_KEY_REGEX.test(tempKey)) {
       throw new BadRequestException('Định dạng tempKey không hợp lệ');
-    }
-
-    const exists = await this.validateTempKey(tempKey);
-    if (!exists) {
-      throw new BadRequestException('File tạm không tồn tại hoặc đã hết hạn');
     }
 
     const filename = tempKey.replace(/^temp\//, '');
@@ -188,7 +124,12 @@ export class UploadService {
         headers: {
           'x-amz-copy-source': `/${this.bucketName}/${tempKey}`,
         },
+        signal: AbortSignal.timeout(6000),
       });
+
+      if (response.status === 404) {
+        throw new BadRequestException('File tạm không tồn tại hoặc đã hết hạn');
+      }
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -203,6 +144,13 @@ export class UploadService {
       return `${this.publicUrl}/${destKey}`;
     } catch (error) {
       if (error instanceof BadRequestException) throw error;
+      const errorObj = error as { name?: string };
+      if (errorObj?.name === 'TimeoutError' || errorObj?.name === 'AbortError') {
+        this.logger.error(`R2 CopyObject timed out for key ${tempKey}`);
+        throw new BadRequestException(
+          'Quá thời gian sao chép file trên Cloudflare R2',
+        );
+      }
       this.logger.error(`Error copying object in R2: ${error}`);
       throw new InternalServerErrorException(
         'Lỗi hệ thống khi sao chép file trên Cloudflare R2',
@@ -211,7 +159,7 @@ export class UploadService {
   }
 
   async deleteTempFile(tempKey: string): Promise<void> {
-    if (!tempKey || !UploadService.TEMP_KEY_REGEX.test(tempKey)) {
+    if (!tempKey || !CloudflareR2Adapter.TEMP_KEY_REGEX.test(tempKey)) {
       return;
     }
 
@@ -220,6 +168,7 @@ export class UploadService {
     try {
       const response = await this.awsClient.fetch(deleteUrl, {
         method: 'DELETE',
+        signal: AbortSignal.timeout(4000),
       });
 
       if (!response.ok) {

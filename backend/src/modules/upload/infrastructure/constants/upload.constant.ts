@@ -1,17 +1,12 @@
-export type FileCategory = 'image' | 'audio' | 'document' | 'video' | 'other';
+import { FileCategory, UploadFolder } from '../../domain/upload.type';
 
-export enum UploadFolder {
-  UPLOADS = 'uploads',
-  TEMP = 'temp',
-  AVATARS = 'avatars',
-}
-
+export { UploadFolder };
 export const ALLOWED_UPLOAD_FOLDERS: readonly string[] =
   Object.values(UploadFolder);
 
 export const MAX_FILE_SIZE = 25 * 1024 * 1024;
 
-export const DOCUMENT_MIMES = [
+export const DOCUMENT_MIMES: readonly string[] = [
   'application/pdf',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -127,6 +122,16 @@ export function resolveMimeType(
   filename?: string,
   fallbackMime?: string,
 ): string {
+  // If fallback MIME is explicitly disallowed (executable/html/js), sanitize immediately
+  if (
+    fallbackMime &&
+    DISALLOWED_MIME_TYPES.some((disallowed) =>
+      fallbackMime.toLowerCase().startsWith(disallowed),
+    )
+  ) {
+    return 'application/octet-stream';
+  }
+
   if (filename) {
     const ext = filename.split('.').pop()?.toLowerCase();
     if (ext && MIME_TYPE_MAP[ext]) {
@@ -134,13 +139,7 @@ export function resolveMimeType(
     }
   }
 
-  if (
-    fallbackMime &&
-    fallbackMime !== 'application/octet-stream' &&
-    !DISALLOWED_MIME_TYPES.some((disallowed) =>
-      fallbackMime.toLowerCase().startsWith(disallowed),
-    )
-  ) {
+  if (fallbackMime && fallbackMime !== 'application/octet-stream') {
     return fallbackMime;
   }
 
@@ -225,4 +224,84 @@ export function detectFileCategory(
   }
 
   return 'other';
+}
+
+export function isValidImageMagicBytes(buffer?: Buffer): boolean {
+  if (!buffer || buffer.length < 4) {
+    return false;
+  }
+
+  // JPEG: FF D8 FF
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return true;
+  }
+
+  // PNG: 89 50 4E 47 (\x89PNG)
+  if (
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47
+  ) {
+    return true;
+  }
+
+  // GIF: 47 49 46 (GIF)
+  if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46) {
+    return true;
+  }
+
+  // WEBP: RIFF....WEBP
+  if (
+    buffer.length >= 12 &&
+    buffer.subarray(0, 4).toString('ascii') === 'RIFF' &&
+    buffer.subarray(8, 12).toString('ascii') === 'WEBP'
+  ) {
+    return true;
+  }
+
+  // BMP: 42 4D (BM)
+  if (buffer[0] === 0x42 && buffer[1] === 0x4d) {
+    return true;
+  }
+
+  // AVIF / HEIC / HEIF: byte 4-7 is 'ftyp'
+  if (
+    buffer.length >= 8 &&
+    buffer.subarray(4, 8).toString('ascii') === 'ftyp'
+  ) {
+    return true;
+  }
+
+  // TIFF: II*\0 or MM\0*
+  if (
+    (buffer[0] === 0x49 &&
+      buffer[1] === 0x49 &&
+      buffer[2] === 0x2a &&
+      buffer[3] === 0x00) ||
+    (buffer[0] === 0x4d &&
+      buffer[1] === 0x4d &&
+      buffer[2] === 0x00 &&
+      buffer[3] === 0x2a)
+  ) {
+    return true;
+  }
+
+  // ICO: 00 00 01 00
+  if (
+    buffer[0] === 0x00 &&
+    buffer[1] === 0x00 &&
+    buffer[2] === 0x01 &&
+    buffer[3] === 0x00
+  ) {
+    return true;
+  }
+
+  // SVG: <?xml ... <svg or <svg
+  const sample = buffer.subarray(0, 256).toString('utf8').trim().toLowerCase();
+  if (sample.startsWith('<svg') || (sample.startsWith('<?xml') && sample.includes('<svg'))) {
+    return true;
+  }
+
+  return false;
 }
