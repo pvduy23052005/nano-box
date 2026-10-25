@@ -35,7 +35,7 @@ export class MessageEntity {
       errors.roomId = 'Phòng không được để trống';
     }
 
-    if (!props.content?.length && !props.attachments?.length) {
+    if (!props.content?.trim().length && !props.attachments?.length) {
       errors.content = 'Nội dung hoặc file đính kèm không được để trống';
     }
 

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UploadModule } from 'src/infrastructure/upload/upload.module';
+import { UploadAdapter } from '../upload/applications/ports/upload.port';
+import { UploadModule } from '../upload/upload.module';
 import { RoomRepositoryAdapter } from '../room/application/ports/room.ports';
 import { RoomModule } from '../room/room.module';
 import { MessageRepositoryAdapter } from './application/ports/message.port';
@@ -36,8 +37,14 @@ import { ChatListener } from './presentation/listener/chat.listener';
       useFactory: (
         messageRepository: MessageRepositoryAdapter,
         roomRepository: RoomRepositoryAdapter,
-      ) => new SendMessageUseCase(messageRepository, roomRepository),
-      inject: [MessageRepositoryAdapter, RoomRepositoryAdapter],
+        uploadAdapter: UploadAdapter,
+      ) =>
+        new SendMessageUseCase(
+          messageRepository,
+          roomRepository,
+          uploadAdapter,
+        ),
+      inject: [MessageRepositoryAdapter, RoomRepositoryAdapter, UploadAdapter],
     },
     {
       provide: SendSystemMessageUseCase,

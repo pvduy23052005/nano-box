@@ -1,17 +1,12 @@
-export type FileCategory = 'image' | 'audio' | 'document' | 'video' | 'other';
+import { FileCategory, UploadFolder } from './upload.type';
 
-export enum UploadFolder {
-  UPLOADS = 'uploads',
-  TEMP = 'temp',
-  AVATARS = 'avatars',
-}
-
+export { UploadFolder };
 export const ALLOWED_UPLOAD_FOLDERS: readonly string[] =
   Object.values(UploadFolder);
 
 export const MAX_FILE_SIZE = 25 * 1024 * 1024;
 
-export const DOCUMENT_MIMES = [
+export const DOCUMENT_MIMES: readonly string[] = [
   'application/pdf',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -45,7 +40,6 @@ export const MIME_TYPE_MAP: Record<string, string> = {
   tiff: 'image/tiff',
   tif: 'image/tiff',
 
-  // Audio
   mp3: 'audio/mpeg',
   wav: 'audio/wav',
   ogg: 'audio/ogg',
@@ -54,7 +48,6 @@ export const MIME_TYPE_MAP: Record<string, string> = {
   flac: 'audio/flac',
   wma: 'audio/x-ms-wma',
 
-  // Video
   mp4: 'video/mp4',
   webm: 'video/webm',
   mov: 'video/quicktime',
@@ -63,7 +56,6 @@ export const MIME_TYPE_MAP: Record<string, string> = {
   wmv: 'video/x-ms-wmv',
   flv: 'video/x-flv',
 
-  // Documents / Text
   pdf: 'application/pdf',
   txt: 'text/plain; charset=utf-8',
   css: 'text/css; charset=utf-8',
@@ -92,7 +84,6 @@ export const DISALLOWED_MIME_TYPES: readonly string[] = [
 ];
 
 export const SAFE_INLINE_MIME_TYPES = new Set([
-  // Images (raster only - excluding image/svg+xml to prevent Stored XSS)
   'image/jpeg',
   'image/png',
   'image/gif',
@@ -104,7 +95,6 @@ export const SAFE_INLINE_MIME_TYPES = new Set([
   'image/heif',
   'image/tiff',
 
-  // Audio
   'audio/mpeg',
   'audio/wav',
   'audio/ogg',
@@ -113,7 +103,6 @@ export const SAFE_INLINE_MIME_TYPES = new Set([
   'audio/flac',
   'audio/x-ms-wma',
 
-  // Video
   'video/mp4',
   'video/webm',
   'video/quicktime',
@@ -123,10 +112,37 @@ export const SAFE_INLINE_MIME_TYPES = new Set([
   'video/x-flv',
 ]);
 
+export const RASTER_IMAGE_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/avif',
+  'image/bmp',
+  'image/x-icon',
+  'image/heic',
+  'image/heif',
+  'image/tiff',
+]);
+
+export function isRasterImage(mimeType: string): boolean {
+  const baseMime = mimeType.split(';')[0].trim().toLowerCase();
+  return RASTER_IMAGE_MIME_TYPES.has(baseMime);
+}
+
 export function resolveMimeType(
   filename?: string,
   fallbackMime?: string,
 ): string {
+  if (
+    fallbackMime &&
+    DISALLOWED_MIME_TYPES.some((disallowed) =>
+      fallbackMime.toLowerCase().startsWith(disallowed),
+    )
+  ) {
+    return 'application/octet-stream';
+  }
+
   if (filename) {
     const ext = filename.split('.').pop()?.toLowerCase();
     if (ext && MIME_TYPE_MAP[ext]) {
@@ -134,13 +150,7 @@ export function resolveMimeType(
     }
   }
 
-  if (
-    fallbackMime &&
-    fallbackMime !== 'application/octet-stream' &&
-    !DISALLOWED_MIME_TYPES.some((disallowed) =>
-      fallbackMime.toLowerCase().startsWith(disallowed),
-    )
-  ) {
+  if (fallbackMime && fallbackMime !== 'application/octet-stream') {
     return fallbackMime;
   }
 
@@ -225,4 +235,78 @@ export function detectFileCategory(
   }
 
   return 'other';
+}
+
+export function isValidImageMagicBytes(buffer?: Buffer): boolean {
+  if (!buffer || buffer.length < 4) {
+    return false;
+  }
+
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return true;
+  }
+
+  if (
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47
+  ) {
+    return true;
+  }
+
+  if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46) {
+    return true;
+  }
+
+  if (
+    buffer.length >= 12 &&
+    buffer.subarray(0, 4).toString('ascii') === 'RIFF' &&
+    buffer.subarray(8, 12).toString('ascii') === 'WEBP'
+  ) {
+    return true;
+  }
+
+  if (buffer[0] === 0x42 && buffer[1] === 0x4d) {
+    return true;
+  }
+
+  if (
+    buffer.length >= 8 &&
+    buffer.subarray(4, 8).toString('ascii') === 'ftyp'
+  ) {
+    return true;
+  }
+
+  if (
+    (buffer[0] === 0x49 &&
+      buffer[1] === 0x49 &&
+      buffer[2] === 0x2a &&
+      buffer[3] === 0x00) ||
+    (buffer[0] === 0x4d &&
+      buffer[1] === 0x4d &&
+      buffer[2] === 0x00 &&
+      buffer[3] === 0x2a)
+  ) {
+    return true;
+  }
+
+  if (
+    buffer[0] === 0x00 &&
+    buffer[1] === 0x00 &&
+    buffer[2] === 0x01 &&
+    buffer[3] === 0x00
+  ) {
+    return true;
+  }
+
+  const sample = buffer.subarray(0, 256).toString('utf8').trim().toLowerCase();
+  if (
+    sample.startsWith('<svg') ||
+    (sample.startsWith('<?xml') && sample.includes('<svg'))
+  ) {
+    return true;
+  }
+
+  return false;
 }

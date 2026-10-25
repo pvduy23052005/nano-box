@@ -1,4 +1,4 @@
-import { FileCategory } from '../constants/upload.constant';
+import { FileCategory } from '../../domain/upload.type';
 
 export class UploadResponseDto {
   url: string;

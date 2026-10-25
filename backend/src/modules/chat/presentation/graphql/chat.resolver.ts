@@ -8,7 +8,6 @@ import { CurrentUser } from 'src/common/customs/current-user.decorator';
 import { SendMessageUseCase } from '../../application/use-cases/send-message.use-case';
 import { AddEmojiMessageUseCase } from '../../application/use-cases/add-emoji-message.use-case';
 import { WebsocketService } from 'src/infrastructure/websocket/ws.service';
-import { UploadService } from 'src/infrastructure/upload/upload.service';
 import { CHAT_SOCKET_EVENTS } from '../gateway/event.type';
 import { UseGuards, Logger } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
@@ -25,7 +24,6 @@ export class ChatResolver {
     private readonly sendMessageUseCase: SendMessageUseCase,
     private readonly addEmojiMessageUseCase: AddEmojiMessageUseCase,
     private readonly webSocketService: WebsocketService,
-    private readonly uploadService: UploadService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -68,31 +66,12 @@ export class ChatResolver {
     @Args('input') input: MessageInput,
     @CurrentUser('id') userId: string,
   ) {
-    const attachments: string[] = [];
-    const tempKeysToDelete: string[] = [];
-
-    if (input.tempKeys?.length) {
-      const copyResults = await Promise.all(
-        input.tempKeys.map((tempKey) =>
-          this.uploadService.copyTempToUploads(tempKey),
-        ),
-      );
-      attachments.push(...copyResults);
-      tempKeysToDelete.push(...input.tempKeys);
-    }
-
     const { message, memberIds } = await this.sendMessageUseCase.execute({
       content: input.content,
       senderId: userId,
       roomId: input.roomId,
-      attachments,
+      tempKeys: input.tempKeys,
     });
-
-    if (tempKeysToDelete.length) {
-      Promise.all(
-        tempKeysToDelete.map((key) => this.uploadService.deleteTempFile(key)),
-      ).catch((err) => this.logger.warn(`Failed to delete temp files: ${err}`));
-    }
 
     const server = this.webSocketService.server;
     if (server && memberIds.length) {

@@ -1,6 +1,7 @@
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 import { MemberRole, MemberStatus } from '../../../../room/domain/chat.enum';
 import { RoomRepositoryAdapter } from '../../../../room/application/ports/room.ports';
+import { UploadAdapter } from '../../../../upload/applications/ports/upload.port';
 import { MessageRepositoryAdapter } from '../../ports/message.port';
 import { SendMessageUseCase } from '../send-message.use-case';
 
@@ -8,6 +9,7 @@ describe('SendMessageUseCase', () => {
   let sendMessageUseCase: SendMessageUseCase;
   let messageRepository: jest.Mocked<MessageRepositoryAdapter>;
   let roomRepository: jest.Mocked<RoomRepositoryAdapter>;
+  let uploadAdapter: jest.Mocked<UploadAdapter>;
 
   beforeEach(() => {
     messageRepository = {
@@ -29,9 +31,17 @@ describe('SendMessageUseCase', () => {
       findRelatedUserIdsByRooms: jest.fn(),
     };
 
+    uploadAdapter = {
+      upload: jest.fn(),
+      copyTempToUploads: jest.fn(),
+      deleteTempFile: jest.fn(),
+      validateTempKey: jest.fn(),
+    };
+
     sendMessageUseCase = new SendMessageUseCase(
       messageRepository,
       roomRepository,
+      uploadAdapter,
     );
   });
 
@@ -158,5 +168,129 @@ describe('SendMessageUseCase', () => {
 
     expect(result.message.senderAvatar).toBe('https://example.com/avatar.jpg');
     expect(result.message.senderName).toBe('User One');
+  });
+
+  it('should copy tempKeys to uploads and delete temp files after save', async () => {
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue({
+      roomId: 'room-1',
+      members: [
+        {
+          userId: 'user-1',
+          name: 'User One',
+          avatar: null,
+          role: MemberRole.MEMBER,
+          status: MemberStatus.ACCEPTED,
+        },
+      ],
+    });
+
+    uploadAdapter.copyTempToUploads.mockResolvedValue(
+      'https://cdn.example.com/uploads/photo.jpg',
+    );
+    messageRepository.save.mockResolvedValue({
+      id: 'msg-with-temp',
+      content: 'Check this image',
+      roomId: 'room-1',
+      senderId: 'user-1',
+      attachments: ['https://cdn.example.com/uploads/photo.jpg'],
+    });
+
+    const result = await sendMessageUseCase.execute({
+      roomId: 'room-1',
+      senderId: 'user-1',
+      content: 'Check this image',
+      tempKeys: ['temp/photo.jpg'],
+    });
+
+    expect(uploadAdapter.copyTempToUploads).toHaveBeenCalledWith(
+      'temp/photo.jpg',
+    );
+    expect(result.message.id).toBe('msg-with-temp');
+    expect(uploadAdapter.deleteTempFile).toHaveBeenCalledWith('temp/photo.jpg');
+  });
+
+  it('should throw DomainValidationException if tempKeys exceeds maximum limit', async () => {
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue({
+      roomId: 'room-1',
+      members: [
+        {
+          userId: 'user-1',
+          name: 'User One',
+          avatar: null,
+          role: MemberRole.MEMBER,
+          status: MemberStatus.ACCEPTED,
+        },
+      ],
+    });
+
+    const tooManyKeys = Array.from({ length: 11 }, (_, i) => `temp/img-${i}.jpg`);
+
+    await expect(
+      sendMessageUseCase.execute({
+        roomId: 'room-1',
+        senderId: 'user-1',
+        content: 'Too many files',
+        tempKeys: tooManyKeys,
+      }),
+    ).rejects.toThrow(DomainValidationException);
+  });
+
+  it('should throw DomainValidationException if combined attachments and tempKeys exceed limit', async () => {
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue({
+      roomId: 'room-1',
+      members: [
+        {
+          userId: 'user-1',
+          name: 'User One',
+          avatar: null,
+          role: MemberRole.MEMBER,
+          status: MemberStatus.ACCEPTED,
+        },
+      ],
+    });
+
+    const existingAttachments = Array.from(
+      { length: 6 },
+      (_, i) => `https://cdn.example.com/uploads/old-${i}.jpg`,
+    );
+    const tempKeys = Array.from({ length: 5 }, (_, i) => `temp/new-${i}.jpg`);
+
+    await expect(
+      sendMessageUseCase.execute({
+        roomId: 'room-1',
+        senderId: 'user-1',
+        content: 'Too many combined files',
+        attachments: existingAttachments,
+        tempKeys,
+      }),
+    ).rejects.toThrow(DomainValidationException);
+  });
+
+  it('should throw DomainValidationException if copyTempToUploads fails or times out', async () => {
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue({
+      roomId: 'room-1',
+      members: [
+        {
+          userId: 'user-1',
+          name: 'User One',
+          avatar: null,
+          role: MemberRole.MEMBER,
+          status: MemberStatus.ACCEPTED,
+        },
+      ],
+    });
+
+    uploadAdapter.copyTempToUploads.mockRejectedValue(
+      new Error('Quá thời gian sao chép file trên Cloudflare R2'),
+    );
+
+    await expect(
+      sendMessageUseCase.execute({
+        roomId: 'room-1',
+        senderId: 'user-1',
+        content: 'Image with error',
+        tempKeys: ['temp/photo.jpg'],
+      }),
+    ).rejects.toThrow(DomainValidationException);
   });
 });
