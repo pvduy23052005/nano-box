@@ -64,7 +64,7 @@ export default function ChatMain() {
   return (
     <div
       ref={scrollContainerRef}
-      className="flex-1 min-h-0 flex flex-col px-3 overflow-y-auto overflow-x-hidden relative"
+      className="flex-1 min-h-0 flex flex-col px-3 pb-3 overflow-y-auto overflow-x-hidden relative"
     >
       {isLoading && messages.length === 0 ? (
         <ChatLoading />
@@ -131,7 +131,7 @@ export default function ChatMain() {
       )}
 
       <ChatTypingIndicator typingUsers={typingList} />
-      <div className="h-px shrink-0" />
+      <div className="h-2 shrink-0" />
       <ChatLightbox />
     </div>
   );

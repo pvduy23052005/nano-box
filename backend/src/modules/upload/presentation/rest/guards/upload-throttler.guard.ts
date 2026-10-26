@@ -21,14 +21,17 @@ export class UploadThrottlerGuard implements CanActivate, OnModuleDestroy {
   private readonly cleanupTimer: NodeJS.Timeout;
 
   constructor() {
-    this.cleanupTimer = setInterval(() => {
-      const now = Date.now();
-      for (const [key, record] of this.records.entries()) {
-        if (now > record.resetTime) {
-          this.records.delete(key);
+    this.cleanupTimer = setInterval(
+      () => {
+        const now = Date.now();
+        for (const [key, record] of this.records.entries()) {
+          if (now > record.resetTime) {
+            this.records.delete(key);
+          }
         }
-      }
-    }, 5 * 60 * 1000);
+      },
+      5 * 60 * 1000,
+    );
 
     if (this.cleanupTimer.unref) {
       this.cleanupTimer.unref();
