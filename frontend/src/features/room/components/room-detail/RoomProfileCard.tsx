@@ -46,7 +46,7 @@ export default function RoomProfileCard({
     <Card className="shadow-sm overflow-hidden m-0 p-1 sm:p-0">
       <CardContent>
         <div className="flex items-center gap-2">
-          <div className="shrink-0 py-2">
+          <div className="shrink-0">
             {hasAvatar ? (
               isGroup ? (
                 <div className="size-18 flex items-center justify-center">
@@ -58,20 +58,20 @@ export default function RoomProfileCard({
                   />
                 </div>
               ) : (
-                <Avatar className="size-12 rounded-full overflow-hidden">
+                <Avatar className="size-20 rounded-2xl border-2 border-border/60 shadow-xs">
                   <AvatarImage
                     src={displayAvatar}
                     alt={displayName}
-                    className="rounded-full"
+                    className="rounded-2xl"
                   />
-                  <AvatarFallback className="rounded-full text-xl font-bold bg-primary/15 text-primary">
+                  <AvatarFallback className="rounded-2xl text-xl font-bold bg-primary/15 text-primary">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
               )
             ) : (
-              <div className="size-18 rounded-full bg-gradient-to-br from-primary via-primary/90 to-secondary text-primary-foreground flex items-center justify-center shadow-md">
-                <Network className="size-9 text-primary-foreground" />
+              <div className="size-20 rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-secondary text-primary-foreground flex items-center justify-center shadow-md">
+                <Network className="size-10 text-primary-foreground" />
               </div>
             )}
           </div>
