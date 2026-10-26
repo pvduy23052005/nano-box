@@ -6,6 +6,10 @@ import { getGraphQLInfo } from 'src/common/utils/graphql-logger.util';
 
 const SLOW_REQUEST_THRESHOLD_MS = 1000;
 
+const SILENT_MUTATIONS = new Set<string>([
+  'UpdateMemberLastReadMessage',
+]);
+
 const REDACTED_LOG_FIELDS = [
   'req.headers.authorization',
   'req.headers.cookie',
@@ -16,6 +20,11 @@ const REDACTED_LOG_FIELDS = [
   'req.body.refreshToken',
   'res.headers["set-cookie"]',
 ];
+
+const extractUserId = (req: unknown): string | undefined => {
+  const reqWithUser = req as { user?: { id?: string; _id?: string } };
+  return reqWithUser?.user?.id || reqWithUser?.user?._id;
+};
 
 export const loggerConfig: Params = {
   pinoHttp: {
@@ -56,10 +65,14 @@ export const loggerConfig: Params = {
       }
       return id;
     },
-    customProps: (req) => ({
-      reqId: req.id,
-      ip: extractClientIp(req),
-    }),
+    customProps: (req) => {
+      const userId = extractUserId(req);
+      return {
+        reqId: req.id,
+        ip: extractClientIp(req),
+        ...(userId ? { userId } : {}),
+      };
+    },
     customLogLevel: (req, res, err) => {
       if (res.statusCode >= 500 || err) return 'error';
       if (res.statusCode >= 400) return 'warn';
@@ -75,6 +88,10 @@ export const loggerConfig: Params = {
 
       if (operationName === 'IntrospectionQuery') {
         return 'silent';
+      }
+
+      if (operationName && SILENT_MUTATIONS.has(operationName)) {
+        return process.env.LOG_LEVEL === 'debug' ? 'debug' : 'silent';
       }
 
       if (isMutation) {
@@ -102,18 +119,22 @@ export const loggerConfig: Params = {
       const { operationName } = getGraphQLInfo(req);
       const isSlow = responseTime >= SLOW_REQUEST_THRESHOLD_MS;
       const slowTag = isSlow ? ' [SLOW QUERY]' : '';
-
-      if (operationName) {
-        return `[GraphQL: ${operationName}] -> ${res.statusCode} (${responseTime}ms)${slowTag}`;
-      }
-      return `[${req.method}] ${req.url} -> ${res.statusCode} (${responseTime}ms)${slowTag}`;
-    },
-    customErrorMessage: (req, res, err) => {
-      const { operationName } = getGraphQLInfo(req);
+      const userId = extractUserId(req);
+      const userTag = userId ? ` (user: ${userId})` : '';
       const target = operationName
         ? `[GraphQL: ${operationName}]`
         : `[${req.method}] ${req.url}`;
-      return `${target} -> ${res.statusCode} (${err.message})`;
+
+      return `${target}${userTag} -> ${res.statusCode} (${responseTime}ms)${slowTag}`;
+    },
+    customErrorMessage: (req, res, err) => {
+      const { operationName } = getGraphQLInfo(req);
+      const userId = extractUserId(req);
+      const userTag = userId ? ` (user: ${userId})` : '';
+      const target = operationName
+        ? `[GraphQL: ${operationName}]`
+        : `[${req.method}] ${req.url}`;
+      return `${target}${userTag} -> ${res.statusCode} (${err.message})`;
     },
   },
 };

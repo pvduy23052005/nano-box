@@ -1,6 +1,11 @@
-import { useEffect, useRef, useLayoutEffect } from "react";
+import { useEffect, useRef, useLayoutEffect, useCallback } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Message, MessageGroup } from "../types/chat.types";
+import {
+  shouldFetchOlderMessages,
+  calculateScrollCompensation,
+  shouldAutoScrollOnNewMessage,
+} from "../utils/chatScroll.util";
 
 interface UseChatVirtualScrollProps {
   messageGroups: MessageGroup[];
@@ -27,6 +32,7 @@ export function useChatVirtualScroll({
   const isFetchingLockRef = useRef(false);
   const prevScrollHeightRef = useRef(0);
   const prevScrollTopRef = useRef(0);
+  const prevLastMessageIdRef = useRef<string | undefined>(undefined);
 
   const virtualizer = useVirtualizer({
     count: messageGroups.length,
@@ -51,26 +57,29 @@ export function useChatVirtualScroll({
       isFetchingLockRef.current = false;
       prevScrollHeightRef.current = 0;
       prevScrollTopRef.current = 0;
+      prevLastMessageIdRef.current = undefined;
     }
   }, [activeRoomId]);
 
-  useEffect(() => {
-    if (!isInitialScrollDone.current || !hasNextPage || isFetchingNextPage) {
-      return;
-    }
-
+  // Trigger loading older messages when condition met
+  const triggerFetchOlder = useCallback(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
 
-    const isNearTop = el.scrollTop <= 120 && el.scrollHeight > el.clientHeight;
     const firstItem = virtualItems[0];
+    const shouldFetch = shouldFetchOlderMessages({
+      isInitialScrollDone: isInitialScrollDone.current,
+      hasNextPage,
+      isFetchingNextPage,
+      isFetchingLocked: isFetchingLockRef.current,
+      scrollTop: el.scrollTop,
+      scrollHeight: el.scrollHeight,
+      clientHeight: el.clientHeight,
+      firstVisibleIndex: firstItem?.index ?? 0,
+      topThreshold: 80,
+    });
 
-    if (
-      firstItem &&
-      firstItem.index <= 1 &&
-      isNearTop &&
-      !isFetchingLockRef.current
-    ) {
+    if (shouldFetch) {
       isFetchingLockRef.current = true;
       prevScrollHeightRef.current = el.scrollHeight;
       prevScrollTopRef.current = el.scrollTop;
@@ -83,13 +92,36 @@ export function useChatVirtualScroll({
     }
   }, [virtualItems, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  useEffect(() => {
+    triggerFetchOlder();
+  }, [triggerFetchOlder]);
+
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const handleScroll = () => {
+      triggerFetchOlder();
+    };
+
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      el.removeEventListener("scroll", handleScroll);
+    };
+  }, [triggerFetchOlder]);
+
   useLayoutEffect(() => {
     const el = scrollContainerRef.current;
-    if (!el || prevScrollHeightRef.current === 0) return;
+    if (!el) return;
 
-    const heightDiff = el.scrollHeight - prevScrollHeightRef.current;
-    if (heightDiff > 0) {
-      el.scrollTop = prevScrollTopRef.current + heightDiff;
+    const newScrollTop = calculateScrollCompensation({
+      newScrollHeight: el.scrollHeight,
+      prevScrollHeight: prevScrollHeightRef.current,
+      prevScrollTop: prevScrollTopRef.current,
+    });
+
+    if (newScrollTop !== null) {
+      el.scrollTop = newScrollTop;
       prevScrollHeightRef.current = 0;
     }
   }, [messageGroups.length]);
@@ -104,21 +136,36 @@ export function useChatVirtualScroll({
         });
       }
       isInitialScrollDone.current = true;
+      prevLastMessageIdRef.current = messages[messages.length - 1]?.id;
     }
-  }, [messageGroups.length, virtualizer]);
+  }, [messageGroups.length, messages, virtualizer]);
 
   const lastMessage = messages[messages.length - 1];
   const lastMessageId = lastMessage?.id;
-  const lastMessageIsMe = lastMessage?.isMe;
+  const lastMessageIsMe = Boolean(lastMessage?.isMe);
 
   useEffect(() => {
     if (!lastMessageId || !isInitialScrollDone.current) return;
+
+    const isNewMessageAppended =
+      prevLastMessageIdRef.current !== undefined &&
+      lastMessageId !== prevLastMessageIdRef.current;
+
+    prevLastMessageIdRef.current = lastMessageId;
+
     const el = scrollContainerRef.current;
     if (!el) return;
+
     const isNearBottom =
       el.scrollHeight - el.scrollTop - el.clientHeight < 150;
 
-    if (isNearBottom || lastMessageIsMe) {
+    const shouldScroll = shouldAutoScrollOnNewMessage({
+      isNewMessageAppended,
+      isNearBottom,
+      isMessageFromMe: lastMessageIsMe,
+    });
+
+    if (shouldScroll) {
       const scrollDown = (behavior: ScrollBehavior = "auto") => {
         if (!el) return;
         virtualizer.scrollToIndex(messageGroups.length - 1, {
@@ -137,37 +184,13 @@ export function useChatVirtualScroll({
 
       const timer1 = setTimeout(() => scrollDown(behavior), 50);
       const timer2 = setTimeout(() => scrollDown(behavior), 150);
-      const timer3 = setTimeout(() => scrollDown(behavior), 300);
 
       return () => {
         clearTimeout(timer1);
         clearTimeout(timer2);
-        clearTimeout(timer3);
       };
     }
   }, [lastMessageId, lastMessageIsMe, messageGroups.length, virtualizer]);
-
-  const totalSize = virtualizer.getTotalSize();
-  const prevTotalSizeRef = useRef(totalSize);
-
-  useEffect(() => {
-    if (!isInitialScrollDone.current) return;
-    const el = scrollContainerRef.current;
-    if (!el) return;
-
-    if (totalSize !== prevTotalSizeRef.current) {
-      prevTotalSizeRef.current = totalSize;
-      const isNearBottom =
-        el.scrollHeight - el.scrollTop - el.clientHeight < 150;
-      if (isNearBottom || lastMessageIsMe) {
-        requestAnimationFrame(() => {
-          if (el) {
-            el.scrollTop = el.scrollHeight;
-          }
-        });
-      }
-    }
-  }, [totalSize, lastMessageIsMe]);
 
   useEffect(() => {
     if (typingCount > 0 && isInitialScrollDone.current) {
