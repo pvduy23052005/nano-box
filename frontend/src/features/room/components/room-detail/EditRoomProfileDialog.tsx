@@ -28,7 +28,7 @@ import { useUpdateRoomProfile } from "../../hooks/useUpdateRoomProfile";
 import { toast } from "sonner";
 import { cn } from "@/src/lib/utils";
 
-const MAX_AVATAR_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
   "image/png",

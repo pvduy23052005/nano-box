@@ -22,6 +22,11 @@ export function useChatVirtualScroll({
   typingCount = 0,
 }: UseChatVirtualScrollProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isInitialScrollDone = useRef(false);
+  const activeRoomIdRef = useRef<string | null>(null);
+  const isFetchingLockRef = useRef(false);
+  const prevScrollHeightRef = useRef(0);
+  const prevScrollTopRef = useRef(0);
 
   const virtualizer = useVirtualizer({
     count: messageGroups.length,
@@ -40,23 +45,54 @@ export function useChatVirtualScroll({
   const virtualItems = virtualizer.getVirtualItems();
 
   useEffect(() => {
-    const firstItem = virtualItems[0];
-    if (!firstItem) return;
-
-    if (firstItem.index <= 1 && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
-    }
-  }, [virtualItems, hasNextPage, isFetchingNextPage, fetchNextPage]);
-
-  const isInitialScrollDone = useRef(false);
-  const activeRoomIdRef = useRef<string | null>(null);
-
-  useEffect(() => {
     if (activeRoomIdRef.current !== activeRoomId) {
       activeRoomIdRef.current = activeRoomId;
       isInitialScrollDone.current = false;
+      isFetchingLockRef.current = false;
+      prevScrollHeightRef.current = 0;
+      prevScrollTopRef.current = 0;
     }
   }, [activeRoomId]);
+
+  useEffect(() => {
+    if (!isInitialScrollDone.current || !hasNextPage || isFetchingNextPage) {
+      return;
+    }
+
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const isNearTop = el.scrollTop <= 120 && el.scrollHeight > el.clientHeight;
+    const firstItem = virtualItems[0];
+
+    if (
+      firstItem &&
+      firstItem.index <= 1 &&
+      isNearTop &&
+      !isFetchingLockRef.current
+    ) {
+      isFetchingLockRef.current = true;
+      prevScrollHeightRef.current = el.scrollHeight;
+      prevScrollTopRef.current = el.scrollTop;
+
+      Promise.resolve(fetchNextPage()).finally(() => {
+        setTimeout(() => {
+          isFetchingLockRef.current = false;
+        }, 400);
+      });
+    }
+  }, [virtualItems, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  useLayoutEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el || prevScrollHeightRef.current === 0) return;
+
+    const heightDiff = el.scrollHeight - prevScrollHeightRef.current;
+    if (heightDiff > 0) {
+      el.scrollTop = prevScrollTopRef.current + heightDiff;
+      prevScrollHeightRef.current = 0;
+    }
+  }, [messageGroups.length]);
 
   useLayoutEffect(() => {
     if (messageGroups.length > 0 && !isInitialScrollDone.current) {

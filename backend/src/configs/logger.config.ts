@@ -1,9 +1,21 @@
-import { IncomingMessage } from 'http';
 import { randomUUID } from 'crypto';
 import { Params } from 'nestjs-pino';
+import { startTime } from 'pino-http';
 import { extractClientIp } from 'src/common/utils/client-ip.util';
+import { getGraphQLInfo } from 'src/common/utils/graphql-logger.util';
 
 const SLOW_REQUEST_THRESHOLD_MS = 1000;
+
+const REDACTED_LOG_FIELDS = [
+  'req.headers.authorization',
+  'req.headers.cookie',
+  'req.body.password',
+  'req.body.confirmPassword',
+  'req.body.currentPassword',
+  'req.body.newPassword',
+  'req.body.refreshToken',
+  'res.headers["set-cookie"]',
+];
 
 export const loggerConfig: Params = {
   pinoHttp: {
@@ -33,7 +45,6 @@ export const loggerConfig: Params = {
       },
     },
     genReqId: (req, res) => {
-      (req as unknown as { _startTime?: number })._startTime = Date.now();
       const headerId = req.headers['x-request-id'];
       const existingId = Array.isArray(headerId) ? headerId[0] : headerId;
       const id =
@@ -53,83 +64,56 @@ export const loggerConfig: Params = {
       if (res.statusCode >= 500 || err) return 'error';
       if (res.statusCode >= 400) return 'warn';
 
-      const startTime = (req as unknown as { _startTime?: number })._startTime;
-      const responseTime = startTime ? Date.now() - startTime : 0;
+      const resWithStart = res as unknown as { [startTime]?: number };
+      const start = resWithStart[startTime];
+      const responseTime = start ? Date.now() - start : 0;
       if (responseTime >= SLOW_REQUEST_THRESHOLD_MS) {
         return 'warn';
       }
 
-      const reqWithBody = req as unknown as {
-        body?: { operationName?: string; query?: string };
-      };
-      const body = reqWithBody.body;
-      const queryStr = typeof body?.query === 'string' ? body.query : '';
-      const cleanedQuery = queryStr.replace(/#[^\n\r]*/g, '').trim();
+      const { operationName, isMutation, isQuery } = getGraphQLInfo(req);
 
-      const opMatch = cleanedQuery.match(
-        /(query|mutation|subscription)\s*(\w*)/i,
-      );
-      const opName = body?.operationName || opMatch?.[2];
-
-      if (opName === 'IntrospectionQuery') {
+      if (operationName === 'IntrospectionQuery') {
         return 'silent';
       }
 
-      const isMutation = /^\s*mutation/i.test(cleanedQuery);
       if (isMutation) {
         return 'info';
       }
 
-      if (opName || req.method === 'GET') {
+      if (isQuery || req.method === 'GET') {
         return process.env.LOG_LEVEL === 'debug' ? 'debug' : 'silent';
       }
 
       return 'info';
     },
-    redact: [
-      'req.headers.authorization',
-      'req.headers.cookie',
-      'req.body.password',
-      'req.body.confirmPassword',
-      'req.body.refreshToken',
-      'res.headers["set-cookie"]',
-    ],
+    redact: REDACTED_LOG_FIELDS,
     serializers: {
       req: (req: Record<string, unknown>) => ({
         id: req.id,
         method: req.method,
         url: req.url,
-        ip: extractClientIp(
-          req as unknown as IncomingMessage & { ip?: string },
-        ),
       }),
       res: (res: Record<string, unknown>) => ({
         statusCode: res.statusCode,
       }),
     },
     customSuccessMessage: (req, res, responseTime) => {
-      const reqWithBody = req as unknown as {
-        body?: { operationName?: string; query?: string };
-      };
-      const body = reqWithBody.body;
-      const queryStr = typeof body?.query === 'string' ? body.query : '';
-      const cleanedQuery = queryStr.replace(/#[^\n\r]*/g, '').trim();
-      const opMatch = cleanedQuery.match(
-        /(query|mutation|subscription)\s*(\w*)/i,
-      );
-      const opName = body?.operationName || opMatch?.[2];
-
+      const { operationName } = getGraphQLInfo(req);
       const isSlow = responseTime >= SLOW_REQUEST_THRESHOLD_MS;
       const slowTag = isSlow ? ' [SLOW QUERY]' : '';
 
-      if (opName) {
-        return `[GraphQL: ${opName}] -> ${res.statusCode} (${responseTime}ms)${slowTag}`;
+      if (operationName) {
+        return `[GraphQL: ${operationName}] -> ${res.statusCode} (${responseTime}ms)${slowTag}`;
       }
       return `[${req.method}] ${req.url} -> ${res.statusCode} (${responseTime}ms)${slowTag}`;
     },
     customErrorMessage: (req, res, err) => {
-      return `[${req.method}] ${req.url} -> ${res.statusCode} (${err.message})`;
+      const { operationName } = getGraphQLInfo(req);
+      const target = operationName
+        ? `[GraphQL: ${operationName}]`
+        : `[${req.method}] ${req.url}`;
+      return `${target} -> ${res.statusCode} (${err.message})`;
     },
   },
 };
-
