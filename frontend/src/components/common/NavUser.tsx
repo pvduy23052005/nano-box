@@ -45,8 +45,8 @@ export default function NavUser() {
               <div className="relative flex aspect-square size-8 items-center justify-center shrink-0">
                 <Avatar className="size-8 rounded-full">
                   <AvatarImage
-                    src={user?.avatar || "/logo.png"}
-                    alt={user?.name || "avatar"}
+                    src={user?.avatar ?? "/logo.png"}
+                    alt={user?.name ?? "avatar"}
                   />
                   <AvatarFallback className="rounded-full text-xs font-semibold">
                     {user?.name ? user.name.slice(0, 2).toUpperCase() : "US"}
@@ -57,10 +57,10 @@ export default function NavUser() {
 
               <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                 <span className="truncate font-semibold text-foreground">
-                  {user?.name || "Người dùng"}
+                  {user?.name ?? "Người dùng"}
                 </span>
                 <span className="truncate text-xs text-muted-foreground">
-                  {user?.email || ""}
+                  {user?.email ?? ""}
                 </span>
               </div>
 
