@@ -57,7 +57,7 @@ export default function LoginPage() {
   const onSubmit = async (input: LoginInputDto) => {
     try {
       const result = await login(input);
-      if (result?.success) router.push("/chat");
+      if (result?.success) router.push("/");
     } catch (error) {
       handleFormError(error, setError);
     }
@@ -70,7 +70,7 @@ export default function LoginPage() {
     }
     try {
       const result = await loginWithGoogle(id_token);
-      if (result?.success) router.push("/chat");
+      if (result?.success) router.push("/");
     } catch {
       toast.error("Đăng nhập với Google thất bại");
     }

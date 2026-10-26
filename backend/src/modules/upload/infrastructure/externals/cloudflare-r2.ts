@@ -73,15 +73,16 @@ export class CloudflareR2Adapter implements UploadAdapter {
     } catch (error) {
       if (error instanceof StorageException) throw error;
       const errorObj = error as { name?: string };
-      if (
-        errorObj?.name === 'TimeoutError' ||
-        errorObj?.name === 'AbortError'
-      ) {
+      if (errorObj?.name === 'TimeoutError' || errorObj?.name === 'AbortError') {
         this.logger.error(`R2 Upload timed out for key ${key}`);
-        throw new StorageException('Quá thời gian tải file lên Cloudflare R2');
+        throw new StorageException(
+          'Quá thời gian tải file lên Cloudflare R2',
+        );
       }
       this.logger.error(`Error uploading to R2: ${error}`);
-      throw new StorageException('Lỗi hệ thống khi tải file lên Cloudflare R2');
+      throw new StorageException(
+        'Lỗi hệ thống khi tải file lên Cloudflare R2',
+      );
     }
   }
 
@@ -140,10 +141,7 @@ export class CloudflareR2Adapter implements UploadAdapter {
     } catch (error) {
       if (error instanceof StorageException) throw error;
       const errorObj = error as { name?: string };
-      if (
-        errorObj?.name === 'TimeoutError' ||
-        errorObj?.name === 'AbortError'
-      ) {
+      if (errorObj?.name === 'TimeoutError' || errorObj?.name === 'AbortError') {
         this.logger.error(`R2 CopyObject timed out for key ${tempKey}`);
         throw new StorageException(
           'Quá thời gian sao chép file trên Cloudflare R2',

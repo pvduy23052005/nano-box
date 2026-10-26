@@ -16,7 +16,7 @@ export default function RoomDetailSkeleton() {
           <div className="lg:col-span-4 flex flex-col gap-2 w-full min-w-0">
             <Card className="p-4 shadow-sm">
               <div className="flex items-center gap-3">
-                <Skeleton className="size-16 rounded-full shrink-0" />
+                <Skeleton className="size-16 rounded-2xl shrink-0" />
                 <Skeleton className="h-6 flex-1 rounded-lg" />
               </div>
             </Card>

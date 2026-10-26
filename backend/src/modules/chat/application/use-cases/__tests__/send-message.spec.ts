@@ -223,10 +223,7 @@ describe('SendMessageUseCase', () => {
       ],
     });
 
-    const tooManyKeys = Array.from(
-      { length: 11 },
-      (_, i) => `temp/img-${i}.jpg`,
-    );
+    const tooManyKeys = Array.from({ length: 11 }, (_, i) => `temp/img-${i}.jpg`);
 
     await expect(
       sendMessageUseCase.execute({
