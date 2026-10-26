@@ -26,10 +26,10 @@ import DOMPurify from "isomorphic-dompurify";
 import { MessageGroup } from "../types/chat.types";
 import { useLightboxStore } from "../stores/useLightboxStore";
 import { CheckCheck, Smile } from "lucide-react";
-import Image from "next/image";
 import { useAddEmojiMessage } from "../hooks/useAddEmojiMessage";
 import { cn } from "@/src/lib/utils";
 import ChatMessageFile from "./ChatMesssageFile";
+import ChatImageAlbum from "./ChatImageAlbum";
 
 const QUICK_REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "😡", "🫪", "👀", "😭"];
 
@@ -198,30 +198,24 @@ export function ChatMessage({
                     {attachmentImages.length > 0 && (
                       <Bubble
                         variant="ghost"
+                        align={isMe ? "end" : "start"}
                         className={cn(
-                          "max-w-full shadow-lg rounded-lg",
+                          "max-w-full rounded-xl overflow-visible",
                           reactionTarget === "images" &&
                             hasReactions &&
                             "has-[[data-slot=bubble-reactions]]:mb-3.5",
                         )}
                       >
-                        <BubbleContent>
-                          <div
-                            className="flex flex-wrap gap-1.5 "
-                            onClick={handleContentClick}
-                          >
-                            {attachmentImages.map((url, idx) => (
-                              <Image
-                                key={idx}
-                                src={url}
-                                alt={`attachment-${idx}`}
-                                width={288}
-                                height={288}
-                                unoptimized
-                                className="rounded-lg max-h-72 max-w-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                              />
-                            ))}
-                          </div>
+                        <BubbleContent className="p-0">
+                          <ChatImageAlbum
+                            images={attachmentImages}
+                            onImageClick={(idx) => {
+                              openLightbox(
+                                attachmentImages.map((src) => ({ src })),
+                                idx,
+                              );
+                            }}
+                          />
                         </BubbleContent>
                         {reactionTarget === "images" && renderReactions()}
                       </Bubble>
