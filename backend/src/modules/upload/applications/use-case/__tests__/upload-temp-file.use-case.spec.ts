@@ -53,7 +53,9 @@ describe('UploadTempFileUseCase', () => {
     };
 
     uploadFileUseCase.execute.mockRejectedValue(
-      new DomainValidationException({ file: 'Vui lòng chọn file hợp lệ để tải lên' }),
+      new DomainValidationException({
+        file: 'Vui lòng chọn file hợp lệ để tải lên',
+      }),
     );
 
     await expect(uploadTempFileUseCase.execute(mockFile)).rejects.toThrow(

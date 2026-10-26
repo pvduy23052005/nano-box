@@ -119,7 +119,7 @@ export default function ChatHeader() {
                   />
                   {onlineMembersCount > 0
                     ? `${onlineMembersCount} thành viên trực tuyến`
-                    : "Tất cả ngoại tuyến"}
+                    : "Ngoại tuyến"}
                 </>
               ) : (
                 <>
