@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OAuth2Client } from 'google-auth-library';
 import {
@@ -8,6 +8,7 @@ import {
 
 @Injectable()
 export class GoogleAuthVerifier implements IGoogleAuthVerifier {
+  private readonly logger = new Logger(GoogleAuthVerifier.name);
   private readonly client: OAuth2Client;
   private readonly clientId: string | undefined;
 
@@ -17,6 +18,13 @@ export class GoogleAuthVerifier implements IGoogleAuthVerifier {
   }
 
   async verify(idToken: string): Promise<GoogleUserPayload | null> {
+    if (!this.clientId) {
+      this.logger.error(
+        'GOOGLE_CLIENT_ID is not configured. Google token verification rejected.',
+      );
+      return null;
+    }
+
     try {
       const ticket = await this.client.verifyIdToken({
         idToken,
@@ -24,16 +32,19 @@ export class GoogleAuthVerifier implements IGoogleAuthVerifier {
       });
 
       const payload = ticket.getPayload();
-      if (!payload || !payload.email) {
+      if (!payload || !payload.email || payload.email_verified !== true) {
         return null;
       }
 
       return {
-        email: payload.email,
+        email: payload.email.trim().toLowerCase(),
         name: payload.name,
         picture: payload.picture,
       };
-    } catch {
+    } catch (error) {
+      this.logger.warn(
+        `Google token verification failed: ${(error as Error).message}`,
+      );
       return null;
     }
   }

@@ -11,6 +11,7 @@ import { LoginUseCase } from './applications/use-case/login.use-case';
 import { GoogleAuthVerifier } from './infrastructure/externals/google-auth-verifier.external';
 import { JwtTokenGenerator } from './infrastructure/externals/jwt-token-generator.external';
 import { AuthResolver } from './presentation/graphql/auth.resolver';
+import { AuthThrottlerGuard } from './presentation/guards/auth-throttler.guard';
 
 @Global()
 @Module({
@@ -32,6 +33,7 @@ import { AuthResolver } from './presentation/graphql/auth.resolver';
   ],
   providers: [
     AuthResolver,
+    AuthThrottlerGuard,
     {
       provide: ITokenGenerator,
       useClass: JwtTokenGenerator,
