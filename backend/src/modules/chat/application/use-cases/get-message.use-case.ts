@@ -3,6 +3,7 @@ import { MessageType } from '../../domain/message.type';
 import { PaginationResult } from '../dto/pagination.type';
 import { MessageRepositoryAdapter } from '../ports/message.port';
 import { RoomRepositoryAdapter } from '../../../room/application/ports/room.ports';
+import { MemberStatus } from '../../../room/domain/chat.enum';
 
 export class GetMessagesUseCase {
   constructor(
@@ -22,7 +23,10 @@ export class GetMessagesUseCase {
     if (!room) {
       errors.roomId = 'Phòng chat không tồn tại';
     } else {
-      const isMember = room.members?.some((member) => member.userId === userId);
+      const isMember = room.members?.some(
+        (member) =>
+          member.userId === userId && member.status !== MemberStatus.REFUSED,
+      );
 
       if (!isMember) {
         errors.permission =

@@ -17,6 +17,8 @@ describe('GetMessagesUseCase', () => {
   beforeEach(() => {
     messageRepository = {
       save: jest.fn(),
+      update: jest.fn(),
+      findById: jest.fn(),
       findAll: jest.fn(),
     };
 
@@ -30,6 +32,7 @@ describe('GetMessagesUseCase', () => {
       acceptAllMembers: jest.fn(),
       deleteRoom: jest.fn(),
       findRoomMembers: jest.fn(),
+      findRoomMembersWithProfile: jest.fn(),
       findRelatedUserIdsByRooms: jest.fn(),
     };
 
@@ -90,6 +93,47 @@ describe('GetMessagesUseCase', () => {
           userId: 'other-user',
           role: MemberRole.MEMBER,
           status: MemberStatus.ACCEPTED,
+        },
+      ],
+    });
+
+    await expect(useCase.execute(roomId, userId)).rejects.toThrow(
+      DomainValidationException,
+    );
+    expect(messageRepository.findAll).not.toHaveBeenCalled();
+  });
+
+  it('should allow reading messages if user status is WAITTING', async () => {
+    roomRepository.findRoomMembers.mockResolvedValue({
+      roomId,
+      members: [
+        {
+          userId,
+          role: MemberRole.MEMBER,
+          status: MemberStatus.WAITTING,
+        },
+      ],
+    });
+
+    const mockMessages: PaginationResult<MessageType> = {
+      items: [],
+      nextCursor: null,
+      hasMore: false,
+    };
+    messageRepository.findAll.mockResolvedValue(mockMessages);
+
+    const result = await useCase.execute(roomId, userId);
+    expect(result).toBe(mockMessages);
+  });
+
+  it('should throw DomainValidationException if user status is REFUSED', async () => {
+    roomRepository.findRoomMembers.mockResolvedValue({
+      roomId,
+      members: [
+        {
+          userId,
+          role: MemberRole.MEMBER,
+          status: MemberStatus.REFUSED,
         },
       ],
     });

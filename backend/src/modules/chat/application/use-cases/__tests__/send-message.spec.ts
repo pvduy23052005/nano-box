@@ -14,6 +14,8 @@ describe('SendMessageUseCase', () => {
   beforeEach(() => {
     messageRepository = {
       save: jest.fn(),
+      update: jest.fn(),
+      findById: jest.fn(),
       findAll: jest.fn(),
     };
 
@@ -295,5 +297,111 @@ describe('SendMessageUseCase', () => {
         tempKeys: ['temp/photo.jpg'],
       }),
     ).rejects.toThrow(DomainValidationException);
+  });
+
+  it('should throw DomainValidationException if sender status is REFUSED', async () => {
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue({
+      roomId: 'room-1',
+      members: [
+        {
+          userId: 'user-1',
+          role: MemberRole.MEMBER,
+          status: MemberStatus.REFUSED,
+        },
+      ],
+    });
+
+    await expect(
+      sendMessageUseCase.execute({
+        roomId: 'room-1',
+        senderId: 'user-1',
+        content: 'Hello from refused member',
+      }),
+    ).rejects.toThrow(DomainValidationException);
+  });
+
+  it('should allow sending message when sender status is WAITTING without changing room status', async () => {
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue({
+      roomId: 'room-1',
+      members: [
+        {
+          userId: 'user-1',
+          name: 'User One',
+          avatar: null,
+          role: MemberRole.MEMBER,
+          status: MemberStatus.WAITTING,
+        },
+        {
+          userId: 'user-2',
+          role: MemberRole.MEMBER,
+          status: MemberStatus.ACCEPTED,
+        },
+      ],
+    });
+
+    messageRepository.save.mockResolvedValue({
+      id: 'msg-1',
+      roomId: 'room-1',
+      senderId: 'user-1',
+      content: 'Replying to message request',
+      attachments: [],
+      reactions: [],
+      readBy: [],
+      isSystem: false,
+    });
+
+    const result = await sendMessageUseCase.execute({
+      roomId: 'room-1',
+      senderId: 'user-1',
+      content: 'Replying to message request',
+    });
+
+    expect(roomRepository.acceptAllMembers).not.toHaveBeenCalled();
+    expect(result.memberIds).toEqual(['user-1', 'user-2']);
+  });
+
+  it('should filter out REFUSED members from returned memberIds', async () => {
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue({
+      roomId: 'room-1',
+      members: [
+        {
+          userId: 'user-1',
+          name: 'User One',
+          avatar: null,
+          role: MemberRole.MEMBER,
+          status: MemberStatus.ACCEPTED,
+        },
+        {
+          userId: 'user-2',
+          role: MemberRole.MEMBER,
+          status: MemberStatus.WAITTING,
+        },
+        {
+          userId: 'user-3',
+          role: MemberRole.MEMBER,
+          status: MemberStatus.REFUSED,
+        },
+      ],
+    });
+
+    messageRepository.save.mockResolvedValue({
+      id: 'msg-1',
+      roomId: 'room-1',
+      senderId: 'user-1',
+      content: 'Hello everyone',
+      attachments: [],
+      reactions: [],
+      readBy: [],
+      isSystem: false,
+    });
+
+    const result = await sendMessageUseCase.execute({
+      roomId: 'room-1',
+      senderId: 'user-1',
+      content: 'Hello everyone',
+    });
+
+    expect(result.memberIds).toEqual(['user-1', 'user-2']);
+    expect(result.memberIds).not.toContain('user-3');
   });
 });

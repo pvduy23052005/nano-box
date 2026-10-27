@@ -298,7 +298,7 @@ export class RoomRepository implements RoomRepositoryAdapter {
         members: {
           $elemMatch: {
             user_id: new Types.ObjectId(userId),
-            status: MemberStatus.ACCEPTED,
+            status: { $in: [MemberStatus.ACCEPTED, MemberStatus.WAITTING] },
           },
         },
       })

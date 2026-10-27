@@ -114,7 +114,7 @@ export class MessageRepository implements MessageRepositoryAdapter {
   async update(message: MessageEntity): Promise<MessageType> {
     const id = message.getId();
     if (!id || !Types.ObjectId.isValid(id)) {
-      throw new Error('Invalid message ID for update');
+      throw new Error('ID tin nhắn không hợp lệ để cập nhật');
     }
 
     const reactions =
@@ -133,7 +133,7 @@ export class MessageRepository implements MessageRepositoryAdapter {
       .exec();
 
     if (!updated) {
-      throw new Error('Message not found for update');
+      throw new Error('Không tìm thấy tin nhắn để cập nhật');
     }
     return this.toDTO(updated);
   }

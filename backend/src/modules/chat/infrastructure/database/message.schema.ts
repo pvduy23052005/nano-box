@@ -3,7 +3,7 @@ import { HydratedDocument } from 'mongoose';
 
 @Schema({ _id: false })
 export class Reaction {
-  @Prop({ required: true, trim: true })
+  @Prop({ required: true, trim: true, maxlength: 16 })
   emoji: string;
 
   @Prop({ type: [String], default: [] })
@@ -16,7 +16,7 @@ export class Reaction {
     updatedAt: 'updated_at',
   },
   collection: 'messages',
-  strict: false,
+  strict: true,
 })
 export class Message {
   @Prop({ required: true, trim: true, index: true })
@@ -31,7 +31,7 @@ export class Message {
   @Prop({ required: true })
   room_id: string;
 
-  @Prop({ trim: true })
+  @Prop({ trim: true, maxlength: 5000 })
   content: string;
 
   @Prop({ default: [], type: [String] })

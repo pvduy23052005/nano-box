@@ -1,6 +1,9 @@
 import { MessageReactionType, MessageType } from './message.type';
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 
+export const MAX_MESSAGE_CONTENT_LENGTH = 5000;
+export const MAX_EMOJI_LENGTH = 16;
+
 export class MessageEntity {
   private id?: string;
   private senderId: string;
@@ -37,6 +40,11 @@ export class MessageEntity {
 
     if (!props.content?.trim().length && !props.attachments?.length) {
       errors.content = 'Nội dung hoặc file đính kèm không được để trống';
+    } else if (
+      props.content &&
+      props.content.trim().length > MAX_MESSAGE_CONTENT_LENGTH
+    ) {
+      errors.content = `Nội dung tin nhắn không được vượt quá ${MAX_MESSAGE_CONTENT_LENGTH} ký tự`;
     }
 
     if (Object.keys(errors).length > 0) {
@@ -52,7 +60,7 @@ export class MessageEntity {
 
   public addReaction(emoji: string, userId: string): void {
     const cleanEmoji = emoji?.trim();
-    if (!cleanEmoji || !userId) return;
+    if (!cleanEmoji || cleanEmoji.length > MAX_EMOJI_LENGTH || !userId) return;
 
     const existingEmojiGroup = this.reactions.find(
       (reaction: MessageReactionType) => reaction.emoji === cleanEmoji,
