@@ -28,7 +28,7 @@ export class ChatGateway {
   private readonly MAX_CACHE_SIZE = 1000;
   private static readonly TYPING_DEBOUNCE_MS = 300;
 
-  constructor(private readonly roomRepository: RoomRepositoryAdapter) { }
+  constructor(private readonly roomRepository: RoomRepositoryAdapter) {}
 
   public clearMembershipCache(roomId?: string, userId?: string): void {
     if (roomId && userId) {

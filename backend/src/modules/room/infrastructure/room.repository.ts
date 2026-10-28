@@ -93,11 +93,7 @@ export class RoomRepository implements RoomRepositoryAdapter {
       };
 
       const updated = await this.roomModel
-        .findOneAndUpdate(
-          filter,
-          updateQuery,
-          { returnDocument: 'after' },
-        )
+        .findOneAndUpdate(filter, updateQuery, { returnDocument: 'after' })
         .populate(ROOM_POPULATE_OPTIONS)
         .lean()
         .exec();

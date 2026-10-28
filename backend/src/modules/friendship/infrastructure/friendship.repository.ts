@@ -34,64 +34,99 @@ export class FriendshipRepository implements FriendshipRepositoryAdapter {
     private readonly userModel: Model<UserDocument>,
   ) {}
 
+  private generatePairKey(user1Id: string, user2Id: string): string {
+    return [user1Id, user2Id].sort().join(':');
+  }
+
   async save(friendship: FriendshipEntity): Promise<FriendshipProps> {
     const friendshipId = friendship.getId();
-    const persistenceData = FriendshipMapper.toPersistence(friendship);
+    const persistenceData = {
+      ...FriendshipMapper.toPersistence(friendship),
+      pair_key: this.generatePairKey(
+        friendship.getRequesterId(),
+        friendship.getAddresseeId(),
+      ),
+    };
 
-    if (friendshipId) {
-      const updated = await this.friendshipModel
-        .findByIdAndUpdate(friendshipId, persistenceData, {
-          returnDocument: 'after',
-        })
+    try {
+      if (friendshipId && Types.ObjectId.isValid(friendshipId)) {
+        const updated = await this.friendshipModel
+          .findByIdAndUpdate(friendshipId, persistenceData, {
+            returnDocument: 'after',
+          })
+          .lean()
+          .exec();
+
+        if (!updated) {
+          throw new NotFoundException('Không tìm thấy lời mời kết bạn');
+        }
+
+        return {
+          id: updated._id.toString(),
+          requesterId: updated.requester_id.toString(),
+          addresseeId: updated.addressee_id.toString(),
+          status: updated.status,
+          createdAt: updated.created_at,
+          updatedAt: updated.updated_at,
+        };
+      }
+
+      const saved = await this.friendshipModel
+        .findOneAndUpdate(
+          {
+            $or: [
+              {
+                requester_id: persistenceData.requester_id,
+                addressee_id: persistenceData.addressee_id,
+              },
+              {
+                requester_id: persistenceData.addressee_id,
+                addressee_id: persistenceData.requester_id,
+              },
+            ],
+          },
+          persistenceData,
+          { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true },
+        )
         .lean()
         .exec();
 
-      if (!updated) {
-        throw new NotFoundException('Không tìm thấy lời mời kết bạn');
+      if (!saved) {
+        throw new NotFoundException('Không thể lưu lời mời kết bạn');
       }
 
       return {
-        id: updated._id.toString(),
-        requesterId: updated.requester_id.toString(),
-        addresseeId: updated.addressee_id.toString(),
-        status: updated.status,
-        createdAt: updated.created_at,
-        updatedAt: updated.updated_at,
+        id: saved._id.toString(),
+        requesterId: saved.requester_id.toString(),
+        addresseeId: saved.addressee_id.toString(),
+        status: saved.status,
+        createdAt: saved.created_at,
+        updatedAt: saved.updated_at,
       };
+    } catch (error: unknown) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code: number }).code === 11000
+      ) {
+        const existing = await this.findBetweenUsers(
+          persistenceData.requester_id,
+          persistenceData.addressee_id,
+        );
+        if (existing) {
+          return {
+            id: existing.getId() ?? '',
+            requesterId: existing.getRequesterId(),
+            addresseeId: existing.getAddresseeId(),
+            status: existing.getStatus(),
+            createdAt: existing.getCreatedAt(),
+            updatedAt: existing.getUpdatedAt(),
+          };
+        }
+      }
+      throw error;
     }
-
-    const saved = await this.friendshipModel
-      .findOneAndUpdate(
-        {
-          $or: [
-            {
-              requester_id: persistenceData.requester_id,
-              addressee_id: persistenceData.addressee_id,
-            },
-            {
-              requester_id: persistenceData.addressee_id,
-              addressee_id: persistenceData.requester_id,
-            },
-          ],
-        },
-        persistenceData,
-        { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true },
-      )
-      .lean()
-      .exec();
-
-    if (!saved) {
-      throw new NotFoundException('Không thể lưu lời mời kết bạn');
-    }
-
-    return {
-      id: saved._id.toString(),
-      requesterId: saved.requester_id.toString(),
-      addresseeId: saved.addressee_id.toString(),
-      status: saved.status,
-      createdAt: saved.created_at,
-      updatedAt: saved.updated_at,
-    };
   }
 
   async findById(friendshipId: string): Promise<FriendshipEntity | null> {
@@ -107,7 +142,12 @@ export class FriendshipRepository implements FriendshipRepositoryAdapter {
     user1Id: string,
     user2Id: string,
   ): Promise<FriendshipEntity | null> {
-    if (!user1Id || !user2Id) {
+    if (
+      !user1Id ||
+      !user2Id ||
+      !Types.ObjectId.isValid(user1Id) ||
+      !Types.ObjectId.isValid(user2Id)
+    ) {
       return null;
     }
 
@@ -141,6 +181,7 @@ export class FriendshipRepository implements FriendshipRepositoryAdapter {
         'name email avatar',
       )
       .sort({ created_at: -1 })
+      .limit(100)
       .lean()
       .exec();
 
@@ -188,7 +229,7 @@ export class FriendshipRepository implements FriendshipRepositoryAdapter {
         : friendship.requester_id.toString(),
     );
 
-    const cleanSearch = search?.trim();
+    const cleanSearch = search?.trim().slice(0, 100);
     const users = await this.userModel
       .find({
         _id: { $in: friendIds },
@@ -212,12 +253,21 @@ export class FriendshipRepository implements FriendshipRepositoryAdapter {
     userId: string,
     memberIds: string[],
   ): Promise<boolean> {
-    if (!userId || !memberIds || memberIds.length === 0) {
+    if (
+      !userId ||
+      !Types.ObjectId.isValid(userId) ||
+      !memberIds ||
+      memberIds.length === 0
+    ) {
       return false;
     }
 
     const uniqueMemberIds = Array.from(
-      new Set(memberIds.filter((id) => id && id !== userId)),
+      new Set(
+        memberIds.filter(
+          (id) => id && id !== userId && Types.ObjectId.isValid(id),
+        ),
+      ),
     );
 
     if (uniqueMemberIds.length === 0) {

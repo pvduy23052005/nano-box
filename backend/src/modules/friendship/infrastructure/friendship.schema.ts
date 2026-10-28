@@ -32,6 +32,13 @@ export class Friendship {
   })
   status: FriendshipStatus;
 
+  @Prop({
+    type: String,
+    required: false,
+    index: true,
+  })
+  pair_key?: string;
+
   created_at: Date;
   updated_at: Date;
 }
@@ -40,6 +47,8 @@ export type FriendshipDocument = HydratedDocument<Friendship>;
 export const FriendshipSchema = SchemaFactory.createForClass(Friendship);
 
 FriendshipSchema.index({ requester_id: 1, addressee_id: 1 }, { unique: true });
+
+FriendshipSchema.index({ pair_key: 1 }, { unique: true, sparse: true });
 
 FriendshipSchema.index({ addressee_id: 1, status: 1 });
 

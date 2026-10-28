@@ -44,13 +44,13 @@ describe('UpdateMemberLastReadMessageUseCase', () => {
   });
 
   it('should throw DomainValidationException if roomId or messageId is empty', async () => {
-    await expect(
-      useCase.execute('', userId, messageId),
-    ).rejects.toThrow(DomainValidationException);
+    await expect(useCase.execute('', userId, messageId)).rejects.toThrow(
+      DomainValidationException,
+    );
 
-    await expect(
-      useCase.execute(roomId, userId, ''),
-    ).rejects.toThrow(DomainValidationException);
+    await expect(useCase.execute(roomId, userId, '')).rejects.toThrow(
+      DomainValidationException,
+    );
   });
 
   it('should throw DomainValidationException if user is WAITTING or not ACCEPTED', async () => {

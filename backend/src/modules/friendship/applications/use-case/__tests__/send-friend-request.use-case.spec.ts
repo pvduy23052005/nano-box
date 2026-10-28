@@ -203,14 +203,49 @@ describe('SendFriendRequestUseCase', () => {
     expect(mockFriendshipRepo.save).not.toHaveBeenCalled();
   });
 
-  it('nên ném lỗi khi tự gửi lời mời cho chính mình', async () => {
+  it('nên ném lỗi khi tự gửi lời mời cho chính mình mà không cần gọi DB', async () => {
     mockUserRepo.findById.mockResolvedValue(mockTargetUser);
     mockFriendshipRepo.findBetweenUsers.mockResolvedValue(null);
 
     await expect(useCase.execute(requesterId, requesterId)).rejects.toThrow(
       DomainValidationException,
     );
+    expect(mockUserRepo.findById).not.toHaveBeenCalled();
+    expect(mockFriendshipRepo.findBetweenUsers).not.toHaveBeenCalled();
     expect(mockFriendshipRepo.save).not.toHaveBeenCalled();
+  });
+
+  it('nên gửi lại lời mời thành công khi quan hệ trước đó đã bị REJECTED hoặc CANCELLED', async () => {
+    mockUserRepo.findById.mockImplementation(async (id: string) => {
+      if (id === requesterId) return mockRequesterUser;
+      if (id === addresseeId) return mockTargetUser;
+      return null;
+    });
+
+    const rejectedFriendship = FriendshipEntity.restore({
+      id: 'existing-cancelled-id',
+      requesterId: addresseeId,
+      addresseeId: requesterId,
+      status: FriendshipStatus.REJECTED,
+    });
+    mockFriendshipRepo.findBetweenUsers.mockResolvedValue(rejectedFriendship);
+
+    const savedProps: FriendshipProps = {
+      id: 'existing-cancelled-id',
+      requesterId,
+      addresseeId,
+      status: FriendshipStatus.PENDING,
+    };
+    mockFriendshipRepo.save.mockResolvedValue(savedProps);
+
+    const result = await useCase.execute(requesterId, addresseeId);
+
+    expect(rejectedFriendship.getStatus()).toBe(FriendshipStatus.PENDING);
+    expect(rejectedFriendship.getRequesterId()).toBe(requesterId);
+    expect(rejectedFriendship.getAddresseeId()).toBe(addresseeId);
+    expect(mockFriendshipRepo.save).toHaveBeenCalledWith(rejectedFriendship);
+    expect(result.id).toBe('existing-cancelled-id');
+    expect(result.status).toBe(FriendshipStatus.PENDING);
   });
 
   it('nên ném lỗi khi người nhận không tồn tại (chạy song song findById và findBetweenUsers)', async () => {
@@ -243,5 +278,44 @@ describe('SendFriendRequestUseCase', () => {
       DomainValidationException,
     );
     expect(mockFriendshipRepo.save).not.toHaveBeenCalled();
+  });
+
+  it('nên gom toàn bộ lỗi tồn tại khi cả hai người dùng đều không tồn tại', async () => {
+    mockUserRepo.findById.mockResolvedValue(null);
+    mockFriendshipRepo.findBetweenUsers.mockResolvedValue(null);
+
+    let caughtError: DomainValidationException | null = null;
+    try {
+      await useCase.execute(requesterId, addresseeId);
+    } catch (err) {
+      caughtError = err as DomainValidationException;
+    }
+
+    expect(caughtError).toBeInstanceOf(DomainValidationException);
+    expect(caughtError?.errors.requesterId).toBe(
+      'Người dùng gửi lời mời không tồn tại',
+    );
+    expect(caughtError?.errors.addresseeId).toBe(
+      'Người dùng nhận lời mời không tồn tại',
+    );
+    expect(mockFriendshipRepo.save).not.toHaveBeenCalled();
+  });
+
+  it('nên gom toàn bộ lỗi đầu vào khi cả người gửi và người nhận đều rỗng', async () => {
+    let caughtError: DomainValidationException | null = null;
+    try {
+      await useCase.execute('', '');
+    } catch (err) {
+      caughtError = err as DomainValidationException;
+    }
+
+    expect(caughtError).toBeInstanceOf(DomainValidationException);
+    expect(caughtError?.errors.requesterId).toBe(
+      'Người gửi không được để trống',
+    );
+    expect(caughtError?.errors.addresseeId).toBe(
+      'Người nhận không được để trống',
+    );
+    expect(mockUserRepo.findById).not.toHaveBeenCalled();
   });
 });

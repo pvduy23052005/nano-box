@@ -208,9 +208,7 @@ describe('RevokeRoomAdminUseCase', () => {
       const superAdminActor = RoomMember.createSuperAdmin(superAdminId);
       const superAdminTarget = RoomMember.createSuperAdmin(adminId);
 
-      const result = superAdminTarget.canBeRevokedAdminBy(
-        superAdminActor,
-      );
+      const result = superAdminTarget.canBeRevokedAdminBy(superAdminActor);
       expect(result.allowed).toBe(false);
       expect(result.reason).toBe('Không thể cắt chức Trưởng nhóm');
     });

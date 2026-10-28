@@ -11,7 +11,11 @@ type AcceptFriendRequestPayload {
 input AddEmojiMessageInput {
   emoji: String!
   messageId: String!
+
+  """Không dùng nữa. Hệ thống tự động lấy danh tính từ phiên đăng nhập."""
   userAvatar: String
+
+  """Không dùng nữa. Hệ thống tự động lấy danh tính từ phiên đăng nhập."""
   userName: String
 }
 
@@ -124,7 +128,11 @@ enum MemberStatus {
 input MessageInput {
   content: String
   roomId: String!
+
+  """Không dùng nữa. Hệ thống tự động lấy danh tính từ phiên đăng nhập."""
   senderAvatar: String
+
+  """Không dùng nữa. Hệ thống tự động lấy danh tính từ phiên đăng nhập."""
   senderName: String
   tempKeys: [String!]
 }

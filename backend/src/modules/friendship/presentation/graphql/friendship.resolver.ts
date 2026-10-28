@@ -15,12 +15,12 @@ import { GetReceivedFriendRequestsUseCase } from '../../applications/use-case/ge
 import { CancelFriendRequestUseCase } from '../../applications/use-case/cancel-friend-request.use-case';
 import { RejectFriendRequestUseCase } from '../../applications/use-case/reject-friend-request.use-case';
 import { AcceptFriendRequestUseCase } from '../../applications/use-case/accept-friend-request.use-case';
-import { WebsocketService } from 'src/infrastructure/websocket/ws.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { FRIENDSHIP_SOCKET_EVENTS } from '../gateway/friendship.event';
+import { FRIENDSHIP_INTERNAL_EVENTS } from '../gateway/friendship.event';
 import { NOTIFICATION_EVENTS } from 'src/modules/notification/presentation/listener/notification.event';
 import { GetFriendsUseCase } from '../../applications/use-case/get-friends.use-case';
 import { UserProfilePayload } from 'src/modules/user/presentation/dto/profile.payload';
+import { ParseObjectIdPipe } from 'src/common/pipes/parse-object-id.pipe';
 
 @Resolver()
 @UseGuards(AuthGuard)
@@ -32,7 +32,6 @@ export class FriendshipResolver {
     private readonly rejectFriendRequestUseCase: RejectFriendRequestUseCase,
     private readonly acceptFriendRequestUseCase: AcceptFriendRequestUseCase,
     private readonly getFriendsUseCase: GetFriendsUseCase,
-    private readonly websocketService: WebsocketService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -56,7 +55,7 @@ export class FriendshipResolver {
   @Mutation(() => SendFriendRequestPayload)
   async sendFriendRequest(
     @CurrentUser('id') myId: string,
-    @Args('addresseeId') addresseeId: string,
+    @Args('addresseeId', ParseObjectIdPipe) addresseeId: string,
   ): Promise<SendFriendRequestPayload> {
     const result = await this.sendFriendRequestUseCase.execute(
       myId,
@@ -79,16 +78,17 @@ export class FriendshipResolver {
         requesterEmail: result.requesterEmail,
       });
     } else if (result.status === FriendshipStatus.ACCEPTED) {
-      this.websocketService.server
-        .to(addresseeId)
-        .emit(FRIENDSHIP_SOCKET_EVENTS.FRIEND_REQUEST_ACCEPTED, {
-          id: result.id ?? '',
-          requesterId: result.addresseeId,
-          addresseeId: result.requesterId,
+      this.eventEmitter.emit(
+        FRIENDSHIP_INTERNAL_EVENTS.FRIEND_REQUEST_ACCEPTED,
+        {
+          friendshipId: result.id ?? '',
+          actorId: myId,
+          targetId: addresseeId,
           status: result.status,
           createdAt: result.createdAt,
           updatedAt: result.updatedAt,
-        });
+        },
+      );
     }
 
     return {
@@ -108,11 +108,23 @@ export class FriendshipResolver {
   @Mutation(() => CancelFriendRequestPayload)
   async cancelFriendRequest(
     @CurrentUser('id') userId: string,
-    @Args('friendId') friendId: string,
+    @Args('friendId', ParseObjectIdPipe) friendId: string,
   ): Promise<CancelFriendRequestPayload> {
     const result = await this.cancelFriendRequestUseCase.execute(
       userId,
       friendId,
+    );
+
+    this.eventEmitter.emit(
+      FRIENDSHIP_INTERNAL_EVENTS.FRIEND_REQUEST_CANCELLED,
+      {
+        friendshipId: result.id || '',
+        actorId: userId,
+        targetId: result.addresseeId,
+        status: result.status,
+        createdAt: result.createdAt,
+        updatedAt: result.updatedAt,
+      },
     );
 
     return {
@@ -132,12 +144,21 @@ export class FriendshipResolver {
   @Mutation(() => RejectFriendRequestPayload)
   async rejectFriendRequest(
     @CurrentUser('id') userId: string,
-    @Args('friendId') friendId: string,
+    @Args('friendId', ParseObjectIdPipe) friendId: string,
   ): Promise<RejectFriendRequestPayload> {
     const result = await this.rejectFriendRequestUseCase.execute(
       userId,
       friendId,
     );
+
+    this.eventEmitter.emit(FRIENDSHIP_INTERNAL_EVENTS.FRIEND_REQUEST_REJECTED, {
+      friendshipId: result.id || '',
+      actorId: userId,
+      targetId: result.requesterId,
+      status: result.status,
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt,
+    });
 
     return {
       success: true,
@@ -156,12 +177,24 @@ export class FriendshipResolver {
   @Mutation(() => AcceptFriendRequestPayload)
   async acceptFriendRequest(
     @CurrentUser('id') userId: string,
-    @Args('friendId') friendId: string,
+    @Args('friendId', ParseObjectIdPipe) friendId: string,
   ): Promise<AcceptFriendRequestPayload> {
     const result = await this.acceptFriendRequestUseCase.execute(
       userId,
       friendId,
     );
+
+    const targetId =
+      result.requesterId === userId ? result.addresseeId : result.requesterId;
+
+    this.eventEmitter.emit(FRIENDSHIP_INTERNAL_EVENTS.FRIEND_REQUEST_ACCEPTED, {
+      friendshipId: result.id || '',
+      actorId: userId,
+      targetId,
+      status: result.status,
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt,
+    });
 
     return {
       success: true,
