@@ -1,6 +1,7 @@
-import { RoomRepositoryAdapter } from '../ports/room.ports';
-import { RoomProps } from '../../domain/room.type';
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
+import { MemberStatus } from '../../domain/chat.enum';
+import { RoomProps } from '../../domain/room.type';
+import { RoomRepositoryAdapter } from '../ports/room.ports';
 
 export class GetRoomDetailUseCase {
   constructor(private readonly roomRepository: RoomRepositoryAdapter) {}
@@ -15,11 +16,11 @@ export class GetRoomDetailUseCase {
       );
     }
 
-    const isMember = room.members?.some(
+    const member = room.members?.find(
       (member) => member.userId === currentUserId,
     );
 
-    if (!isMember) {
+    if (!member || member.status === MemberStatus.REFUSED) {
       throw new DomainValidationException(
         'member',
         'Bạn không có quyền truy cập vào phòng trò chuyện này',

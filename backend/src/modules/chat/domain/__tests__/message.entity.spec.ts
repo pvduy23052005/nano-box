@@ -69,6 +69,17 @@ describe('MessageEntity', () => {
       ).toThrow(DomainValidationException);
     });
 
+    it('should throw DomainValidationException if content exceeds 5000 characters', () => {
+      const longContent = 'a'.repeat(5001);
+      expect(() =>
+        MessageEntity.create({
+          roomId: 'room-1',
+          senderId: 'user-1',
+          content: longContent,
+        }),
+      ).toThrow(DomainValidationException);
+    });
+
     it('should trim roomId', () => {
       const message = MessageEntity.create({
         roomId: '  room-123  ',
@@ -133,6 +144,11 @@ describe('MessageEntity', () => {
       expect(message.getReactions()).toHaveLength(0);
 
       message.addReaction('👍', '');
+      expect(message.getReactions()).toHaveLength(0);
+    });
+
+    it('should ignore reaction if emoji exceeds 16 characters', () => {
+      message.addReaction('a'.repeat(17), 'user-2');
       expect(message.getReactions()).toHaveLength(0);
     });
   });

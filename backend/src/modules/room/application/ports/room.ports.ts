@@ -49,6 +49,8 @@ export abstract class RoomRepositoryAdapter {
 
   abstract deleteRoom(roomId: string): Promise<boolean>;
 
+  abstract isMessageInRoom(roomId: string, messageId: string): Promise<boolean>;
+
   abstract isUserMember?(roomId: string, userId: string): Promise<boolean>;
 
   abstract findRoomMembers(roomId: string): Promise<RoomMembersResult | null>;

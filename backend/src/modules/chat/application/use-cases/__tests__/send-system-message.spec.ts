@@ -47,6 +47,7 @@ describe('SendSystemMessageUseCase', () => {
       acceptAllMembers: jest.fn(),
       deleteRoom: jest.fn(),
       findRoomMembers: jest.fn(),
+      findRoomMembersWithProfile: jest.fn(),
       findRelatedUserIdsByRooms: jest.fn(),
     };
     useCase = new SendSystemMessageUseCase(messageRepository, roomRepository);

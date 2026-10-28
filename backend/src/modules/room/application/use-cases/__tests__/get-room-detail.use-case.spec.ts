@@ -49,6 +49,30 @@ describe('GetRoomDetailUseCase', () => {
     useCase = new GetRoomDetailUseCase(roomRepository);
   });
 
+  it('nên ném DomainValidationException nếu roomId không phải là ObjectId hợp lệ', async () => {
+    await expect(useCase.execute('invalid-id', currentUserId)).rejects.toThrow(
+      DomainValidationException,
+    );
+  });
+
+  it('nên ném DomainValidationException nếu thành viên có trạng thái REFUSED', async () => {
+    const refusedRoom: RoomProps = {
+      ...mockRoom,
+      members: [
+        {
+          userId: currentUserId,
+          role: MemberRole.MEMBER,
+          status: MemberStatus.REFUSED,
+        },
+      ],
+    };
+    roomRepository.findById.mockResolvedValue(refusedRoom);
+
+    await expect(useCase.execute(validRoomId, currentUserId)).rejects.toThrow(
+      DomainValidationException,
+    );
+  });
+
   it('nên trả về chi tiết phòng khi người dùng là thành viên', async () => {
     roomRepository.findById.mockResolvedValue(mockRoom);
 

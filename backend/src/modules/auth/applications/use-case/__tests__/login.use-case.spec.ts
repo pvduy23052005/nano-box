@@ -165,6 +165,63 @@ describe('LoginUseCase', () => {
       });
     });
 
+    describe('khi người dùng không có mật khẩu thiết lập', () => {
+      beforeEach(() => {
+        const userWithoutPassword = UserEntity.restore({
+          id: 'user-id-2',
+          name: 'OAuth User',
+          email: 'test@example.com',
+          password: '',
+          status: UserStatus.ACTIVE,
+          avatar: '',
+        });
+        userRepository.findByEmail.mockResolvedValue(userWithoutPassword);
+        passwordHasher.compare.mockResolvedValue(true);
+      });
+
+      it('nên so sánh với dummy hash và từ chối đăng nhập', async () => {
+        const promise = loginUseCase.execute(validInput);
+        await expect(promise).rejects.toThrow(DomainValidationException);
+
+        expect(passwordHasher.compare).toHaveBeenCalledWith(
+          validInput.password,
+          expect.stringMatching(/^\$2[aby]?\$\d+\$/),
+        );
+        expect(tokenGenerator.generateToken).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('khi tài khoản bị khóa hoặc không hoạt động (INACTIVE)', () => {
+      beforeEach(() => {
+        const inactiveUser = UserEntity.restore({
+          id: 'user-id-3',
+          name: 'Inactive User',
+          email: 'test@example.com',
+          password: 'hashed_password',
+          status: UserStatus.INACTIVE,
+          avatar: '',
+        });
+        userRepository.findByEmail.mockResolvedValue(inactiveUser);
+        passwordHasher.compare.mockResolvedValue(true);
+      });
+
+      it('nên từ chối đăng nhập với thông báo tài khoản bị khóa', async () => {
+        const promise = loginUseCase.execute(validInput);
+        await expect(promise).rejects.toThrow(DomainValidationException);
+
+        try {
+          await promise;
+        } catch (error) {
+          const domainError = error as DomainValidationException;
+          expect(domainError.errors).toEqual({
+            email: 'Tài khoản của bạn đã bị khóa hoặc ngừng kích hoạt',
+          });
+        }
+
+        expect(tokenGenerator.generateToken).not.toHaveBeenCalled();
+      });
+    });
+
     describe('khi repository gặp lỗi', () => {
       it('nên truyền lỗi lên khi findByEmail thất bại', async () => {
         userRepository.findByEmail.mockRejectedValue(

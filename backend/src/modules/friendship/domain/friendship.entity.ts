@@ -95,6 +95,34 @@ export class FriendshipEntity {
     this.status = FriendshipStatus.CANCELLED;
   }
 
+  public resend(requesterId: string, addresseeId: string): void {
+    const errors: Record<string, string> = {};
+    if (
+      this.status !== FriendshipStatus.REJECTED &&
+      this.status !== FriendshipStatus.CANCELLED
+    ) {
+      errors.status =
+        'Chỉ có thể gửi lại lời mời khi lời mời trước đó đã bị hủy hoặc từ chối';
+    }
+    if (!requesterId) {
+      errors.requesterId = 'Người gửi không được để trống';
+    }
+    if (!addresseeId) {
+      errors.addresseeId = 'Người nhận không được để trống';
+    }
+    if (requesterId === addresseeId) {
+      errors.addresseeId = 'Không thể gửi lời mời cho chính mình';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      throw new DomainValidationException(errors);
+    }
+
+    this.requesterId = requesterId;
+    this.addresseeId = addresseeId;
+    this.status = FriendshipStatus.PENDING;
+  }
+
   public getId(): string | undefined {
     return this.id;
   }

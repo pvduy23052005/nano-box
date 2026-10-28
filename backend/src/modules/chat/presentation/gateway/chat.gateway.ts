@@ -9,17 +9,24 @@ import { Server } from 'socket.io';
 import * as eventType from './event.type';
 import type { AuthenticatedSocket } from 'src/infrastructure/websocket/ws.type';
 import { RoomRepositoryAdapter } from 'src/modules/room/application/ports/room.ports';
+import { MemberStatus } from 'src/modules/room/domain/chat.enum';
+
+interface MembershipCacheItem {
+  isMember: boolean;
+  name?: string | null;
+  avatar?: string | null;
+  expiresAt: number;
+}
 
 @WebSocketGateway()
 export class ChatGateway {
   @WebSocketServer()
   server: Server;
 
-  private readonly membershipCache = new Map<
-    string,
-    { isMember: boolean; expiresAt: number }
-  >();
+  private readonly membershipCache = new Map<string, MembershipCacheItem>();
   private readonly CACHE_TTL_MS = 2 * 60 * 1000;
+  private readonly MAX_CACHE_SIZE = 1000;
+  private static readonly TYPING_DEBOUNCE_MS = 300;
 
   constructor(private readonly roomRepository: RoomRepositoryAdapter) {}
 
@@ -40,36 +47,57 @@ export class ChatGateway {
   private async verifyMembership(
     roomId: string,
     userId: string,
-  ): Promise<boolean> {
+  ): Promise<Omit<MembershipCacheItem, 'expiresAt'>> {
     const cacheKey = `${roomId}:${userId}`;
     const cached = this.membershipCache.get(cacheKey);
     const now = Date.now();
     if (cached && cached.expiresAt > now) {
-      return cached.isMember;
+      return {
+        isMember: cached.isMember,
+        name: cached.name,
+        avatar: cached.avatar,
+      };
     }
 
     let isMember = false;
-    if (typeof this.roomRepository.isUserMember === 'function') {
-      isMember = await this.roomRepository.isUserMember(roomId, userId);
+    let name: string | null = null;
+    let avatar: string | null = null;
+
+    if (typeof this.roomRepository.findRoomMembersWithProfile === 'function') {
+      const room = await this.roomRepository.findRoomMembersWithProfile(roomId);
+      const member = room?.members?.find(
+        (member) =>
+          member.userId === userId && member.status !== MemberStatus.REFUSED,
+      );
+      if (member) {
+        isMember = true;
+        name = member.name ?? null;
+        avatar = member.avatar ?? null;
+      }
     } else {
       const room = await this.roomRepository.findById(roomId);
-      isMember = !!room?.members?.some((member) => member.userId === userId);
+      const member = room?.members?.find(
+        (member) =>
+          member.userId === userId && member.status !== MemberStatus.REFUSED,
+      );
+      isMember = !!member;
     }
 
-    if (this.membershipCache.size > 2000) {
-      for (const [key, item] of this.membershipCache.entries()) {
-        if (now > item.expiresAt) {
-          this.membershipCache.delete(key);
-        }
+    if (this.membershipCache.size >= this.MAX_CACHE_SIZE) {
+      const oldestKey = this.membershipCache.keys().next().value;
+      if (oldestKey) {
+        this.membershipCache.delete(oldestKey as string);
       }
     }
 
     this.membershipCache.set(cacheKey, {
       isMember,
+      name,
+      avatar,
       expiresAt: now + this.CACHE_TTL_MS,
     });
 
-    return isMember;
+    return { isMember, name, avatar };
   }
 
   @SubscribeMessage(eventType.CHAT_SOCKET_EVENTS.CLIENT_JOIN_ROOM)
@@ -82,7 +110,7 @@ export class ChatGateway {
 
     if (client.rooms.has(payload.roomId)) return;
 
-    const isMember = await this.verifyMembership(payload.roomId, userId);
+    const { isMember } = await this.verifyMembership(payload.roomId, userId);
     if (!isMember) return;
 
     await client.join(payload.roomId);
@@ -105,20 +133,33 @@ export class ChatGateway {
     const userIdTyping = client.data.userId;
     if (!payload?.roomId || !userIdTyping) return;
 
+    const now = Date.now();
+    if (
+      client.data.lastTypingAt &&
+      now - client.data.lastTypingAt < ChatGateway.TYPING_DEBOUNCE_MS
+    ) {
+      return;
+    }
+    client.data.lastTypingAt = now;
+
+    const memberInfo = await this.verifyMembership(
+      payload.roomId,
+      userIdTyping,
+    );
+    if (!memberInfo.isMember) return;
+
     if (!client.rooms.has(payload.roomId)) {
-      const isMember = await this.verifyMembership(
-        payload.roomId,
-        userIdTyping,
-      );
-      if (!isMember) return;
       await client.join(payload.roomId);
     }
 
     client
       .to(payload.roomId)
       .emit(eventType.CHAT_SOCKET_EVENTS.SERVER_SEND_TYPING, {
-        ...payload,
+        roomId: payload.roomId,
         userId: userIdTyping,
+        isTyping: Boolean(payload.isTyping),
+        name: memberInfo.name ?? undefined,
+        avatar: memberInfo.avatar ?? undefined,
       });
   }
 }

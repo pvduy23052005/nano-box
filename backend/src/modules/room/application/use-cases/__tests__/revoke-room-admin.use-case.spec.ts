@@ -163,7 +163,7 @@ describe('RevokeRoomAdminUseCase', () => {
     const roomEntity = RoomEntity.restore(mockGroupRoom);
 
     try {
-      (roomEntity as any).revokeAdmin(superAdminId, '   ');
+      roomEntity.revokeAdmin(superAdminId, '   ');
       fail('Cần ném DomainValidationException');
     } catch (err) {
       expect(err).toBeInstanceOf(DomainValidationException);
@@ -179,7 +179,7 @@ describe('RevokeRoomAdminUseCase', () => {
       const superAdmin = RoomMember.createSuperAdmin(superAdminId);
       const admin = RoomMember.createAdmin(adminId);
 
-      const result = (admin as any).canBeRevokedAdminBy(superAdmin);
+      const result = admin.canBeRevokedAdminBy(superAdmin);
       expect(result.allowed).toBe(true);
       expect(result.reason).toBeUndefined();
     });
@@ -188,7 +188,7 @@ describe('RevokeRoomAdminUseCase', () => {
       const adminActor = RoomMember.createAdmin(superAdminId);
       const adminTarget = RoomMember.createAdmin(adminId);
 
-      const result = (adminTarget as any).canBeRevokedAdminBy(adminActor);
+      const result = adminTarget.canBeRevokedAdminBy(adminActor);
       expect(result.allowed).toBe(false);
       expect(result.reason).toBe(
         'Chỉ trưởng nhóm mới có quyền cắt chức quản trị viên',
@@ -199,7 +199,7 @@ describe('RevokeRoomAdminUseCase', () => {
       const superAdmin = RoomMember.createSuperAdmin(superAdminId);
       const member = RoomMember.createMember(regularMemberId);
 
-      const result = (member as any).canBeRevokedAdminBy(superAdmin);
+      const result = member.canBeRevokedAdminBy(superAdmin);
       expect(result.allowed).toBe(false);
       expect(result.reason).toBe('Thành viên này không phải là quản trị viên');
     });
@@ -208,9 +208,7 @@ describe('RevokeRoomAdminUseCase', () => {
       const superAdminActor = RoomMember.createSuperAdmin(superAdminId);
       const superAdminTarget = RoomMember.createSuperAdmin(adminId);
 
-      const result = (superAdminTarget as any).canBeRevokedAdminBy(
-        superAdminActor,
-      );
+      const result = superAdminTarget.canBeRevokedAdminBy(superAdminActor);
       expect(result.allowed).toBe(false);
       expect(result.reason).toBe('Không thể cắt chức Trưởng nhóm');
     });

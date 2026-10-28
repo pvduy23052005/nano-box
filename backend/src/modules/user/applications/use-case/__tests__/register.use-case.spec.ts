@@ -70,6 +70,21 @@ describe('RegisterUseCase', () => {
         expect(savedEntity.getPassword()).toBe('hashed_password');
         expect(savedEntity.getStatus()).toBe(UserStatus.ACTIVE);
       });
+
+      it('nên chuẩn hóa email (trim và lowercase) khi kiểm tra trùng và tạo user', async () => {
+        const inputWithMessyEmail = {
+          ...validInput,
+          email: '   Test@Example.COM   ',
+        };
+
+        await registerUseCase.execute(inputWithMessyEmail);
+
+        expect(userRepository.findByEmail).toHaveBeenCalledWith(
+          'test@example.com',
+        );
+        const savedEntity: UserEntity = userRepository.save.mock.calls[0][0];
+        expect(savedEntity.getEmail()).toBe('test@example.com');
+      });
     });
 
     describe('khi email đã tồn tại', () => {

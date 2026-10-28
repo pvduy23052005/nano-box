@@ -321,4 +321,36 @@ describe('AddMemberToRoomUseCase', () => {
       );
     }
   });
+
+  it('nên ném DomainValidationException nếu nhóm đã đạt tối đa 100 thành viên', async () => {
+    const fullMembers = [
+      {
+        userId: superAdminId,
+        role: MemberRole.SUPER_ADMIN,
+        status: MemberStatus.ACCEPTED,
+      },
+    ];
+    for (let i = 2; i <= 100; i++) {
+      fullMembers.push({
+        userId: `user-${i}`,
+        role: MemberRole.MEMBER,
+        status: MemberStatus.ACCEPTED,
+      });
+    }
+
+    const fullRoom: RoomProps = {
+      ...mockGroupRoom,
+      members: fullMembers,
+    };
+
+    roomRepository.findById.mockResolvedValue(fullRoom);
+    friendshipRepository.checkAllAreFriends.mockResolvedValue(true);
+
+    await expect(
+      useCase.execute(superAdminId, {
+        roomId: validRoomId,
+        userId: targetFriendId,
+      }),
+    ).rejects.toThrow(DomainValidationException);
+  });
 });

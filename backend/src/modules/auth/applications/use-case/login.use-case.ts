@@ -1,6 +1,7 @@
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 import { IPasswordHasher } from 'src/modules/user/applications/ports/password-hasher.port';
 import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
+import { UserStatus } from 'src/modules/user/domain/user.type';
 import { LoginRequest, LoginResponse } from '../dto/login.type';
 import { ITokenGenerator } from '../ports/token-generator.port';
 
@@ -15,16 +16,32 @@ export class LoginUseCase {
   ) {}
 
   async execute(input: LoginRequest): Promise<LoginResponse> {
-    const user = await this.userRepository.findByEmail(input.email);
-    const passwordHash = user?.getPassword() || DUMMY_PASSWORD_HASH;
-    const isValid = await this.passwordHasher.compare(
-      input.password,
-      passwordHash,
-    );
-    if (!isValid || !user) {
+    const normalizedEmail = input.email.trim().toLowerCase();
+    const user = await this.userRepository.findByEmail(normalizedEmail);
+    const userPassword = user?.getPassword();
+
+    if (!user || !userPassword) {
+      await this.passwordHasher.compare(input.password, DUMMY_PASSWORD_HASH);
       throw new DomainValidationException({
         email: 'Email hoặc mật khẩu không chính xác',
         password: 'Email hoặc mật khẩu không chính xác',
+      });
+    }
+
+    const isValid = await this.passwordHasher.compare(
+      input.password,
+      userPassword,
+    );
+    if (!isValid) {
+      throw new DomainValidationException({
+        email: 'Email hoặc mật khẩu không chính xác',
+        password: 'Email hoặc mật khẩu không chính xác',
+      });
+    }
+
+    if (user.getStatus() !== UserStatus.ACTIVE) {
+      throw new DomainValidationException({
+        email: 'Tài khoản của bạn đã bị khóa hoặc ngừng kích hoạt',
       });
     }
 

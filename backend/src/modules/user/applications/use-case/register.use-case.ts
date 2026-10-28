@@ -17,9 +17,12 @@ export class RegisterUseCase {
       errors.password = 'Xác nhận mật khẩu không chính xác';
     }
 
-    const existUser = await this.userRepository.findByEmail(input.email);
-    if (existUser) {
-      errors.email = 'Email đã tồn tại';
+    const normalizedEmail = input.email?.trim().toLowerCase();
+    if (normalizedEmail) {
+      const existUser = await this.userRepository.findByEmail(normalizedEmail);
+      if (existUser) {
+        errors.email = 'Email đã tồn tại';
+      }
     }
 
     if (Object.keys(errors).length > 0) {
@@ -29,6 +32,7 @@ export class RegisterUseCase {
     const hashedPassword = await this.passwordHasher.hash(input.password);
     const user = UserEntity.create({
       ...input,
+      email: normalizedEmail,
       password: hashedPassword,
       avatar: '/login.png',
     });

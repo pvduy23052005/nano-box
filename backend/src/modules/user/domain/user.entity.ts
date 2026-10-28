@@ -15,17 +15,57 @@ export class UserEntity {
     this.email = props.email;
     this.password = props.password;
     this.status = props.status ?? UserStatus.ACTIVE;
-    this.avatar = props.avatar;
+    this.avatar = props.avatar?.trim() || '/login.png';
+  }
+
+  private static validateName(
+    name?: string,
+    errors: Record<string, string> = {},
+  ): string | undefined {
+    const cleanName = name?.trim();
+    if (!cleanName) {
+      errors.name = 'Tên không được để trống';
+    } else if (cleanName.length > 100) {
+      errors.name = 'Tên không được vượt quá 100 ký tự';
+    }
+    return cleanName;
+  }
+
+  private static validateAvatar(
+    avatar?: string,
+    errors: Record<string, string> = {},
+    options: { isCreate?: boolean } = {},
+  ): string {
+    const cleanAvatar = avatar?.trim() ?? '';
+    if (!cleanAvatar) {
+      if (options.isCreate) {
+        return '/login.png';
+      }
+      errors.avatar = 'Đường dẫn ảnh đại diện không hợp lệ';
+      return '';
+    }
+
+    if (cleanAvatar.length > 2048) {
+      errors.avatar = 'Đường dẫn ảnh đại diện không được vượt quá 2048 ký tự';
+    } else if (
+      !cleanAvatar.startsWith('http://') &&
+      !cleanAvatar.startsWith('https://') &&
+      (cleanAvatar.startsWith('//') || !cleanAvatar.startsWith('/'))
+    ) {
+      errors.avatar = 'Đường dẫn ảnh đại diện không hợp lệ';
+    }
+
+    return cleanAvatar;
   }
 
   public static create(props: Omit<UserProps, 'id' | 'status'>): UserEntity {
     const errors: Record<string, string> = {};
 
-    if (!props.name || !props.name.trim()) {
-      errors.name = 'Tên không được để trống';
-    }
+    const cleanName = this.validateName(props.name, errors);
 
-    if (!props.email || !props.email.includes('@')) {
+    const cleanEmail = props.email?.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!cleanEmail || !emailRegex.test(cleanEmail)) {
       errors.email = 'Email không đúng định dạng';
     }
 
@@ -33,22 +73,29 @@ export class UserEntity {
       errors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
     }
 
+    const cleanAvatar = this.validateAvatar(props.avatar, errors, {
+      isCreate: true,
+    });
+
     if (Object.keys(errors).length > 0) {
       throw new DomainValidationException(errors);
     }
 
     return new UserEntity({
       ...props,
+      name: cleanName!,
+      email: cleanEmail,
+      avatar: cleanAvatar,
       status: UserStatus.ACTIVE,
     });
   }
 
-  public static restore(props: Required<UserProps>): UserEntity {
+  public static restore(props: UserProps): UserEntity {
     return new UserEntity(props);
   }
 
   public changePassword(newPassword: string): void {
-    if (newPassword.length < 6) {
+    if (!newPassword || newPassword.length < 6) {
       throw new DomainValidationException(
         'password',
         'Mật khẩu phải có ít nhất 6 ký tự',
@@ -81,22 +128,28 @@ export class UserEntity {
     }
 
     const errors: Record<string, string> = {};
+    let cleanName: string | undefined;
+    let cleanAvatar: string | undefined;
 
     if (name !== undefined) {
-      if (!name || !name.trim()) {
-        errors.name = 'Tên không được để trống';
-      }
+      cleanName = UserEntity.validateName(name, errors);
+    }
+
+    if (newAvatar !== undefined) {
+      cleanAvatar = UserEntity.validateAvatar(newAvatar, errors, {
+        isCreate: false,
+      });
     }
 
     if (Object.keys(errors).length > 0) {
       throw new DomainValidationException(errors);
     }
 
-    if (name !== undefined) {
-      this.name = name.trim();
+    if (cleanName !== undefined) {
+      this.name = cleanName;
     }
-    if (newAvatar !== undefined) {
-      this.avatar = newAvatar;
+    if (cleanAvatar !== undefined) {
+      this.avatar = cleanAvatar;
     }
   }
 

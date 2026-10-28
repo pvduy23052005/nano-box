@@ -6,9 +6,7 @@ import { getGraphQLInfo } from 'src/common/utils/graphql-logger.util';
 
 const SLOW_REQUEST_THRESHOLD_MS = 1000;
 
-const SILENT_MUTATIONS = new Set<string>([
-  'UpdateMemberLastReadMessage',
-]);
+const SILENT_MUTATIONS = new Set<string>(['UpdateMemberLastReadMessage']);
 
 const REDACTED_LOG_FIELDS = [
   'req.headers.authorization',

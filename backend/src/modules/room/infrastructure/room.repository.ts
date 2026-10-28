@@ -14,6 +14,11 @@ import {
   User,
   UserDocument,
 } from '../../user/infrastructure/databases/user.schema';
+import {
+  Message,
+  MessageDocument,
+} from '../../chat/infrastructure/database/message.schema';
+import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 
 type RoomFilterQuery = Parameters<typeof sanitizeFilter<Room>>[0];
 
@@ -35,6 +40,8 @@ export class RoomRepository implements RoomRepositoryAdapter {
     private readonly roomModel: Model<RoomDocument>,
     @InjectModel(User.name)
     private readonly _userModel: Model<UserDocument>,
+    @InjectModel(Message.name)
+    private readonly messageModel: Model<MessageDocument>,
   ) {}
 
   async save(room: RoomEntity): Promise<RoomProps> {
@@ -74,18 +81,32 @@ export class RoomRepository implements RoomRepositoryAdapter {
         }));
       }
 
+      const version = room.getVersion();
+      const filter: RoomFilterQuery = {
+        _id: new Types.ObjectId(id),
+        ...(typeof version === 'number' ? { __v: version } : {}),
+      };
+
+      const updateQuery: UpdateQuery<Room> = {
+        $set: updateData,
+        $inc: { __v: 1 },
+      };
+
       const updated = await this.roomModel
-        .findByIdAndUpdate(
-          id,
-          { $set: updateData },
-          { returnDocument: 'after' },
-        )
+        .findOneAndUpdate(filter, updateQuery, { returnDocument: 'after' })
         .populate(ROOM_POPULATE_OPTIONS)
         .lean()
         .exec();
 
       if (updated) {
         return RoomMapper.toProps(updated);
+      }
+
+      if (typeof version === 'number') {
+        throw new DomainValidationException(
+          'version',
+          'Dữ liệu phòng đã bị thay đổi bởi thao tác khác, vui lòng thử lại.',
+        );
       }
     }
 
@@ -282,6 +303,24 @@ export class RoomRepository implements RoomRepositoryAdapter {
     return result.deletedCount > 0;
   }
 
+  async isMessageInRoom(roomId: string, messageId: string): Promise<boolean> {
+    if (
+      !roomId ||
+      !messageId ||
+      !Types.ObjectId.isValid(roomId) ||
+      !Types.ObjectId.isValid(messageId)
+    ) {
+      return false;
+    }
+
+    const exists = await this.messageModel.exists({
+      _id: new Types.ObjectId(messageId),
+      room_id: roomId,
+    });
+
+    return !!exists;
+  }
+
   async isUserMember(roomId: string, userId: string): Promise<boolean> {
     if (
       !roomId ||
@@ -298,7 +337,7 @@ export class RoomRepository implements RoomRepositoryAdapter {
         members: {
           $elemMatch: {
             user_id: new Types.ObjectId(userId),
-            status: MemberStatus.ACCEPTED,
+            status: { $in: [MemberStatus.ACCEPTED, MemberStatus.WAITTING] },
           },
         },
       })

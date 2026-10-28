@@ -5,6 +5,7 @@ export interface AppSocketData {
   user?: TokenPayload;
   userId?: string;
   relatedUserIds?: string[];
+  lastTypingAt?: number;
 }
 
 export type AuthenticatedSocket = Socket<

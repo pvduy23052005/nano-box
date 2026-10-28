@@ -250,4 +250,83 @@ describe('AddEmojiMessageUseCase', () => {
     ]);
     expect(messageRepository.update).toHaveBeenCalledTimes(1);
   });
+
+  it('should throw DomainValidationException if emoji exceeds 16 characters', async () => {
+    await expect(
+      addEmojiMessageUseCase.execute({
+        messageId: 'msg-1',
+        emoji: 'a'.repeat(17),
+        userId: 'user-1',
+      }),
+    ).rejects.toThrow(DomainValidationException);
+  });
+
+  it('should throw DomainValidationException if user status is REFUSED', async () => {
+    messageRepository.findById.mockResolvedValue(
+      MessageEntity.restore({
+        ...mockMessageData,
+      }),
+    );
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue({
+      roomId: 'room-1',
+      members: [
+        {
+          userId: 'user-1',
+          role: MemberRole.MEMBER,
+          status: MemberStatus.REFUSED,
+          name: 'Refused User',
+          avatar: null,
+        },
+      ],
+    });
+
+    await expect(
+      addEmojiMessageUseCase.execute({
+        messageId: 'msg-1',
+        emoji: '👍',
+        userId: 'user-1',
+      }),
+    ).rejects.toThrow(DomainValidationException);
+  });
+
+  it('should allow adding reaction if user status is WAITTING', async () => {
+    messageRepository.findById.mockResolvedValue(
+      MessageEntity.restore({
+        ...mockMessageData,
+        reactions: [],
+      }),
+    );
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue({
+      roomId: 'room-1',
+      members: [
+        {
+          userId: 'user-1',
+          role: MemberRole.MEMBER,
+          status: MemberStatus.WAITTING,
+          name: 'Waiting User',
+          avatar: null,
+        },
+      ],
+    });
+    messageRepository.update.mockImplementation((entity) =>
+      Promise.resolve({
+        id: entity.getId(),
+        roomId: entity.getRoomId(),
+        senderId: entity.getSenderId(),
+        content: entity.getContent(),
+        reactions: entity.getReactions(),
+      }),
+    );
+
+    const result = await addEmojiMessageUseCase.execute({
+      messageId: 'msg-1',
+      emoji: '👍',
+      userId: 'user-1',
+    });
+
+    expect(result.message.reactions).toEqual([
+      { emoji: '👍', userIds: ['user-1'] },
+    ]);
+    expect(result.memberIds).toEqual(['user-1']);
+  });
 });

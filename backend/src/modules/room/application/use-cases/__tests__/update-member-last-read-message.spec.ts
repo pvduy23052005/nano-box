@@ -12,7 +12,9 @@ const makeMockRoomRepository = (): jest.Mocked<RoomRepositoryAdapter> => ({
   updateMemberLastReadMessage: jest.fn(),
   acceptAllMembers: jest.fn(),
   deleteRoom: jest.fn(),
+  isMessageInRoom: jest.fn(),
   findRoomMembers: jest.fn(),
+  findRoomMembersWithProfile: jest.fn(),
   findRelatedUserIdsByRooms: jest.fn(),
 });
 
@@ -37,7 +39,45 @@ describe('UpdateMemberLastReadMessageUseCase', () => {
 
   beforeEach(() => {
     roomRepository = makeMockRoomRepository();
+    roomRepository.isMessageInRoom.mockResolvedValue(true);
     useCase = new UpdateMemberLastReadMessageUseCase(roomRepository);
+  });
+
+  it('should throw DomainValidationException if roomId or messageId is empty', async () => {
+    await expect(useCase.execute('', userId, messageId)).rejects.toThrow(
+      DomainValidationException,
+    );
+
+    await expect(useCase.execute(roomId, userId, '')).rejects.toThrow(
+      DomainValidationException,
+    );
+  });
+
+  it('should throw DomainValidationException if user is WAITTING or not ACCEPTED', async () => {
+    roomRepository.findRoomMembers.mockResolvedValue({
+      roomId: roomId,
+      members: [
+        {
+          userId: userId,
+          role: MemberRole.MEMBER,
+          status: MemberStatus.WAITTING,
+        },
+      ],
+    });
+
+    await expect(useCase.execute(roomId, userId, messageId)).rejects.toThrow(
+      DomainValidationException,
+    );
+  });
+
+  it('should throw DomainValidationException if message does not belong to room', async () => {
+    roomRepository.findRoomMembers.mockResolvedValue(mockRoomMembers);
+    roomRepository.isMessageInRoom.mockResolvedValue(false);
+
+    await expect(useCase.execute(roomId, userId, messageId)).rejects.toThrow(
+      DomainValidationException,
+    );
+    expect(roomRepository.updateMemberLastReadMessage).not.toHaveBeenCalled();
   });
 
   it('should throw DomainValidationException if room does not exist', async () => {

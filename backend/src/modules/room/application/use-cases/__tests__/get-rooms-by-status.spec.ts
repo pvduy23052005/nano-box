@@ -71,4 +71,13 @@ describe('GetRoomsByStatusUseCase', () => {
 
     expect(roomRepository.findRoomsByUserIdAndStatus).not.toHaveBeenCalled();
   });
+
+  it('nên ném DomainValidationException nếu search dài hơn 100 ký tự', async () => {
+    const longSearch = 'a'.repeat(101);
+    await expect(
+      useCase.execute(userId, MemberStatus.ACCEPTED, longSearch),
+    ).rejects.toThrow(DomainValidationException);
+
+    expect(roomRepository.findRoomsByUserIdAndStatus).not.toHaveBeenCalled();
+  });
 });

@@ -4,6 +4,7 @@ import { MessageType } from '../../domain/message.type';
 import { MessageRepositoryAdapter } from '../ports/message.port';
 import { RoomRepositoryAdapter } from '../../../room/application/ports/room.ports';
 import { UploadAdapter } from '../../../upload/applications/ports/upload.port';
+import { MemberStatus } from '../../../room/domain/chat.enum';
 
 export const MAX_ATTACHMENTS_PER_MESSAGE = 10;
 
@@ -36,7 +37,9 @@ export class SendMessageUseCase {
     }
 
     const currentMember = room.members?.find(
-      (member) => member.userId === messageData.senderId,
+      (member) =>
+        member.userId === messageData.senderId &&
+        member.status !== MemberStatus.REFUSED,
     );
     if (!currentMember) {
       throw new DomainValidationException({
@@ -97,7 +100,9 @@ export class SendMessageUseCase {
       ).catch(() => {});
     }
 
-    const memberIds = room.members.map((member) => member.userId);
+    const memberIds = (room.members || [])
+      .filter((member) => member.status !== MemberStatus.REFUSED)
+      .map((member) => member.userId);
 
     return {
       message: savedMessage,

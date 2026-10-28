@@ -86,4 +86,49 @@ describe('FriendshipEntity', () => {
       expect(() => friendship.cancel(userB)).toThrow(DomainValidationException);
     });
   });
+
+  describe('resend', () => {
+    it('nên cho phép gửi lại lời mời khi trạng thái là CANCELLED', () => {
+      const friendship = FriendshipEntity.create(userA, userB);
+      friendship.cancel(userA);
+      expect(friendship.getStatus()).toBe(FriendshipStatus.CANCELLED);
+
+      friendship.resend(userB, userA);
+      expect(friendship.getStatus()).toBe(FriendshipStatus.PENDING);
+      expect(friendship.getRequesterId()).toBe(userB);
+      expect(friendship.getAddresseeId()).toBe(userA);
+    });
+
+    it('nên cho phép gửi lại lời mời khi trạng thái là REJECTED', () => {
+      const friendship = FriendshipEntity.create(userA, userB);
+      friendship.reject(userB);
+      expect(friendship.getStatus()).toBe(FriendshipStatus.REJECTED);
+
+      friendship.resend(userA, userB);
+      expect(friendship.getStatus()).toBe(FriendshipStatus.PENDING);
+      expect(friendship.getRequesterId()).toBe(userA);
+      expect(friendship.getAddresseeId()).toBe(userB);
+    });
+
+    it('nên ném lỗi nếu gửi lại khi lời mời vẫn đang PENDING hoặc ACCEPTED', () => {
+      const pendingFriendship = FriendshipEntity.create(userA, userB);
+      expect(() => pendingFriendship.resend(userA, userB)).toThrow(
+        DomainValidationException,
+      );
+
+      const acceptedFriendship = FriendshipEntity.create(userA, userB);
+      acceptedFriendship.accept(userB);
+      expect(() => acceptedFriendship.resend(userA, userB)).toThrow(
+        DomainValidationException,
+      );
+    });
+
+    it('nên ném lỗi nếu tự gửi lại cho chính mình', () => {
+      const friendship = FriendshipEntity.create(userA, userB);
+      friendship.cancel(userA);
+      expect(() => friendship.resend(userA, userA)).toThrow(
+        DomainValidationException,
+      );
+    });
+  });
 });

@@ -33,6 +33,7 @@ export interface RawRoomInput {
   last_message_id: Types.ObjectId | PopulatedMessage | string | null;
   avatar: string | null;
   members: MemberItem[];
+  __v?: number;
 }
 
 export const getMemberUserId = (userId: unknown): string => {
@@ -124,6 +125,7 @@ export class RoomMapper {
       lastMessageId,
       avatar,
       groupAvatars,
+      version: typeof rawRoom.__v === 'number' ? rawRoom.__v : undefined,
       members: (rawRoom.members || []).map((member) => {
         const isPopulated = isPopulatedUser(member.user_id);
         const user = isPopulated ? member.user_id : null;

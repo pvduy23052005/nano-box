@@ -2,6 +2,7 @@ import { DomainValidationException } from 'src/common/customs/domain-validation.
 import { MessageType } from '../../domain/message.type';
 import { MessageRepositoryAdapter } from '../ports/message.port';
 import { RoomRepositoryAdapter } from '../../../room/application/ports/room.ports';
+import { MemberStatus } from '../../../room/domain/chat.enum';
 
 export interface AddEmojiMessageInputDto {
   messageId: string;
@@ -36,6 +37,8 @@ export class AddEmojiMessageUseCase {
     }
     if (!cleanEmoji) {
       errors.emoji = 'Emoji không được để trống';
+    } else if (cleanEmoji.length > 16) {
+      errors.emoji = 'Emoji không được vượt quá 16 ký tự';
     }
     if (!cleanUserId) {
       errors.userId = 'Người dùng không hợp lệ';
@@ -62,7 +65,8 @@ export class AddEmojiMessageUseCase {
     }
 
     const currentMember = room.members?.find(
-      (member) => member.userId === cleanUserId,
+      (member) =>
+        member.userId === cleanUserId && member.status !== MemberStatus.REFUSED,
     );
     if (!currentMember) {
       throw new DomainValidationException({
@@ -73,7 +77,9 @@ export class AddEmojiMessageUseCase {
     message.addReaction(cleanEmoji, cleanUserId);
 
     const updatedMessage = await this.messageRepository.update(message);
-    const memberIds = room.members.map((member) => member.userId);
+    const memberIds = (room.members || [])
+      .filter((member) => member.status !== MemberStatus.REFUSED)
+      .map((member) => member.userId);
 
     return {
       message: updatedMessage,

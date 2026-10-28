@@ -3,6 +3,7 @@ import { DomainValidationException } from 'src/common/customs/domain-validation.
 import { IPasswordHasher } from 'src/modules/user/applications/ports/password-hasher.port';
 import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
 import { UserEntity } from 'src/modules/user/domain/user.entity';
+import { UserStatus } from 'src/modules/user/domain/user.type';
 import { LoginResponse } from '../dto/login.type';
 import { IGoogleAuthVerifier } from '../ports/google-auth-verifier.port';
 import { ITokenGenerator } from '../ports/token-generator.port';
@@ -24,13 +25,20 @@ export class LoginGoogleUseCase {
       });
     }
 
-    let user = await this.userRepository.findByEmail(payload.email || '');
+    const normalizedEmail = payload.email.trim().toLowerCase();
+    let user = await this.userRepository.findByEmail(normalizedEmail);
 
-    if (!user) {
+    if (user) {
+      if (user.getStatus() !== UserStatus.ACTIVE) {
+        throw new DomainValidationException({
+          token: 'Tài khoản của bạn đã bị khóa hoặc ngừng kích hoạt',
+        });
+      }
+    } else {
       const randomPassword = crypto.randomBytes(16).toString('hex');
       const hashedPassword = await this.passwordHasher.hash(randomPassword);
       const newUser = UserEntity.create({
-        email: payload.email || '',
+        email: normalizedEmail,
         name: payload.name || 'Google User',
         password: hashedPassword,
         avatar: payload.picture ?? '',

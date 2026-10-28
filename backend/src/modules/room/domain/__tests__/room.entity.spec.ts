@@ -39,6 +39,12 @@ describe('RoomEntity', () => {
       );
     });
 
+    it('should throw DomainValidationException if myId equals memberId (self-chat)', () => {
+      expect(() => RoomEntity.createSingleRoom('user-1', 'user-1')).toThrow(
+        DomainValidationException,
+      );
+    });
+
     it('should throw DomainValidationException with multiple errors if both IDs are missing', () => {
       try {
         RoomEntity.createSingleRoom('', '');
@@ -245,6 +251,35 @@ describe('RoomEntity', () => {
 
     it('should throw if adder is not admin', () => {
       expect(() => groupRoom.addMember('user-2', 'user-4')).toThrow(
+        DomainValidationException,
+      );
+    });
+
+    it('should throw if room reaches MAX_GROUP_MEMBERS', () => {
+      const fullMembers = [
+        {
+          userId: 'creator-1',
+          role: MemberRole.SUPER_ADMIN,
+          status: MemberStatus.ACCEPTED,
+        },
+      ];
+      for (let i = 2; i <= 100; i++) {
+        fullMembers.push({
+          userId: `user-${i}`,
+          role: MemberRole.MEMBER,
+          status: MemberStatus.ACCEPTED,
+        });
+      }
+      const fullRoom = RoomEntity.restore({
+        id: 'room-full',
+        title: 'Full Team',
+        typeRoom: RoomType.GROUP,
+        avatar: null,
+        lastMessageId: null,
+        members: fullMembers,
+      });
+
+      expect(() => fullRoom.addMember('creator-1', 'user-101')).toThrow(
         DomainValidationException,
       );
     });
@@ -461,6 +496,20 @@ describe('RoomEntity', () => {
       expect(exported.id).toBe('room-100');
       expect(exported.members[0].lastReadMessageId).toBe('msg-40');
       expect(exported.members[1].lastReadMessageId).toBeUndefined();
+    });
+
+    it('should restore version and export it in toObject', () => {
+      const entity = RoomEntity.restore({
+        id: 'room-1',
+        title: 'Team',
+        typeRoom: RoomType.GROUP,
+        avatar: null,
+        lastMessageId: null,
+        version: 5,
+        members: [],
+      });
+      expect(entity.getVersion()).toBe(5);
+      expect(entity.toObject().version).toBe(5);
     });
   });
 });
