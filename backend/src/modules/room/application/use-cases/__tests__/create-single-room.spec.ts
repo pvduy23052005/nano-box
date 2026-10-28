@@ -1,7 +1,11 @@
 import { CreateSingleRoomUseCase } from '../create-single-room';
 import { RoomRepositoryAdapter } from '../../ports/room.ports';
+import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
+import { UserEntity } from 'src/modules/user/domain/user.entity';
+import { UserStatus } from 'src/modules/user/domain/user.type';
 import { RoomProps } from '../../../domain/room.type';
 import { RoomType, MemberRole, MemberStatus } from '../../../domain/chat.enum';
+import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 
 const makeMockRoomRepository = (): jest.Mocked<RoomRepositoryAdapter> => ({
   save: jest.fn(),
@@ -10,14 +14,38 @@ const makeMockRoomRepository = (): jest.Mocked<RoomRepositoryAdapter> => ({
   findById: jest.fn(),
   updateLastMessageId: jest.fn(),
   updateMemberLastReadMessage: jest.fn(),
+  acceptAllMembers: jest.fn(),
+  deleteRoom: jest.fn(),
+  isMessageInRoom: jest.fn(),
+  findRoomMembers: jest.fn(),
+  findRoomMembersWithProfile: jest.fn(),
+  findRelatedUserIdsByRooms: jest.fn(),
+});
+
+const makeMockUserRepository = (): jest.Mocked<UserRepositoryAdapter> => ({
+  save: jest.fn(),
+  findById: jest.fn(),
+  findByEmail: jest.fn(),
+  findAll: jest.fn(),
+  findUsers: jest.fn(),
 });
 
 describe('CreateSingleRoomUseCase', () => {
   let useCase: CreateSingleRoomUseCase;
   let roomRepository: jest.Mocked<RoomRepositoryAdapter>;
+  let userRepository: jest.Mocked<UserRepositoryAdapter>;
 
   const myId = '654321654321654321654321';
   const userId = '123456123456123456123456';
+
+  const mockTargetUser = UserEntity.restore({
+    id: userId,
+    name: 'Target User',
+    email: 'target@example.com',
+    password: 'hashed-password',
+    avatar: 'https://example.com/avatar.png',
+    status: UserStatus.ACTIVE,
+  });
 
   const mockExistingRoom: RoomProps = {
     id: 'room-123',
@@ -37,7 +65,29 @@ describe('CreateSingleRoomUseCase', () => {
 
   beforeEach(() => {
     roomRepository = makeMockRoomRepository();
-    useCase = new CreateSingleRoomUseCase(roomRepository);
+    userRepository = makeMockUserRepository();
+    userRepository.findById.mockResolvedValue(mockTargetUser);
+    useCase = new CreateSingleRoomUseCase(roomRepository, userRepository);
+  });
+
+  it('nên ném lỗi nếu userId rỗng', async () => {
+    await expect(useCase.execute(myId, '   ')).rejects.toThrow(
+      DomainValidationException,
+    );
+  });
+
+  it('nên ném lỗi nếu tự tạo cuộc trò chuyện với chính mình', async () => {
+    await expect(useCase.execute(myId, myId)).rejects.toThrow(
+      DomainValidationException,
+    );
+  });
+
+  it('nên ném lỗi nếu người dùng đích không tồn tại', async () => {
+    userRepository.findById.mockResolvedValue(null);
+
+    await expect(useCase.execute(myId, userId)).rejects.toThrow(
+      DomainValidationException,
+    );
   });
 
   it('nên trả về phòng đã tồn tại nếu tìm thấy và không gọi save', async () => {
@@ -45,6 +95,7 @@ describe('CreateSingleRoomUseCase', () => {
 
     const result = await useCase.execute(myId, userId);
 
+    expect(userRepository.findById).toHaveBeenCalledWith(userId);
     expect(roomRepository.checkRoomExist).toHaveBeenCalledTimes(1);
     expect(roomRepository.checkRoomExist).toHaveBeenCalledWith(myId, userId);
     expect(roomRepository.save).not.toHaveBeenCalled();
@@ -76,6 +127,7 @@ describe('CreateSingleRoomUseCase', () => {
 
     const result = await useCase.execute(myId, userId);
 
+    expect(userRepository.findById).toHaveBeenCalledWith(userId);
     expect(roomRepository.checkRoomExist).toHaveBeenCalledTimes(1);
     expect(roomRepository.checkRoomExist).toHaveBeenCalledWith(myId, userId);
     expect(roomRepository.save).toHaveBeenCalledTimes(1);

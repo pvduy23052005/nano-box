@@ -1,6 +1,11 @@
 import { MemberRole, MemberStatus, RoomType } from './chat.enum';
 import { RoomMember } from './member.object';
-import { LastMessageProps, RoomMemberProps, RoomProps } from './room.type';
+import {
+  LastMessageProps,
+  MAX_GROUP_MEMBERS,
+  RoomMemberProps,
+  RoomProps,
+} from './room.type';
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 
 interface CreateRoomEntityData {
@@ -10,6 +15,7 @@ interface CreateRoomEntityData {
   lastMessageId: string | null | LastMessageProps;
   avatar: string | null;
   members: (RoomMember | RoomMemberProps)[];
+  version?: number;
 }
 
 export class RoomEntity {
@@ -19,6 +25,7 @@ export class RoomEntity {
   private lastMessageId: string | null | LastMessageProps;
   private avatar: string | null;
   private members: RoomMember[];
+  private version?: number;
 
   private constructor(data: CreateRoomEntityData) {
     this.id = data.id;
@@ -26,6 +33,7 @@ export class RoomEntity {
     this.typeRoom = data.typeRoom;
     this.lastMessageId = data.lastMessageId;
     this.avatar = data.avatar;
+    this.version = data.version;
     this.members = data.members.map((member) =>
       member instanceof RoomMember
         ? member
@@ -46,6 +54,8 @@ export class RoomEntity {
     }
     if (!memberId) {
       errors.memberId = 'ID thành viên là bắt buộc';
+    } else if (myId && memberId && myId === memberId) {
+      errors.memberId = 'Không thể tạo phòng trò chuyện với chính mình';
     }
     if (Object.keys(errors).length > 0) {
       throw new DomainValidationException(errors);
@@ -218,6 +228,13 @@ export class RoomEntity {
       : undefined;
     if (existingMember && existingMember.isAccepted()) {
       errors.userId = 'Người dùng đã là thành viên trong nhóm';
+    }
+
+    const currentAcceptedCount = this.members.filter((member) =>
+      member.isAccepted(),
+    ).length;
+    if (!existingMember && currentAcceptedCount >= MAX_GROUP_MEMBERS) {
+      errors.members = `Nhóm đã đạt số lượng tối đa ${MAX_GROUP_MEMBERS} thành viên`;
     }
 
     if (Object.keys(errors).length > 0) {
@@ -427,6 +444,7 @@ export class RoomEntity {
       lastMessageId: data.lastMessageId,
       avatar: data.avatar,
       members: data.members,
+      version: data.version,
     });
   }
 
@@ -437,6 +455,7 @@ export class RoomEntity {
       typeRoom: this.typeRoom,
       lastMessageId: this.lastMessageId,
       avatar: this.avatar,
+      version: this.version,
       members: this.members.map((member): RoomMemberProps => {
         const item: RoomMemberProps = {
           userId: member.getUserId(),
@@ -466,6 +485,9 @@ export class RoomEntity {
   }
   public getAvatar(): string | null {
     return this.avatar;
+  }
+  public getVersion(): number | undefined {
+    return this.version;
   }
   public getMembers(): readonly RoomMember[] {
     return Object.freeze([...this.members]);

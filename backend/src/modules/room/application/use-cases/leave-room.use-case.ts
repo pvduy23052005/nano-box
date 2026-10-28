@@ -22,7 +22,12 @@ export class LeaveRoomUseCase {
     myId: string,
     input: LeaveRoomInputProps,
   ): Promise<LeaveRoomOutputProps> {
-    const room = await this.roomRepository.findById(input.roomId, myId);
+    const cleanRoomId = input?.roomId?.trim();
+    if (!cleanRoomId) {
+      throw new DomainValidationException('roomId', 'ID phòng không hợp lệ');
+    }
+
+    const room = await this.roomRepository.findById(cleanRoomId, myId);
 
     if (!room) {
       throw new DomainValidationException(

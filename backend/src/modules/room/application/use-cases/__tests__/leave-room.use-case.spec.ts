@@ -210,4 +210,10 @@ describe('LeaveRoomUseCase', () => {
       useCase.execute(superAdminId, { roomId: validRoomId }),
     ).rejects.toThrow(DomainValidationException);
   });
+
+  it('nên ném DomainValidationException nếu roomId rỗng', async () => {
+    await expect(
+      useCase.execute(superAdminId, { roomId: '   ' }),
+    ).rejects.toThrow(DomainValidationException);
+  });
 });

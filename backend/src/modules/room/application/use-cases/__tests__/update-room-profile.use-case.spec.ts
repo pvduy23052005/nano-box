@@ -216,13 +216,14 @@ describe('UpdateRoomProfileUseCase', () => {
     try {
       roomEntity.updateGroupProfile(regularMemberId, '   ');
       fail('Cần ném DomainValidationException');
-    } catch (err: any) {
+    } catch (err) {
       expect(err).toBeInstanceOf(DomainValidationException);
-      expect(err.errors).toBeDefined();
-      expect(err.errors.role).toBe(
+      const domainErr = err as DomainValidationException;
+      expect(domainErr.errors).toBeDefined();
+      expect(domainErr.errors.role).toBe(
         'Chỉ quản trị viên mới có quyền cập nhật thông tin phòng',
       );
-      expect(err.errors.title).toBe('Tên phòng nhóm không được để trống');
+      expect(domainErr.errors.title).toBe('Tên phòng nhóm không được để trống');
     }
   });
 

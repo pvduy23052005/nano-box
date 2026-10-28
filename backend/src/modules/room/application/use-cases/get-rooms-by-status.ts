@@ -17,6 +17,12 @@ export class GetRoomsByStatusUseCase {
       });
     }
 
+    if (search && search.trim().length > 100) {
+      throw new DomainValidationException({
+        search: 'Từ khóa tìm kiếm tối đa 100 ký tự',
+      });
+    }
+
     return await this.roomRepository.findRoomsByUserIdAndStatus(
       userId,
       status,

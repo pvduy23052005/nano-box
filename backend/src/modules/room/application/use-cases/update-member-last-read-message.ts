@@ -1,4 +1,5 @@
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
+import { MemberStatus } from '../../domain/chat.enum';
 import { RoomRepositoryAdapter } from '../ports/room.ports';
 
 export interface UpdateMemberLastReadOutput {
@@ -14,29 +15,54 @@ export class UpdateMemberLastReadMessageUseCase {
     userId: string,
     messageId: string,
   ): Promise<UpdateMemberLastReadOutput> {
-    const room = await this.roomRepository.findRoomMembers(roomId);
-    const isMember = room?.members?.some((member) => member.userId === userId);
+    const cleanRoomId = roomId?.trim();
+    const cleanMessageId = messageId?.trim();
 
-    const errors: Record<string, string> = {};
+    if (!cleanRoomId) {
+      throw new DomainValidationException(
+        'roomId',
+        'ID phòng không được để trống',
+      );
+    }
+
+    if (!cleanMessageId) {
+      throw new DomainValidationException(
+        'messageId',
+        'ID tin nhắn không được để trống',
+      );
+    }
+
+    const room = await this.roomRepository.findRoomMembers(cleanRoomId);
     if (!room) {
-      errors.roomId = 'Phòng không tồn tại';
+      throw new DomainValidationException('roomId', 'Phòng không tồn tại');
     }
 
-    if (!isMember) {
-      errors.member = 'Bạn không là phải thành viên của phòng này';
+    const member = room.members?.find((member) => member.userId === userId);
+    if (!member || member.status !== MemberStatus.ACCEPTED) {
+      throw new DomainValidationException(
+        'member',
+        'Bạn không phải là thành viên hợp lệ của phòng này',
+      );
     }
 
-    if (Object.keys(errors).length > 0) {
-      throw new DomainValidationException(errors);
+    const isMessageValid = await this.roomRepository.isMessageInRoom(
+      cleanRoomId,
+      cleanMessageId,
+    );
+    if (!isMessageValid) {
+      throw new DomainValidationException(
+        'messageId',
+        'Tin nhắn không tồn tại trong phòng trò chuyện',
+      );
     }
 
     const isSuccess = await this.roomRepository.updateMemberLastReadMessage(
-      roomId,
+      cleanRoomId,
       userId,
-      messageId,
+      cleanMessageId,
     );
 
-    const memberIds = room?.members?.map((member) => member.userId) || [];
+    const memberIds = room.members?.map((member) => member.userId) || [];
 
     return {
       isSuccess,

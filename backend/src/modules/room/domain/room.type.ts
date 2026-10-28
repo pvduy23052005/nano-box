@@ -1,5 +1,7 @@
 import { MemberRole, MemberStatus, RoomType } from './chat.enum';
 
+export const MAX_GROUP_MEMBERS = 100;
+
 export interface RoomMemberProps {
   userId: string;
   role: MemberRole;
@@ -25,4 +27,5 @@ export interface RoomProps {
   avatar: string | null;
   members: RoomMemberProps[];
   groupAvatars?: string[] | null;
+  version?: number;
 }

@@ -14,5 +14,6 @@ export class UpdateRoomProfileInput {
 
   @Field(() => String, { nullable: true })
   @IsOptional()
+  @MaxLength(2048, { message: 'Đường dẫn ảnh đại diện tối đa 2048 ký tự' })
   avatar?: string | null;
 }
