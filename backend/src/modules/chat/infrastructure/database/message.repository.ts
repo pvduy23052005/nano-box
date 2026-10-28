@@ -30,6 +30,8 @@ interface RawMessageRecord {
   roomId?: string;
   read_by?: string[];
   readBy?: string[];
+  mentioned_user_ids?: string[];
+  mentionedUserIds?: string[];
   reactions?: RawReactionRecord[];
   is_system?: boolean;
   isSystem?: boolean;
@@ -50,6 +52,7 @@ export class MessageRepository implements MessageRepositoryAdapter {
       attachments: message.getAttachments(),
       room_id: message.getRoomId(),
       read_by: message.getReadBy(),
+      mentioned_user_ids: message.getMentionedUserIds() ?? [],
       sender_avatar: message.getSenderAvatar() ?? null,
       sender_name: message.getSenderName() ?? null,
       reactions:
@@ -75,6 +78,11 @@ export class MessageRepository implements MessageRepositoryAdapter {
     const senderId = record.sender_id ?? record.senderId ?? '';
     const roomId = record.room_id ?? record.roomId ?? '';
     const readBy = record.read_by ?? record.readBy ?? [];
+    const rawMentionedUserIds =
+      record.mentioned_user_ids ?? record.mentionedUserIds ?? [];
+    const mentionedUserIds = Array.isArray(rawMentionedUserIds)
+      ? rawMentionedUserIds
+      : [];
     const rawReactions = record.reactions ?? [];
     const reactions = Array.isArray(rawReactions) ? rawReactions : [];
     const senderAvatar = record.sender_avatar ?? record.senderAvatar ?? null;
@@ -93,6 +101,7 @@ export class MessageRepository implements MessageRepositoryAdapter {
       content: record.content ?? '',
       attachments: Array.isArray(record.attachments) ? record.attachments : [],
       readBy: Array.isArray(readBy) ? readBy : [],
+      mentionedUserIds,
       isSystem,
       createdAt,
       reactions: reactions.map((reaction) => ({

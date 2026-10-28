@@ -43,6 +43,9 @@ export class Message {
   @Prop({ default: [], type: [String] })
   read_by: string[];
 
+  @Prop({ type: [String], default: [], index: true })
+  mentioned_user_ids: string[];
+
   @Prop({ type: Boolean, default: false, index: true })
   is_system?: boolean;
 }

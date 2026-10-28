@@ -42,6 +42,7 @@ type ChatPayload {
   createdAt: DateTime
   id: String!
   isSystem: Boolean
+  mentionedUserIds: [String!]
   reactions: [ReactionPayload!]
   readBy: [String!]
   roomId: String!
@@ -127,6 +128,7 @@ enum MemberStatus {
 
 input MessageInput {
   content: String
+  mentionedUserIds: [String!]
   roomId: String!
 
   """Không dùng nữa. Hệ thống tự động lấy danh tính từ phiên đăng nhập."""
@@ -190,6 +192,7 @@ type NotificationPayload {
 
 enum NotificationType {
   FRIEND_REQUEST
+  MENTION
   NEW_MESSAGE
   NEW_ROOM
   REACTION

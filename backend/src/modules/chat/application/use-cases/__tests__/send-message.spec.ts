@@ -404,4 +404,48 @@ describe('SendMessageUseCase', () => {
     expect(result.memberIds).toEqual(['user-1', 'user-2']);
     expect(result.memberIds).not.toContain('user-3');
   });
+
+  it('should filter mentionedUserIds: keep valid members, remove senderId, remove duplicates and non-members', async () => {
+    roomRepository.findRoomMembersWithProfile.mockResolvedValue({
+      roomId: 'room-1',
+      members: [
+        {
+          userId: 'user-1',
+          role: MemberRole.MEMBER,
+          status: MemberStatus.ACCEPTED,
+        },
+        {
+          userId: 'user-2',
+          role: MemberRole.MEMBER,
+          status: MemberStatus.ACCEPTED,
+        },
+        {
+          userId: 'user-3',
+          role: MemberRole.MEMBER,
+          status: MemberStatus.REFUSED,
+        },
+      ],
+    });
+
+    messageRepository.save.mockImplementation(async (entity) => ({
+      id: 'msg-1',
+      roomId: entity.getRoomId(),
+      senderId: entity.getSenderId(),
+      content: entity.getContent(),
+      attachments: entity.getAttachments(),
+      reactions: entity.getReactions(),
+      readBy: entity.getReadBy(),
+      mentionedUserIds: entity.getMentionedUserIds(),
+      isSystem: entity.getIsSystem(),
+    }));
+
+    const result = await sendMessageUseCase.execute({
+      roomId: 'room-1',
+      senderId: 'user-1',
+      content: 'Hey @user-2 @user-1 @non-member @user-2',
+      mentionedUserIds: ['user-2', 'user-1', 'non-member', 'user-2', 'user-3'],
+    });
+
+    expect(result.message.mentionedUserIds).toEqual(['user-2']);
+  });
 });

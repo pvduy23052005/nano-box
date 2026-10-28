@@ -79,11 +79,30 @@ export class SendMessageUseCase {
     const senderAvatar = currentMember.avatar ?? null;
     const senderName = currentMember.name ?? null;
 
+    const memberIds = (room.members || [])
+      .filter((member) => member.status !== MemberStatus.REFUSED)
+      .map((member) => member.userId);
+
+    const activeMemberSet = new Set(memberIds);
+    const rawMentionedIds = messageData.mentionedUserIds || [];
+    const mentionedUserIds = Array.from(
+      new Set(
+        rawMentionedIds.filter(
+          (id) =>
+            typeof id === 'string' &&
+            id.trim().length > 0 &&
+            id !== messageData.senderId &&
+            activeMemberSet.has(id),
+        ),
+      ),
+    );
+
     const newMessage = MessageEntity.create({
       ...messageData,
       attachments,
       senderAvatar,
       senderName,
+      mentionedUserIds,
     });
     const savedMessage = await this.messageRepository.save(newMessage);
 
@@ -99,10 +118,6 @@ export class SendMessageUseCase {
         tempKeys.map((key) => this.uploadAdapter.deleteTempFile(key)),
       ).catch(() => {});
     }
-
-    const memberIds = (room.members || [])
-      .filter((member) => member.status !== MemberStatus.REFUSED)
-      .map((member) => member.userId);
 
     return {
       message: savedMessage,

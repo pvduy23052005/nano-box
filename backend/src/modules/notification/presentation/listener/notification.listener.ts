@@ -4,6 +4,7 @@ import {
   type MessageReactionEventPayload,
   type FriendRequestEventPayload,
   type RoomCreatedEventPayload,
+  type MessageMentionEventPayload,
 } from './notification.event';
 import {
   ROOM_EVENTS,
@@ -73,6 +74,77 @@ export class NotificationListener {
         ?.emit(NOTIFICATION_SOCKET_EVENTS.RECEIVE_NOTIFICATION, notification);
     } catch (error) {
       this.logger.error('Error handling message.reaction event', error);
+    }
+  }
+
+  @OnEvent(NOTIFICATION_EVENTS.MESSAGE_MENTION)
+  async handleMessageMention(
+    payload: MessageMentionEventPayload,
+  ): Promise<void> {
+    try {
+      const {
+        message,
+        mentionedUserIds,
+        senderId,
+        senderName,
+        senderAvatar,
+      } = payload;
+
+      if (!message || !mentionedUserIds?.length || !senderId) return;
+
+      let displaySenderName = senderName;
+      let displaySenderAvatar = senderAvatar;
+
+      if (!displaySenderName) {
+        const sender = await this.userRepository.findById(senderId);
+        if (sender) {
+          displaySenderName = sender.getName();
+          displaySenderAvatar = sender.getAvatar();
+        }
+      }
+
+      const title = displaySenderName || 'Tin nhắn mới';
+      const content = `${displaySenderName || 'Ai đó'} đã nhắc đến bạn trong một tin nhắn.`;
+
+      const recipients = mentionedUserIds.filter(
+        (id) => id && id !== senderId,
+      );
+
+      const results = await Promise.allSettled(
+        recipients.map(async (recipientId) => {
+          const notification = await this.createNotificationUseCase.execute({
+            recipientId,
+            senderId,
+            senderName: displaySenderName ?? undefined,
+            senderAvatar: displaySenderAvatar ?? undefined,
+            type: NotificationType.MENTION,
+            title,
+            content,
+            metadata: {
+              roomId: message.roomId,
+              messageId: message.id,
+            },
+          });
+
+          this.websocketService.server
+            ?.to(recipientId)
+            ?.emit(
+              NOTIFICATION_SOCKET_EVENTS.RECEIVE_NOTIFICATION,
+              notification,
+            );
+        }),
+      );
+
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          this.logger.error(
+            `Error creating mention notification for ${recipients[index]}`,
+            result.reason,
+          );
+        }
+      });
+    } catch (error) {
+      this.logger.error('Error handling message.mention event', error);
     }
   }
 
