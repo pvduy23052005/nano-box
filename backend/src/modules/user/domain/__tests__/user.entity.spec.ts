@@ -73,6 +73,93 @@ describe('UserEntity', () => {
         password: 'Mật khẩu phải có ít nhất 6 ký tự',
       });
     });
+
+    it('nên tự động chuẩn hóa email bằng cách trim và chuyển thành chữ thường', () => {
+      const user = UserEntity.create({
+        name: 'Nguyen Van A',
+        email: '   NguyenVanA@GMAIL.COM   ',
+        password: 'hashed_password',
+        avatar: 'http://example.com/avatar.png',
+      });
+
+      expect(user.getEmail()).toBe('nguyenvana@gmail.com');
+    });
+
+    it('nên ném lỗi khi email không đúng định dạng (chỉ có @ hoặc thiếu domain/tld)', () => {
+      const invalidEmails = ['@', 'a@', 'invalid-email', 'user@domain', 'user@.com'];
+      for (const email of invalidEmails) {
+        expect(() =>
+          UserEntity.create({
+            name: 'Nguyen Van A',
+            email,
+            password: 'hashed_password',
+            avatar: 'http://example.com/avatar.png',
+          }),
+        ).toThrow(DomainValidationException);
+      }
+    });
+
+    it('nên ném lỗi khi tên dài hơn 100 ký tự', () => {
+      const longName = 'A'.repeat(101);
+      expect(() =>
+        UserEntity.create({
+          name: longName,
+          email: 'test@example.com',
+          password: 'hashed_password',
+          avatar: 'http://example.com/avatar.png',
+        }),
+      ).toThrow(DomainValidationException);
+    });
+
+    it('nên ném lỗi khi avatar có scheme không an toàn như javascript: hoặc //', () => {
+      expect(() =>
+        UserEntity.create({
+          name: 'Nguyen Van A',
+          email: 'test@example.com',
+          password: 'hashed_password',
+          avatar: 'javascript:alert(1)',
+        }),
+      ).toThrow(DomainValidationException);
+
+      expect(() =>
+        UserEntity.create({
+          name: 'Nguyen Van A',
+          email: 'test@example.com',
+          password: 'hashed_password',
+          avatar: '//evil.com/avatar.png',
+        }),
+      ).toThrow(DomainValidationException);
+    });
+
+    it('nên ném lỗi khi avatar dài hơn 2048 ký tự', () => {
+      const longAvatar = 'https://example.com/' + 'a'.repeat(2040);
+      expect(() =>
+        UserEntity.create({
+          name: 'Nguyen Van A',
+          email: 'test@example.com',
+          password: 'hashed_password',
+          avatar: longAvatar,
+        }),
+      ).toThrow(DomainValidationException);
+    });
+
+    it('nên chấp nhận avatar là đường dẫn tương đối nội bộ hoặc url https hợp lệ', () => {
+      const userWithRelative = UserEntity.create({
+        name: 'Nguyen Van A',
+        email: 'test1@example.com',
+        password: 'hashed_password',
+        avatar: '/login.png',
+      });
+      expect(userWithRelative.getAvatar()).toBe('/login.png');
+
+      const userWithHttps = UserEntity.create({
+        name: 'Nguyen Van A',
+        email: 'test2@example.com',
+        password: 'hashed_password',
+        avatar: 'https://example.com/avatar.png',
+      });
+      expect(userWithHttps.getAvatar()).toBe('https://example.com/avatar.png');
+    });
   });
 
   describe('restore', () => {
@@ -90,6 +177,12 @@ describe('UserEntity', () => {
       const user = makeRestoredUser({ status: UserStatus.INACTIVE });
 
       expect(user.getStatus()).toBe(UserStatus.INACTIVE);
+    });
+
+    it('nên tự động gán avatar mặc định khi khôi phục với avatar rỗng', () => {
+      const user = makeRestoredUser({ avatar: '   ' });
+
+      expect(user.getAvatar()).toBe('/login.png');
     });
   });
 
@@ -243,6 +336,43 @@ describe('UserEntity', () => {
           name: 'Tên không được để trống',
         });
       }
+    });
+
+    it('nên ném lỗi khi cập nhật tên dài hơn 100 ký tự', () => {
+      const user = makeRestoredUser();
+      const longName = 'B'.repeat(101);
+
+      expect(() => user.updateProfile(longName)).toThrow(
+        DomainValidationException,
+      );
+      expect(() => user.updateProfile({ name: longName })).toThrow(
+        DomainValidationException,
+      );
+    });
+
+    it('nên ném lỗi khi cập nhật avatar không hợp lệ hoặc không an toàn', () => {
+      const user = makeRestoredUser();
+
+      expect(() =>
+        user.updateProfile({ avatar: 'javascript:alert(1)' }),
+      ).toThrow(DomainValidationException);
+
+      expect(() =>
+        user.updateProfile({ avatar: 'data:image/svg+xml;base64,PHN2Zz4=' }),
+      ).toThrow(DomainValidationException);
+
+      expect(() =>
+        user.updateProfile({ avatar: '//evil.com/avatar.png' }),
+      ).toThrow(DomainValidationException);
+
+      expect(() =>
+        user.updateProfile({ avatar: '   ' }),
+      ).toThrow(DomainValidationException);
+
+      const longAvatar = 'https://example.com/' + 'a'.repeat(2040);
+      expect(() => user.updateProfile({ avatar: longAvatar })).toThrow(
+        DomainValidationException,
+      );
     });
   });
 });
