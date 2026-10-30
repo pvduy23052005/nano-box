@@ -51,4 +51,12 @@ export class MessageInput {
     message: 'Định dạng tempKey không hợp lệ',
   })
   tempKeys?: string[];
+
+  @Field(() => [String], { nullable: true })
+  @IsOptional()
+  @IsString({
+    each: true,
+    message: 'ID người dùng được nhắc đến phải là chuỗi ký tự',
+  })
+  mentionedUserIds?: string[];
 }

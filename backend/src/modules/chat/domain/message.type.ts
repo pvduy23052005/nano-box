@@ -14,6 +14,7 @@ export interface MessageType {
   attachments?: string[];
   reactions?: MessageReactionType[];
   readBy?: string[];
+  mentionedUserIds?: string[];
   isSystem?: boolean;
   createdAt?: Date | string | null;
 }

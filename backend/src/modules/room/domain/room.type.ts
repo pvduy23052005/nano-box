@@ -17,6 +17,7 @@ export interface LastMessageProps {
   content: string | null;
   createdAt: Date | null;
   senderId?: string | null;
+  mentionedUserIds?: string[] | null;
 }
 
 export interface RoomProps {

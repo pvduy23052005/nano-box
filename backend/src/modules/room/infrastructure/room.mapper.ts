@@ -24,6 +24,8 @@ export interface PopulatedMessage {
   created_at?: Date | null;
   sender_id?: string | null;
   senderId?: string | null;
+  mentioned_user_ids?: string[] | null;
+  mentionedUserIds?: string[] | null;
 }
 
 export interface RawRoomInput {
@@ -99,6 +101,8 @@ export class RoomMapper {
           content: message.content ?? null,
           createdAt: message.created_at ? new Date(message.created_at) : null,
           senderId: message.sender_id ?? message.senderId ?? null,
+          mentionedUserIds:
+            message.mentioned_user_ids ?? message.mentionedUserIds ?? [],
         };
       }
     }
@@ -177,6 +181,7 @@ export class RoomMapper {
         content: lastMessageId.content,
         createdAt: lastMessageId.createdAt,
         senderId: lastMessageId.senderId,
+        mentionedUserIds: lastMessageId.mentionedUserIds ?? [],
       };
     }
     return {
@@ -184,6 +189,7 @@ export class RoomMapper {
       content: null,
       createdAt: null,
       senderId: null,
+      mentionedUserIds: null,
     };
   }
 

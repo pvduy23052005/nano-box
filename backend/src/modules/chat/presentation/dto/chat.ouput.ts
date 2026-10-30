@@ -38,6 +38,9 @@ export class ChatPayload {
   @Field(() => [String], { nullable: true })
   readBy: string[];
 
+  @Field(() => [String], { nullable: true, defaultValue: [] })
+  mentionedUserIds?: string[];
+
   @Field(() => [ReactionPayload], { nullable: true, defaultValue: [] })
   reactions?: ReactionPayload[];
 

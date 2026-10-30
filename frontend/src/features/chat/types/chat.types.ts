@@ -15,6 +15,7 @@ export interface Message {
   attachments?: string[] | null;
   readBy?: string[] | null;
   reactions?: MessageReaction[] | null;
+  mentionedUserIds?: string[] | null;
   isSystem?: boolean | null;
   createdAt?: string | Date;
 }

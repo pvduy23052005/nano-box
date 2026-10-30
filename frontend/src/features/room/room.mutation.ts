@@ -11,6 +11,7 @@ export const GET_ROOMS_BY_STATUS_QUERY = graphql(`
         content
         senderId
         createdAt
+        mentionedUserIds
       }
       avatar
       groupAvatars
@@ -39,6 +40,7 @@ export const CREATE_GROUP_ROOM_MUTATION = graphql(`
         content
         senderId
         createdAt
+        mentionedUserIds
       }
       avatar
       groupAvatars

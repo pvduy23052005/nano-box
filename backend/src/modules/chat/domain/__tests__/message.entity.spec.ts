@@ -21,7 +21,19 @@ describe('MessageEntity', () => {
       expect(message.getAttachments()).toEqual([]);
       expect(message.getReactions()).toEqual([]);
       expect(message.getReadBy()).toEqual([]);
+      expect(message.getMentionedUserIds()).toEqual([]);
       expect(message.getIsSystem()).toBe(false);
+    });
+
+    it('should create a message with mentionedUserIds', () => {
+      const message = MessageEntity.create({
+        roomId: 'room-1',
+        senderId: 'user-1',
+        content: 'Hello @Bob',
+        mentionedUserIds: ['user-2', 'user-3'],
+      });
+
+      expect(message.getMentionedUserIds()).toEqual(['user-2', 'user-3']);
     });
 
     it('should create a message with attachments when content is empty', () => {
@@ -166,6 +178,7 @@ describe('MessageEntity', () => {
         attachments: ['https://example.com/file.pdf'],
         reactions: [{ emoji: '🔥', userIds: ['user-200'] }],
         readBy: ['user-100', 'user-200'],
+        mentionedUserIds: ['user-200'],
         isSystem: false,
         createdAt: now,
       };
@@ -174,6 +187,7 @@ describe('MessageEntity', () => {
 
       expect(entity.getId()).toBe('msg-100');
       expect(entity.getCreatedAt()).toBe(now);
+      expect(entity.getMentionedUserIds()).toEqual(['user-200']);
 
       const exported = entity.toObject();
       expect(exported).toEqual(messageData);

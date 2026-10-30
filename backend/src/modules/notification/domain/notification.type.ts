@@ -4,6 +4,7 @@ export enum NotificationType {
   NEW_ROOM = 'NEW_ROOM',
   FRIEND_REQUEST = 'FRIEND_REQUEST',
   ROOM_ACTION = 'ROOM_ACTION',
+  MENTION = 'MENTION',
 }
 
 export interface NotificationMetadata {

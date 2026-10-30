@@ -53,6 +53,7 @@ export class ChatResolver {
         attachments: msg.attachments || [],
         readBy: msg.readBy || [],
         reactions: msg.reactions || [],
+        mentionedUserIds: msg.mentionedUserIds || [],
         isSystem: msg.isSystem ?? msg.senderId === 'system',
         createdAt: msg.createdAt ? new Date(msg.createdAt) : null,
       })),
@@ -71,11 +72,22 @@ export class ChatResolver {
       senderId: userId,
       roomId: input.roomId,
       tempKeys: input.tempKeys,
+      mentionedUserIds: input.mentionedUserIds,
     });
 
     const server = this.webSocketService.server;
     if (server && memberIds.length) {
       server.to(memberIds).emit(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, message);
+    }
+
+    if (message.mentionedUserIds && message.mentionedUserIds.length > 0) {
+      this.eventEmitter.emit(NOTIFICATION_EVENTS.MESSAGE_MENTION, {
+        message,
+        mentionedUserIds: message.mentionedUserIds,
+        senderId: userId,
+        senderName: message.senderName,
+        senderAvatar: message.senderAvatar,
+      });
     }
 
     return {

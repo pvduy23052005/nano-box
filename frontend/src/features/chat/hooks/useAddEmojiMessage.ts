@@ -52,6 +52,7 @@ export const useAddEmojiMessage = () => {
             avatar: currentMsg?.avatar ?? currentMsg?.senderAvatar ?? null,
             roomId: targetRoomId,
             attachments: currentMsg?.attachments ?? [],
+            mentionedUserIds: currentMsg?.mentionedUserIds ?? [],
             isSystem: currentMsg?.isSystem ?? false,
             reactions: optimisticReactions.map((reaction) => ({
               emoji: reaction.emoji,

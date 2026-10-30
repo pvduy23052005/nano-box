@@ -15,6 +15,7 @@ export type LastMessageCacheItem = {
   content?: string | null;
   senderId?: string | null;
   createdAt?: unknown;
+  mentionedUserIds?: string[] | null;
 } | null;
 
 export interface CachedRoomItem {
@@ -46,6 +47,7 @@ export const appendRoomToCache = (
         content: newRoom.lastMessageId.content ?? null,
         senderId: newRoom.lastMessageId.senderId ?? null,
         createdAt: newRoom.lastMessageId.createdAt ?? null,
+        mentionedUserIds: newRoom.lastMessageId.mentionedUserIds ?? null,
       }
       : null,
     avatar: newRoom.avatar ?? null,
@@ -120,6 +122,7 @@ export const updateRoomLastMessageInCache = (
               content: lastMessage.content ?? null,
               senderId: lastMessage.senderId ?? null,
               createdAt: lastMessage.createdAt ?? null,
+              mentionedUserIds: lastMessage.mentionedUserIds ?? null,
             }
             : null,
         };

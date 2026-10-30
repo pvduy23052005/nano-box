@@ -26,7 +26,7 @@ export default function ChatPage() {
       >
         <ChatHeader />
         <ChatMain />
-        <ChatFooter />
+        <ChatFooter key={activeRoomId ?? "empty"} />
       </div>
     </div>
   );

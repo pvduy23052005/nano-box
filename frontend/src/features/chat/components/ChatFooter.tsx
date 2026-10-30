@@ -5,10 +5,19 @@ import StarterKit from "@tiptap/starter-kit";
 import UnderlineExtension from "@tiptap/extension-underline";
 import LinkExtension from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
+import Mention from "@tiptap/extension-mention";
 
 import { useSendMessage } from "../hooks/useSendMessage";
 import { useSendTyping } from "../hooks/useSendTyping";
 import { useRoomStore } from "../../room/stores/useRoomStore";
+import { useGetRoomDetail } from "../../room/hooks/useGetRoomDetail";
+import {
+  clearSuggestionMembers,
+  isMentionSuggestionOpen,
+  mentionSuggestion,
+  updateSuggestionMembers,
+} from "./mention/suggestion";
+import { MentionSuggestionItem } from "./mention/MentionList";
 import { Button } from "@/src/components/ui/button";
 import ChatEmojiPicker from "./ChatEmojiPicker";
 import ChatImagePreview, {
@@ -34,6 +43,7 @@ import {
 
 export default function ChatFooter() {
   const activeRoomId = useRoomStore((state) => state.activeRoomId);
+  const { room } = useGetRoomDetail(activeRoomId);
   const { sendMessage } = useSendMessage();
   const { sendTyping, stopTyping } = useSendTyping(activeRoomId ?? undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -42,6 +52,30 @@ export default function ChatFooter() {
   const uploadPromisesRef = useRef(
     new Map<string, Promise<{ tempKey: string; url: string } | null>>(),
   );
+
+  useEffect(() => {
+    if (!activeRoomId || !room?.members) {
+      return;
+    }
+
+    const memberItems: MentionSuggestionItem[] = [];
+    for (const member of room.members) {
+      const user = member.user;
+      if (user?.id) {
+        memberItems.push({
+          id: user.id,
+          name: user.name || "Thành viên",
+          avatar: user.avatar,
+          role: member.role,
+        });
+      }
+    }
+    updateSuggestionMembers(activeRoomId, memberItems);
+
+    return () => {
+      clearSuggestionMembers(activeRoomId);
+    };
+  }, [room?.members, activeRoomId]);
 
   const handleSelectFiles = (files: File[]) => {
     if (!files.length) return;
@@ -115,6 +149,8 @@ export default function ChatFooter() {
     });
   };
 
+  const handleSendRef = useRef<() => void>(() => {});
+
   const editor = useEditor({
     editable: Boolean(activeRoomId),
     extensions: [
@@ -131,6 +167,12 @@ export default function ChatFooter() {
           ? "Nhập tin nhắn..."
           : "Chọn một cuộc trò chuyện để bắt đầu",
       }),
+      Mention.configure({
+        HTMLAttributes: {
+          class: "mention-node",
+        },
+        suggestion: mentionSuggestion,
+      }),
     ],
     editorProps: {
       attributes: {
@@ -139,6 +181,10 @@ export default function ChatFooter() {
       },
       handleKeyDown: (view, event) => {
         if (event.key === "Enter" && !event.shiftKey) {
+          if (isMentionSuggestionOpen()) {
+            return false;
+          }
+
           event.preventDefault();
           if (!activeRoomId) return true;
           const textContent = view.state.doc.textContent.trim();
@@ -149,10 +195,7 @@ export default function ChatFooter() {
           ) {
             return true;
           }
-          const sendBtn = document.getElementById("chat-send-btn");
-          if (sendBtn) {
-            sendBtn.click();
-          }
+          handleSendRef.current();
           return true;
         }
         return false;
@@ -214,15 +257,35 @@ export default function ChatFooter() {
 
     const tempKeysPromise = Promise.all(promises).then((results) =>
       results
-        .filter((r): r is { tempKey: string; url: string } => r !== null)
-        .map((r) => r.tempKey),
+        .filter((result): result is { tempKey: string; url: string } => result !== null)
+        .map((result) => result.tempKey),
     );
+
+    const mentionedUserIds: string[] = [];
+    editor.state.doc.descendants((node) => {
+      if (node.type.name === "mention") {
+        const id = node.attrs.id;
+        if (typeof id === "string" && id) {
+          mentionedUserIds.push(id);
+        }
+      }
+    });
+    const uniqueMentionedIds = Array.from(new Set(mentionedUserIds));
 
     editor.commands.clearContent();
     setImages([]);
 
-    sendMessage(htmlContent, tempKeysPromise, previewUrls, activeRoomId);
+    sendMessage(
+      htmlContent,
+      tempKeysPromise,
+      previewUrls,
+      activeRoomId,
+      uniqueMentionedIds,
+    );
   };
+  useEffect(() => {
+    handleSendRef.current = handleSend;
+  });
 
   const handleEmojiSelect = (emoji: string) => {
     if (!editor) return;
@@ -411,6 +474,10 @@ export default function ChatFooter() {
               type="button"
               disabled={!activeRoomId}
               className="size-10 text-muted-foreground hover:text-foreground cursor-pointer"
+              onClick={() => {
+                editor?.chain().focus().insertContent("@").run();
+              }}
+              title="Nhắc đến ai đó"
             >
               <AtSign className="size-5" />
             </Button>

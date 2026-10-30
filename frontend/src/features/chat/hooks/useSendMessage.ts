@@ -1,4 +1,5 @@
 import { useMutation, useApolloClient } from "@apollo/client/react";
+import { toast } from "sonner";
 import { SEND_MESSAGE_MUTATION, GET_MESSAGE_QUERY } from "../mutation/mutation";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { useRoomStore } from "../../room/stores/useRoomStore";
@@ -17,6 +18,7 @@ export const useSendMessage = () => {
     tempKeysPromise: Promise<string[]>,
     previewUrls?: string[],
     roomId?: string,
+    mentionedUserIds?: string[],
   ) => {
     const targetRoomId = (roomId || activeRoomId)?.trim();
     if (!user || !targetRoomId) return;
@@ -34,6 +36,7 @@ export const useSendMessage = () => {
       attachments: previewUrls ?? [],
       readBy: [],
       reactions: [],
+      mentionedUserIds: mentionedUserIds ?? [],
       isMe: true,
       isSystem: false,
     };
@@ -58,6 +61,7 @@ export const useSendMessage = () => {
               senderName: user.name,
               senderAvatar: user.avatar,
               ...(tempKeys.length ? { tempKeys } : {}),
+              ...(mentionedUserIds?.length ? { mentionedUserIds } : {}),
             },
           },
           update: (cache, { data }) => {
@@ -69,6 +73,7 @@ export const useSendMessage = () => {
                 ...data.sendMessage,
                 roomId: data.sendMessage.roomId || targetRoomId,
                 reactions: data.sendMessage.reactions ?? [],
+                mentionedUserIds: data.sendMessage.mentionedUserIds ?? [],
                 isSystem: data.sendMessage.isSystem ?? false,
                 isMe: data.sendMessage.senderId === user.id,
               },
@@ -81,10 +86,13 @@ export const useSendMessage = () => {
               content: data.sendMessage.content,
               senderId: data.sendMessage.senderId,
               createdAt: new Date().toISOString(),
+              mentionedUserIds: data.sendMessage.mentionedUserIds ?? [],
             });
           },
         });
-      } catch { }
+      } catch {
+        toast.error("Không thể gửi tin nhắn. Vui lòng thử lại!");
+      }
     })();
   };
 

@@ -14,6 +14,7 @@ export class MessageEntity {
   private attachments: string[];
   private reactions: MessageReactionType[];
   private readBy: string[];
+  private mentionedUserIds: string[];
   private isSystem: boolean;
   private createdAt?: Date | string | null;
 
@@ -27,6 +28,7 @@ export class MessageEntity {
     this.attachments = props.attachments || [];
     this.reactions = props.reactions || [];
     this.readBy = props.readBy || [];
+    this.mentionedUserIds = props.mentionedUserIds || [];
     this.isSystem = props.isSystem ?? props.senderId === 'system';
     this.createdAt = props.createdAt ?? null;
   }
@@ -112,6 +114,9 @@ export class MessageEntity {
   public getReadBy(): string[] {
     return this.readBy;
   }
+  public getMentionedUserIds(): string[] {
+    return this.mentionedUserIds;
+  }
   public getSenderAvatar(): string | null | undefined {
     return this.senderAvatar;
   }
@@ -135,6 +140,7 @@ export class MessageEntity {
       attachments: this.attachments,
       reactions: this.reactions,
       readBy: this.readBy,
+      mentionedUserIds: this.mentionedUserIds,
       isSystem: this.isSystem,
       createdAt: this.createdAt,
     };

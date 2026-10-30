@@ -48,6 +48,9 @@ export class LastMessageOutput {
 
   @Field(() => String, { nullable: true })
   senderId?: string | null;
+
+  @Field(() => [String], { nullable: true })
+  mentionedUserIds?: string[] | null;
 }
 
 @ObjectType()

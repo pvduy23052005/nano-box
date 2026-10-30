@@ -23,6 +23,7 @@ export const CREATE_ROOM_CHAT_NOT_FRIEND_MUTATION = graphql(`
         content
         senderId
         createdAt
+        mentionedUserIds
       }
       members {
         userId

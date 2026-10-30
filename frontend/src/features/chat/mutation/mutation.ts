@@ -16,6 +16,7 @@ export const GET_MESSAGE_QUERY = graphql(`
           emoji
           userIds
         }
+        mentionedUserIds
         isSystem
       }
       hasMore
@@ -39,6 +40,7 @@ export const SEND_MESSAGE_MUTATION = graphql(`
         emoji
         userIds
       }
+      mentionedUserIds
       isSystem
     }
   }
@@ -59,6 +61,7 @@ export const ADD_EMOJI_MESSAGE_MUTATION = graphql(`
         emoji
         userIds
       }
+      mentionedUserIds
       isSystem
     }
   }
