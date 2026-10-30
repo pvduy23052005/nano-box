@@ -29,7 +29,7 @@ const ROOM_POPULATE_OPTIONS = [
   },
   {
     path: 'last_message_id',
-    select: 'content created_at sender_id senderId',
+    select: 'content created_at sender_id senderId mentioned_user_ids',
   },
 ];
 

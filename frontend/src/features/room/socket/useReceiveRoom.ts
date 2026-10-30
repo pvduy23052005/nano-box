@@ -24,6 +24,7 @@ export interface ReceiveRoomPayload {
     content?: string | null;
     senderId?: string | null;
     createdAt?: unknown;
+    mentionedUserIds?: string[] | null;
   } | null;
   members: ReceiveRoomMember[];
   avatar?: string | null;

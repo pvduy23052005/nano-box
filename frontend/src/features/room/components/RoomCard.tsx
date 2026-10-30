@@ -68,6 +68,11 @@ export default function RoomCard({
     !!lastMessage?.id &&
     (!effectiveMyLastReadId || lastMessage.id > effectiveMyLastReadId);
 
+  const isMentioned =
+    !isMe &&
+    !!user?.id &&
+    Boolean(lastMessage?.mentionedUserIds?.includes(user.id));
+
   const getPreviewText = () => {
     if (!room.lastMessageId) {
       return "Bắt đầu cuộc trò chuyện";
@@ -151,10 +156,22 @@ export default function RoomCard({
                 : "text-muted-foreground",
             )}
           >
+            {isUnread && isMentioned && (
+              <span className="text-primary font-semibold mr-1">[@Bạn]</span>
+            )}
             {getPreviewText()}
           </Typography>
           {isUnread && (
-            <span className="size-2 rounded-full bg-primary shrink-0" />
+            <span
+              className={cn(
+                "rounded-full shrink-0 flex items-center justify-center",
+                isMentioned
+                  ? "bg-primary text-primary-foreground text-[10px] size-4 font-bold"
+                  : "size-2 bg-primary",
+              )}
+            >
+              {isMentioned ? "@" : null}
+            </span>
           )}
         </div>
       </div>

@@ -95,6 +95,7 @@ type LastMessageOutput {
   content: String
   createdAt: DateTime
   id: String
+  mentionedUserIds: [String!]
   senderId: String
 }
 

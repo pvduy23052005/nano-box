@@ -31,6 +31,7 @@ export const useReceiveMessage = () => {
           content: newMessage.content,
           senderId: newMessage.senderId,
           createdAt: newMessage.createdAt || new Date().toISOString(),
+          mentionedUserIds: newMessage.mentionedUserIds || [],
         });
       }
     };

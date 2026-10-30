@@ -25,6 +25,7 @@ export interface ChatRoom {
     content?: string | null;
     senderId?: string | null;
     createdAt?: unknown;
+    mentionedUserIds?: string[] | null;
   } | string | null;
   members?: ChatRoomMember[] | null;
   avatar: string | null;
