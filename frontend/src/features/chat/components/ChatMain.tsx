@@ -18,6 +18,7 @@ import ChatTypingIndicator from "./ChatTypingIndicator";
 import ChatLightbox from "./ChatLightbox";
 import ChatEmptyPlaceholder from "./ChatEmptyPlaceholder";
 import { TooltipProvider } from "@/src/components/ui/tooltip";
+import { cn } from "@/src/lib/utils";
 
 export default function ChatMain() {
   const {
@@ -65,13 +66,18 @@ export default function ChatMain() {
   return (
     <TooltipProvider delay={150} closeDelay={100}>
       <div className="relative flex-1 min-h-0 flex flex-col">
-        {isFetchingNextPage && (
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
-            <div className="bg-background/90 backdrop-blur-md shadow-md rounded-full px-3 py-1.5 border border-border flex items-center gap-2 text-xs text-muted-foreground animate-in fade-in duration-200">
-              <LogoSpinner size="sm" showText={false} />
-            </div>
+        <div
+          className={cn(
+            "absolute top-2 left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-all duration-300 ease-out",
+            isFetchingNextPage
+              ? "opacity-100 translate-y-0 scale-100"
+              : "opacity-0 -translate-y-2 scale-95"
+          )}
+        >
+          <div className="bg-background/90 backdrop-blur-md shadow-md rounded-full px-3 py-1.5 border border-border flex items-center gap-2 text-xs text-muted-foreground">
+            <LogoSpinner size="sm" showText={false} />
           </div>
-        )}
+        </div>
 
         <div
           ref={scrollContainerRef}

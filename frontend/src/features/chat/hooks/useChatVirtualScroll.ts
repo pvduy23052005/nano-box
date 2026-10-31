@@ -34,13 +34,13 @@ export function useChatVirtualScroll({
   const virtualizer = useVirtualizer({
     count: messageGroups.length,
     getScrollElement: () => scrollContainerRef.current,
-    estimateSize: () => 80,
+    estimateSize: () => 56,
     getItemKey: (index) => messageGroups[index]?.id ?? index,
     anchorTo: "end",
     gap: 16,
     paddingStart: 12,
     paddingEnd: 20,
-    overscan: 6,
+    overscan: 12,
   });
 
   const virtualItems = virtualizer.getVirtualItems();
@@ -59,7 +59,7 @@ export function useChatVirtualScroll({
     const el = scrollContainerRef.current;
     if (!el) return;
 
-    const firstItem = virtualItems[0];
+    const firstItem = virtualizer.getVirtualItems()[0];
     const shouldFetch = shouldFetchOlderMessages({
       isInitialScrollDone: isInitialScrollDone.current,
       hasNextPage,
@@ -81,7 +81,7 @@ export function useChatVirtualScroll({
         }, 300);
       });
     }
-  }, [virtualItems, hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [virtualizer, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   useEffect(() => {
     triggerFetchOlder();
