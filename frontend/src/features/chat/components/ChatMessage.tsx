@@ -22,6 +22,11 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/src/components/ui/popover";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/src/components/ui/tooltip";
 import DOMPurify from "isomorphic-dompurify";
 import { MessageGroup } from "../types/chat.types";
 import { useLightboxStore } from "../stores/useLightboxStore";
@@ -103,18 +108,29 @@ export function ChatMessage({
     <Message align={isMe ? "end" : "start"}>
       {!isMe && (
         <MessageAvatar>
-          <Avatar className="size-8 rounded-full after:hidden">
-            {avatar ? (
-              <AvatarImage
-                src={avatar}
-                alt={senderName ?? "Avatar"}
-                className="object-cover size-full rounded-full"
-              />
-            ) : null}
-            <AvatarFallback className="bg-emerald-50 text-emerald-700 text-xs font-semibold">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <span className="inline-flex cursor-pointer rounded-full transition-transform hover:scale-105 active:scale-95" />
+              }
+            >
+              <Avatar className="size-8 rounded-full after:hidden">
+                {avatar ? (
+                  <AvatarImage
+                    src={avatar}
+                    alt={senderName ?? "Avatar"}
+                    className="object-cover size-full rounded-full"
+                  />
+                ) : null}
+                <AvatarFallback className="bg-emerald-50 text-emerald-700 text-xs font-semibold">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+            </TooltipTrigger>
+            <TooltipContent side="right" align="center" sideOffset={6}>
+              {senderName || "Người dùng"}
+            </TooltipContent>
+          </Tooltip>
         </MessageAvatar>
       )}
       <MessageContent>
@@ -136,18 +152,6 @@ export function ChatMessage({
               msg.reactions && msg.reactions.length > 0,
             );
 
-            const hasContent = Boolean(cleanContent);
-            const hasImages = attachmentImages.length > 0;
-            const hasFiles = attachmentFiles.length > 0;
-
-            const reactionTarget = hasContent
-              ? "content"
-              : hasFiles
-                ? "files"
-                : hasImages
-                  ? "images"
-                  : null;
-
             const renderReactions = () => {
               if (!hasReactions || !msg.reactions?.length) return null;
               return (
@@ -157,11 +161,11 @@ export function ChatMessage({
                   align={isMe ? "end" : "start"}
                   side="bottom"
                   className={cn(
-                    "bg-background shadow-xs rounded-full text-xs ring-1 ring-background cursor-pointer hover:scale-110 transition-transform z-20",
-                    isMe ? "" : "border border-primary",
+                    "static translate-y-0 mt-1  rounded-full text-xs cursor-pointer hover:scale-105 transition-all z-10 px-2 py-0.5 select-none",
+                    isMe ? "self-end" : "self-start",
                   )}
                 >
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-1.5">
                     {msg.reactions.map((reaction) => (
                       <span
                         key={reaction.emoji}
@@ -202,12 +206,7 @@ export function ChatMessage({
                     <Bubble
                       variant="ghost"
                       align={isMe ? "end" : "start"}
-                      className={cn(
-                        "max-w-full rounded-xl overflow-visible",
-                        reactionTarget === "images" &&
-                          hasReactions &&
-                          "has-[[data-slot=bubble-reactions]]:mb-3.5",
-                      )}
+                      className="max-w-full overflow-visible"
                     >
                       <BubbleContent className="p-0">
                         <ChatImageAlbum
@@ -220,31 +219,19 @@ export function ChatMessage({
                           }}
                         />
                       </BubbleContent>
-                      {reactionTarget === "images" && renderReactions()}
                     </Bubble>
                   )}
                   {attachmentFiles.length > 0 && (
-                    <div
-                      className={cn(
-                        "relative flex flex-col gap-1.5 my-1 w-full max-w-full",
-                        reactionTarget === "files" && hasReactions && "mb-3.5",
-                      )}
-                    >
+                    <div className="relative flex flex-col gap-1.5 my-1 w-full max-w-full">
                       {attachmentFiles.map((url, idx) => (
                         <ChatMessageFile key={idx} url={url} isMe={isMe} />
                       ))}
-                      {reactionTarget === "files" && renderReactions()}
                     </div>
                   )}
                   {cleanContent && (
                     <Bubble
                       variant={isMe ? "default" : "muted"}
-                      className={cn(
-                        "max-w-full",
-                        reactionTarget === "content" &&
-                          hasReactions &&
-                          "has-[[data-slot=bubble-reactions]]:mb-3.5",
-                      )}
+                      className="max-w-full"
                     >
                       <BubbleContent className={cn("max-w-full shadow-lg")}>
                         <div
@@ -255,9 +242,9 @@ export function ChatMessage({
                           }}
                         />
                       </BubbleContent>
-                      {reactionTarget === "content" && renderReactions()}
                     </Bubble>
                   )}
+                  {renderReactions()}
                 </div>
 
                 {!msg.id.startsWith("temp-") && (

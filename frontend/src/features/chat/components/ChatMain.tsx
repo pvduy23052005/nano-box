@@ -17,6 +17,7 @@ import ChatSystemMessage from "./ChatSystemMessage";
 import ChatTypingIndicator from "./ChatTypingIndicator";
 import ChatLightbox from "./ChatLightbox";
 import ChatEmptyPlaceholder from "./ChatEmptyPlaceholder";
+import { TooltipProvider } from "@/src/components/ui/tooltip";
 
 export default function ChatMain() {
   const {
@@ -62,77 +63,81 @@ export default function ChatMain() {
   }
 
   return (
-    <div
-      ref={scrollContainerRef}
-      className="flex-1 min-h-0 flex flex-col px-3 pb-3 overflow-y-auto overflow-x-hidden relative"
-    >
-      {isLoading && messages.length === 0 ? (
-        <ChatLoading />
-      ) : (
-        <>
-          {isFetchingNextPage && (
-            <div className="sticky top-2 z-20 flex justify-center w-full pointer-events-none mb-2">
-              <div className="bg-background/90 backdrop-blur-md shadow-md rounded-full px-3 py-1.5 border border-border flex items-center gap-2 text-xs text-muted-foreground animate-in fade-in duration-200">
-                <LogoSpinner size="sm" showText={false} />
-                <span>Đang tải thêm tin nhắn...</span>
-              </div>
+    <TooltipProvider delay={150} closeDelay={100}>
+      <div className="relative flex-1 min-h-0 flex flex-col">
+        {isFetchingNextPage && (
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+            <div className="bg-background/90 backdrop-blur-md shadow-md rounded-full px-3 py-1.5 border border-border flex items-center gap-2 text-xs text-muted-foreground animate-in fade-in duration-200">
+              <LogoSpinner size="sm" showText={false} />
             </div>
-          )}
-
-          <div
-            style={{
-              height: `${virtualizer.getTotalSize()}px`,
-              width: "100%",
-              position: "relative",
-            }}
-          >
-            {virtualItems.map((virtualItem) => {
-              const group = messageGroups[virtualItem.index];
-              if (!group) return null;
-
-              const isLastGroup = virtualItem.index === messageGroups.length - 1;
-              const lastGroupMessage = group.messages[group.messages.length - 1];
-              const isSeen =
-                group.isMe &&
-                !lastGroupMessage?.id?.startsWith("temp-") &&
-                !!otherMemberMaxReadMessageId &&
-                lastGroupMessage.id <= otherMemberMaxReadMessageId;
-
-              return (
-                <div
-                  key={virtualItem.key}
-                  data-index={virtualItem.index}
-                  ref={virtualizer.measureElement}
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    transform: `translateY(${virtualItem.start}px)`,
-                  }}
-                >
-                  {group.isSystem ? (
-                    <ChatSystemMessage
-                      content={group.messages[0]?.content ?? ""}
-                      createdAt={group.messages[0]?.createdAt}
-                    />
-                  ) : (
-                    <ChatMessage
-                      isLastGroup={isLastGroup}
-                      isSeen={isSeen}
-                      {...group}
-                    />
-                  )}
-                </div>
-              );
-            })}
           </div>
-        </>
-      )}
+        )}
+
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 min-h-0 flex flex-col px-3 pb-3 overflow-y-auto overflow-x-hidden relative"
+        >
+          {isLoading && messages.length === 0 ? (
+            <ChatLoading />
+          ) : (
+            <div
+              style={{
+                height: `${virtualizer.getTotalSize()}px`,
+                width: "100%",
+                position: "relative",
+              }}
+            >
+              {virtualItems.map((virtualItem) => {
+                const group = messageGroups[virtualItem.index];
+                if (!group) return null;
+
+                const isLastGroup =
+                  virtualItem.index === messageGroups.length - 1;
+                const lastGroupMessage =
+                  group.messages[group.messages.length - 1];
+                const isSeen =
+                  group.isMe &&
+                  !lastGroupMessage?.id?.startsWith("temp-") &&
+                  !!otherMemberMaxReadMessageId &&
+                  lastGroupMessage.id <= otherMemberMaxReadMessageId;
+
+                return (
+                  <div
+                    key={virtualItem.key}
+                    data-index={virtualItem.index}
+                    ref={virtualizer.measureElement}
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      transform: `translateY(${virtualItem.start}px)`,
+                    }}
+                  >
+                    {group.isSystem ? (
+                      <ChatSystemMessage
+                        content={group.messages[0]?.content ?? ""}
+                        createdAt={group.messages[0]?.createdAt}
+                      />
+                    ) : (
+                      <ChatMessage
+                        isLastGroup={isLastGroup}
+                        isSeen={isSeen}
+                        {...group}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+        )}
+
+        <div className="pb-4" />
+        <ChatLightbox />
+      </div>
 
       <ChatTypingIndicator typingUsers={typingList} />
-      <div className="h-2 shrink-0" />
-      <ChatLightbox />
     </div>
-  );
+  </TooltipProvider>
+);
 }

@@ -3,7 +3,6 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { Message, MessageGroup } from "../types/chat.types";
 import {
   shouldFetchOlderMessages,
-  calculateScrollCompensation,
   shouldAutoScrollOnNewMessage,
 } from "../utils/chatScroll.util";
 
@@ -30,8 +29,6 @@ export function useChatVirtualScroll({
   const isInitialScrollDone = useRef(false);
   const activeRoomIdRef = useRef<string | null>(null);
   const isFetchingLockRef = useRef(false);
-  const prevScrollHeightRef = useRef(0);
-  const prevScrollTopRef = useRef(0);
   const prevLastMessageIdRef = useRef<string | undefined>(undefined);
 
   const virtualizer = useVirtualizer({
@@ -40,11 +37,9 @@ export function useChatVirtualScroll({
     estimateSize: () => 80,
     getItemKey: (index) => messageGroups[index]?.id ?? index,
     anchorTo: "end",
-    followOnAppend: true,
-    scrollEndThreshold: 150,
     gap: 16,
     paddingStart: 12,
-    paddingEnd: 16,
+    paddingEnd: 20,
     overscan: 6,
   });
 
@@ -55,8 +50,6 @@ export function useChatVirtualScroll({
       activeRoomIdRef.current = activeRoomId;
       isInitialScrollDone.current = false;
       isFetchingLockRef.current = false;
-      prevScrollHeightRef.current = 0;
-      prevScrollTopRef.current = 0;
       prevLastMessageIdRef.current = undefined;
     }
   }, [activeRoomId]);
@@ -81,13 +74,11 @@ export function useChatVirtualScroll({
 
     if (shouldFetch) {
       isFetchingLockRef.current = true;
-      prevScrollHeightRef.current = el.scrollHeight;
-      prevScrollTopRef.current = el.scrollTop;
 
       Promise.resolve(fetchNextPage()).finally(() => {
         setTimeout(() => {
           isFetchingLockRef.current = false;
-        }, 400);
+        }, 300);
       });
     }
   }, [virtualItems, hasNextPage, isFetchingNextPage, fetchNextPage]);
@@ -109,22 +100,6 @@ export function useChatVirtualScroll({
       el.removeEventListener("scroll", handleScroll);
     };
   }, [triggerFetchOlder]);
-
-  useLayoutEffect(() => {
-    const el = scrollContainerRef.current;
-    if (!el) return;
-
-    const newScrollTop = calculateScrollCompensation({
-      newScrollHeight: el.scrollHeight,
-      prevScrollHeight: prevScrollHeightRef.current,
-      prevScrollTop: prevScrollTopRef.current,
-    });
-
-    if (newScrollTop !== null) {
-      el.scrollTop = newScrollTop;
-      prevScrollHeightRef.current = 0;
-    }
-  }, [messageGroups.length]);
 
   useLayoutEffect(() => {
     if (messageGroups.length > 0 && !isInitialScrollDone.current) {

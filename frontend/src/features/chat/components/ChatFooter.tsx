@@ -257,7 +257,10 @@ export default function ChatFooter() {
 
     const tempKeysPromise = Promise.all(promises).then((results) =>
       results
-        .filter((result): result is { tempKey: string; url: string } => result !== null)
+        .filter(
+          (result): result is { tempKey: string; url: string } =>
+            result !== null,
+        )
         .map((result) => result.tempKey),
     );
 
@@ -306,7 +309,7 @@ export default function ChatFooter() {
   };
 
   return (
-    <div className="p-2 shrink-0 border-t sm:border-t-0 shadow-sm">
+    <div className="p-3 pt-2 shrink-0">
       <div className="flex flex-col bg-card border rounded-xl overflow-hidden focus-within:ring-1 focus-within:ring-ring shadow-sm">
         <div className="flex items-center gap-0.5 p-2 border-b bg-muted/30 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <Button

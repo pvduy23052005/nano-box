@@ -44,6 +44,9 @@ export function useMessageGroups(messages: Message[]): MessageGroup[] {
             lastGroup.avatar = message.senderAvatar || message.avatar;
           }
           lastGroup.messages.push(message);
+          if (message.id) {
+            lastGroup.id = `group-${message.senderId || (message.isMe ? "me" : "other")}-${message.id}`;
+          }
         } else {
           const groupId = message.id
             ? `group-${message.senderId || (message.isMe ? "me" : "other")}-${message.id}`
