@@ -34,10 +34,12 @@ jobs:
 
       - name: Đồng bộ cấu hình lên Production
         run: |
-          mkdir -p ~/nano-box/monitoring
+          mkdir -p ~/nano-box/monitoring ~/nano-box/scripts ~/nano-box/backups
           cp docker-compose.production.yml ~/nano-box/docker-compose.yml
           cp docker-compose.monitoring.yml nginx.conf ~/nano-box/
           cp -r monitoring/* ~/nano-box/monitoring/
+          cp -r scripts/* ~/nano-box/scripts/
+          chmod +x ~/nano-box/scripts/*.sh
           docker network inspect nano_network >/dev/null 2>&1 || docker network create nano_network
 
       - name: Pull latest Docker images
