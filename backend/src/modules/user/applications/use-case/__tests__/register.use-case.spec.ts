@@ -1,6 +1,6 @@
 import { RegisterUseCase } from '../register.use-case';
 import { UserRepositoryAdapter } from '../../ports/user.port';
-import { IpasswordHasher } from '../../ports/password-hasher.port';
+import { IPasswordHasher } from '../../ports/password-hasher.port';
 import { UserEntity } from '../../../domain/user.entity';
 import { UserStatus } from '../../../domain/user.type';
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
@@ -9,9 +9,10 @@ const makeMockUserRepository = (): jest.Mocked<UserRepositoryAdapter> => ({
   findByEmail: jest.fn(),
   findById: jest.fn(),
   save: jest.fn(),
+  findAll: jest.fn(),
 });
 
-const makeMockPasswordHasher = (): jest.Mocked<IpasswordHasher> => ({
+const makeMockPasswordHasher = (): jest.Mocked<IPasswordHasher> => ({
   hash: jest.fn(),
   compare: jest.fn(),
 });
@@ -23,12 +24,13 @@ const makePersistedUser = () =>
     email: 'test@example.com',
     password: 'hashed_password',
     status: UserStatus.ACTIVE,
+    avatar: 'http://example.com/avatar.png',
   });
 
 describe('RegisterUseCase', () => {
   let registerUseCase: RegisterUseCase;
   let userRepository: jest.Mocked<UserRepositoryAdapter>;
-  let passwordHasher: jest.Mocked<IpasswordHasher>;
+  let passwordHasher: jest.Mocked<IPasswordHasher>;
 
   const validInput = {
     name: 'Nguyen Van A',
@@ -54,8 +56,9 @@ describe('RegisterUseCase', () => {
       it('nên hash mật khẩu và lưu đúng entity với status ACTIVE', async () => {
         const result = await registerUseCase.execute(validInput);
 
-        expect(result.getEmail()).toBe(validInput.email);
-        expect(result.getName()).toBe(validInput.name);
+        expect(result.email).toBe(validInput.email);
+        expect(result.name).toBe(validInput.name);
+        expect(result.id).toBe('user-id-1');
 
         expect(userRepository.findByEmail).toHaveBeenCalledWith(
           validInput.email,
@@ -66,6 +69,21 @@ describe('RegisterUseCase', () => {
         const savedEntity: UserEntity = userRepository.save.mock.calls[0][0];
         expect(savedEntity.getPassword()).toBe('hashed_password');
         expect(savedEntity.getStatus()).toBe(UserStatus.ACTIVE);
+      });
+
+      it('nên chuẩn hóa email (trim và lowercase) khi kiểm tra trùng và tạo user', async () => {
+        const inputWithMessyEmail = {
+          ...validInput,
+          email: '   Test@Example.COM   ',
+        };
+
+        await registerUseCase.execute(inputWithMessyEmail);
+
+        expect(userRepository.findByEmail).toHaveBeenCalledWith(
+          'test@example.com',
+        );
+        const savedEntity: UserEntity = userRepository.save.mock.calls[0][0];
+        expect(savedEntity.getEmail()).toBe('test@example.com');
       });
     });
 

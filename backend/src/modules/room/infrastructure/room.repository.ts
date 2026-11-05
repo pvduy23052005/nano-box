@@ -1,0 +1,451 @@
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import {
+  RoomMembersResult,
+  RoomRepositoryAdapter,
+} from '../application/ports/room.ports';
+import { RoomEntity } from '../domain/room.entity';
+import { Room, RoomDocument } from './room.schema';
+import { Model, Types, UpdateQuery, sanitizeFilter } from 'mongoose';
+import { RoomProps } from '../domain/room.type';
+import { MemberStatus, RoomType } from '../domain/chat.enum';
+import { RoomMapper, getMemberUserId, isPopulatedUser } from './room.mapper';
+import {
+  User,
+  UserDocument,
+} from '../../user/infrastructure/databases/user.schema';
+import {
+  Message,
+  MessageDocument,
+} from '../../chat/infrastructure/database/message.schema';
+import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
+
+type RoomFilterQuery = Parameters<typeof sanitizeFilter<Room>>[0];
+
+const ROOM_POPULATE_OPTIONS = [
+  {
+    path: 'members.user_id',
+    select: 'name avatar',
+  },
+  {
+    path: 'last_message_id',
+    select: 'content created_at sender_id senderId mentioned_user_ids',
+  },
+];
+
+@Injectable()
+export class RoomRepository implements RoomRepositoryAdapter {
+  constructor(
+    @InjectModel(Room.name)
+    private readonly roomModel: Model<RoomDocument>,
+    @InjectModel(User.name)
+    private readonly _userModel: Model<UserDocument>,
+    @InjectModel(Message.name)
+    private readonly messageModel: Model<MessageDocument>,
+  ) {}
+
+  async save(room: RoomEntity): Promise<RoomProps> {
+    const id = room.getId();
+    const mongooseRoomData = RoomMapper.toPersistence(room);
+
+    if (id && Types.ObjectId.isValid(id)) {
+      const updateData: UpdateQuery<Room> = {
+        title: mongooseRoomData.title,
+        avatar: mongooseRoomData.avatar,
+        type_room: mongooseRoomData.type_room,
+      };
+
+      if (mongooseRoomData.last_message_id !== undefined) {
+        updateData.last_message_id =
+          mongooseRoomData.last_message_id &&
+          Types.ObjectId.isValid(mongooseRoomData.last_message_id)
+            ? new Types.ObjectId(mongooseRoomData.last_message_id)
+            : null;
+      }
+
+      if (mongooseRoomData.members !== undefined) {
+        updateData.members = mongooseRoomData.members.map((member) => ({
+          user_id: Types.ObjectId.isValid(member.user_id)
+            ? new Types.ObjectId(member.user_id)
+            : member.user_id,
+          role: member.role,
+          status: member.status,
+          ...(member.last_read_message_id &&
+          Types.ObjectId.isValid(member.last_read_message_id)
+            ? {
+                last_read_message_id: new Types.ObjectId(
+                  member.last_read_message_id,
+                ),
+              }
+            : {}),
+        }));
+      }
+
+      const version = room.getVersion();
+      const filter: RoomFilterQuery = {
+        _id: new Types.ObjectId(id),
+        ...(typeof version === 'number' ? { __v: version } : {}),
+      };
+
+      const updateQuery: UpdateQuery<Room> = {
+        $set: updateData,
+        $inc: { __v: 1 },
+      };
+
+      const updated = await this.roomModel
+        .findOneAndUpdate(filter, updateQuery, { returnDocument: 'after' })
+        .populate(ROOM_POPULATE_OPTIONS)
+        .lean()
+        .exec();
+
+      if (updated) {
+        return RoomMapper.toProps(updated);
+      }
+
+      if (typeof version === 'number') {
+        throw new DomainValidationException(
+          'version',
+          'Dữ liệu phòng đã bị thay đổi bởi thao tác khác, vui lòng thử lại.',
+        );
+      }
+    }
+
+    const roomDoc = new this.roomModel(mongooseRoomData);
+    const roomCreated = await roomDoc.save();
+    await roomCreated.populate(ROOM_POPULATE_OPTIONS);
+    return RoomMapper.toProps(roomCreated);
+  }
+
+  async findRoomsByUserIdAndStatus(
+    userId: string,
+    status: MemberStatus,
+    search?: string,
+  ): Promise<RoomProps[]> {
+    const userObjectId = Types.ObjectId.isValid(userId)
+      ? new Types.ObjectId(userId)
+      : userId;
+
+    const filter: RoomFilterQuery = {
+      members: {
+        $elemMatch: {
+          user_id: userObjectId,
+          status: status,
+        },
+      },
+    };
+
+    const rooms = await this.roomModel
+      .find(filter)
+      .sort({ updated_at: -1 })
+      .populate(ROOM_POPULATE_OPTIONS)
+      .lean()
+      .exec();
+
+    const roomPropsList = rooms.map((room) => RoomMapper.toProps(room, userId));
+
+    const cleanSearch = search?.trim();
+    if (!cleanSearch) {
+      return roomPropsList;
+    }
+
+    const searchLower = cleanSearch.toLowerCase();
+    return roomPropsList.filter((roomProps) => {
+      if (
+        roomProps.title &&
+        roomProps.title.toLowerCase().includes(searchLower)
+      ) {
+        return true;
+      }
+
+      return roomProps.members?.some((member) => {
+        if (member.userId === userId) return false;
+        return (
+          typeof member.name === 'string' &&
+          member.name.toLowerCase().includes(searchLower)
+        );
+      });
+    });
+  }
+
+  async checkRoomExist(
+    myId: string,
+    userId: string,
+  ): Promise<RoomProps | null> {
+    const myObjectId = Types.ObjectId.isValid(myId)
+      ? new Types.ObjectId(myId)
+      : myId;
+    const userObjectId = Types.ObjectId.isValid(userId)
+      ? new Types.ObjectId(userId)
+      : userId;
+
+    const room = await this.roomModel
+      .findOne({
+        type_room: RoomType.SINGLE,
+        members: { $size: 2 },
+        $and: [
+          { 'members.user_id': myObjectId },
+          { 'members.user_id': userObjectId },
+        ],
+      })
+      .populate(ROOM_POPULATE_OPTIONS)
+      .lean()
+      .exec();
+
+    if (!room) {
+      return null;
+    }
+
+    return RoomMapper.toProps(room, myId);
+  }
+
+  async findById(
+    roomId: string,
+    currentUserId?: string,
+  ): Promise<RoomProps | null> {
+    if (!Types.ObjectId.isValid(roomId)) {
+      return null;
+    }
+
+    const room = await this.roomModel
+      .findById(roomId)
+      .populate(ROOM_POPULATE_OPTIONS)
+      .lean()
+      .exec();
+
+    if (!room) {
+      return null;
+    }
+
+    return RoomMapper.toProps(room, currentUserId);
+  }
+
+  async updateLastMessageId(roomId: string, messageId: string): Promise<void> {
+    if (!Types.ObjectId.isValid(roomId) || !Types.ObjectId.isValid(messageId)) {
+      return;
+    }
+
+    await this.roomModel.findByIdAndUpdate(roomId, {
+      last_message_id: new Types.ObjectId(messageId),
+    });
+  }
+
+  async updateMemberLastReadMessage(
+    roomId: string,
+    userId: string,
+    messageId: string,
+  ): Promise<boolean> {
+    if (
+      !Types.ObjectId.isValid(roomId) ||
+      !Types.ObjectId.isValid(userId) ||
+      !Types.ObjectId.isValid(messageId)
+    ) {
+      return false;
+    }
+
+    const rId = new Types.ObjectId(roomId);
+    const uId = new Types.ObjectId(userId);
+    const mId = new Types.ObjectId(messageId);
+
+    const result = await this.roomModel.updateOne(
+      {
+        _id: rId,
+        members: {
+          $elemMatch: {
+            user_id: uId,
+            $or: [
+              { last_read_message_id: null },
+              { last_read_message_id: { $lt: mId } },
+            ],
+          },
+        },
+      },
+      {
+        $set: {
+          'members.$.last_read_message_id': mId,
+        },
+      },
+    );
+
+    return result.modifiedCount > 0;
+  }
+
+  async acceptAllMembers(roomId: string): Promise<RoomProps | null> {
+    if (!Types.ObjectId.isValid(roomId)) {
+      return null;
+    }
+
+    const updated = await this.roomModel
+      .findByIdAndUpdate(
+        roomId,
+        {
+          $set: {
+            'members.$[].status': MemberStatus.ACCEPTED,
+          },
+        },
+        { returnDocument: 'after' },
+      )
+      .populate(ROOM_POPULATE_OPTIONS)
+      .lean()
+      .exec();
+
+    return updated ? RoomMapper.toProps(updated) : null;
+  }
+
+  async deleteRoom(roomId: string): Promise<boolean> {
+    if (!roomId || !Types.ObjectId.isValid(roomId)) {
+      return false;
+    }
+
+    const result = await this.roomModel
+      .deleteOne({ _id: new Types.ObjectId(roomId) })
+      .exec();
+
+    return result.deletedCount > 0;
+  }
+
+  async isMessageInRoom(roomId: string, messageId: string): Promise<boolean> {
+    if (
+      !roomId ||
+      !messageId ||
+      !Types.ObjectId.isValid(roomId) ||
+      !Types.ObjectId.isValid(messageId)
+    ) {
+      return false;
+    }
+
+    const exists = await this.messageModel.exists({
+      _id: new Types.ObjectId(messageId),
+      room_id: roomId,
+    });
+
+    return !!exists;
+  }
+
+  async isUserMember(roomId: string, userId: string): Promise<boolean> {
+    if (
+      !roomId ||
+      !userId ||
+      !Types.ObjectId.isValid(roomId) ||
+      !Types.ObjectId.isValid(userId)
+    ) {
+      return false;
+    }
+
+    const count = await this.roomModel
+      .countDocuments({
+        _id: new Types.ObjectId(roomId),
+        members: {
+          $elemMatch: {
+            user_id: new Types.ObjectId(userId),
+            status: { $in: [MemberStatus.ACCEPTED, MemberStatus.WAITTING] },
+          },
+        },
+      })
+      .exec();
+
+    return count > 0;
+  }
+
+  async findRoomMembers(roomId: string): Promise<RoomMembersResult | null> {
+    if (!roomId || !Types.ObjectId.isValid(roomId)) {
+      return null;
+    }
+
+    const room = await this.roomModel
+      .findById(roomId)
+      .select('members.user_id members.role members.status')
+      .lean()
+      .exec();
+
+    if (!room) {
+      return null;
+    }
+
+    return {
+      roomId: room._id.toString(),
+      members: (room.members || []).map((member) => ({
+        userId: getMemberUserId(member.user_id),
+        role: member.role,
+        status: member.status,
+        name: null,
+        avatar: null,
+      })),
+    };
+  }
+
+  async findRoomMembersWithProfile(
+    roomId: string,
+  ): Promise<RoomMembersResult | null> {
+    if (!roomId || !Types.ObjectId.isValid(roomId)) {
+      return null;
+    }
+
+    const room = await this.roomModel
+      .findById(roomId)
+      .select('members')
+      .populate({
+        path: 'members.user_id',
+        select: 'name avatar',
+      })
+      .lean()
+      .exec();
+
+    if (!room) {
+      return null;
+    }
+
+    return {
+      roomId: room._id.toString(),
+      members: (room.members || []).map((member) => {
+        const rawUserId = member.user_id as unknown;
+        const user = isPopulatedUser(rawUserId) ? rawUserId : null;
+
+        return {
+          userId: getMemberUserId(rawUserId),
+          role: member.role,
+          status: member.status,
+          name: user?.name ?? null,
+          avatar: user?.avatar ?? null,
+        };
+      }),
+    };
+  }
+
+  async findRelatedUserIdsByRooms(
+    userId: string,
+    status: MemberStatus,
+  ): Promise<string[]> {
+    if (!userId || !Types.ObjectId.isValid(userId)) {
+      return [];
+    }
+
+    const userObjectId = new Types.ObjectId(userId);
+
+    const rooms = await this.roomModel
+      .find({
+        members: {
+          $elemMatch: {
+            user_id: userObjectId,
+            status,
+          },
+        },
+      })
+      .select('members.user_id members.status')
+      .lean()
+      .exec();
+
+    const relatedIds = new Set<string>();
+
+    for (const room of rooms) {
+      if (!room.members) continue;
+      for (const member of room.members) {
+        const memberId = getMemberUserId(member.user_id);
+        if (memberId && memberId !== userId && member.status === status) {
+          relatedIds.add(memberId);
+        }
+      }
+    }
+
+    return Array.from(relatedIds);
+  }
+}

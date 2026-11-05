@@ -1,0 +1,67 @@
+name: Continuous Deployment (CD)
+
+on:
+  workflow_run:
+    workflows:
+      - "Backend CI (Build, Test & Docker Push)"
+      - "Frontend CI (Build, Test & Docker Push)"
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  deploy:
+    name: Deploy to Self-Hosted VM
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout mã nguồn từ Private Repo
+        uses: actions/checkout@v4
+
+      - name: Đăng nhập GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Đồng bộ cấu hình lên Production
+        run: |
+          mkdir -p ~/nano-box/monitoring ~/nano-box/scripts ~/nano-box/backups
+          cp docker-compose.production.yml ~/nano-box/docker-compose.yml
+          cp docker-compose.monitoring.yml nginx.conf ~/nano-box/
+          cp -r monitoring/* ~/nano-box/monitoring/
+          cp -r scripts/* ~/nano-box/scripts/
+          chmod +x ~/nano-box/scripts/*.sh
+          docker network inspect nano_network >/dev/null 2>&1 || docker network create nano_network
+
+      - name: Pull latest Docker images
+        run: |
+          cd ~/nano-box
+          docker compose pull frontend backend
+
+      - name: Recreate containers with new images
+        run: |
+          cd ~/nano-box
+          docker compose up -d
+
+      - name: Refresh Nginx reverse proxy
+        run: |
+          cd ~/nano-box
+          docker compose exec -T nginx nginx -s reload || docker compose restart nginx
+
+      - name: Clean up unused dangling images
+        run: |
+          docker image prune -f
+
+      - name: Kiểm tra trạng thái containers
+        run: |
+          cd ~/nano-box
+          docker compose ps

@@ -3,7 +3,7 @@ import { CombinedGraphQLErrors } from "@apollo/client/errors";
 import { registerApolloClient } from "@apollo/client-integration-nextjs";
 import { onError } from "@apollo/client/link/error";
 import { cookies } from "next/headers";
-import { createHttpLink } from "./apolloBase";
+import { createHttpLink, cacheConfig } from "./apolloBase";
 import { handleGlobalError } from "./utils/handleGlobalError";
 
 export const { getClient, query } = registerApolloClient(async () => {
@@ -17,7 +17,7 @@ export const { getClient, query } = registerApolloClient(async () => {
   });
 
   return new ApolloClient({
-    cache: new InMemoryCache(),
+    cache: new InMemoryCache(cacheConfig),
     link: errorLink.concat(createHttpLink(token)),
   });
 });

@@ -1,15 +1,15 @@
 import "./globals.css";
 import { cn } from "@/src/lib/utils";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Roboto, Geist_Mono } from "next/font/google";
 import { ApolloProvider } from "@/src/core/apolloProvider";
 import { Toaster } from "sonner";
 import { Metadata } from "next";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const roboto = Roboto({
+  weight: ["400", "700"],
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-sans",
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
@@ -35,13 +35,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={cn(
         "h-full",
         "antialiased",
-        geistSans.variable,
+        roboto.variable,
         geistMono.variable,
         "font-sans",
-        geist.variable,
       )}
     >
       <body className="min-h-full flex flex-col">
