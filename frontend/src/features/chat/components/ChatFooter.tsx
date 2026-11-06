@@ -25,6 +25,7 @@ import ChatImagePreview, {
   UploadStatus,
 } from "./ChatImagePreview";
 import { uploadTempFile } from "@/src/services/upload.service";
+import { useChatDropStore } from "../stores/useChatDropStore";
 import { useRef, useState, useEffect } from "react";
 import {
   AtSign,
@@ -149,6 +150,18 @@ export default function ChatFooter() {
     });
   };
 
+  const handleSelectFilesRef = useRef(handleSelectFiles);
+  useEffect(() => {
+    handleSelectFilesRef.current = handleSelectFiles;
+  });
+
+  useEffect(() => {
+    const unregister = useChatDropStore
+      .getState()
+      .registerDropHandler((files) => handleSelectFilesRef.current(files));
+    return unregister;
+  }, []);
+
   const handleSendRef = useRef<() => void>(() => {});
 
   const editor = useEditor({
@@ -211,6 +224,15 @@ export default function ChatFooter() {
         if (pastedFiles.length > 0) {
           event.preventDefault();
           handleSelectFiles(pastedFiles);
+          return true;
+        }
+        return false;
+      },
+      handleDrop: (view, event) => {
+        const files = event.dataTransfer?.files;
+        if (files && files.length > 0) {
+          event.preventDefault();
+          handleSelectFiles(Array.from(files));
           return true;
         }
         return false;

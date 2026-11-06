@@ -4,6 +4,8 @@ import ChatFooter from "@/src/features/chat/components/ChatFooter";
 import ChatHeader from "@/src/features/chat/components/ChatHeader";
 import ChatMain from "@/src/features/chat/components/ChatMain";
 import ChatSidebar from "@/src/features/chat/components/ChatSidebar";
+import ChatDropzoneOverlay from "@/src/features/chat/components/ChatDropzoneOverlay";
+import { useChatDropzone } from "@/src/features/chat/hooks/useChatDropzone";
 import { useReceiveMessageRead } from "@/src/features/chat/socket/useReceiveMessageRead";
 import { useRoomStore } from "@/src/features/room/stores/useRoomStore";
 import { cn } from "@/src/lib/utils";
@@ -11,12 +13,16 @@ import { cn } from "@/src/lib/utils";
 export default function ChatPage() {
   useReceiveMessageRead();
   const activeRoomId = useRoomStore((state) => state.activeRoomId);
+  const { isDraggingOver, dropzoneProps } = useChatDropzone({
+    enabled: Boolean(activeRoomId),
+  });
 
   return (
     <div className="relative flex flex-row w-full h-full min-w-0 overflow-hidden bg-background">
       <ChatSidebar />
 
       <div
+        {...dropzoneProps}
         className={cn(
           "absolute inset-0 z-20 sm:relative sm:inset-auto sm:z-auto sm:flex-1 flex flex-col min-h-0 min-w-0 bg-card transition-transform duration-300 ease-out sm:transform-none shadow-xl sm:shadow-none",
           activeRoomId
@@ -27,6 +33,7 @@ export default function ChatPage() {
         <ChatHeader />
         <ChatMain />
         <ChatFooter key={activeRoomId ?? "empty"} />
+        <ChatDropzoneOverlay isVisible={isDraggingOver} />
       </div>
     </div>
   );
