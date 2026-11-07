@@ -34,12 +34,12 @@ export default function FriendSelectItem({
           </AvatarFallback>
         </Avatar>
         <div className="flex flex-col min-w-0 text-left">
-          <span className="text-xs sm:text-sm font-medium text-foreground truncate">
+          <p className="text-xs sm:text-sm font-medium truncate">
             {friend.name}
-          </span>
-          <span className="text-[11px] text-muted-foreground truncate">
+          </p>
+          <p className="text-[11px] text-muted-foreground truncate">
             {friend.email}
-          </span>
+          </p>
         </div>
       </div>
 

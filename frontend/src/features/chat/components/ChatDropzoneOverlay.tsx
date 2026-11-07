@@ -22,7 +22,7 @@ export default function ChatDropzoneOverlay({
         <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-sm">
           <UploadCloud className="size-8" />
         </div>
-        <div className="space-y-1">
+        <div className="flex flex-col gap-1">
           <p className="text-base font-semibold text-foreground">
             Thả ảnh hoặc tệp vào đây
           </p>

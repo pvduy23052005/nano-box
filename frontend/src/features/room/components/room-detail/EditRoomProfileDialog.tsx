@@ -227,10 +227,10 @@ function EditRoomProfileDialogContent({
               size="xs"
               onClick={() => fileInputRef.current?.click()}
               disabled={isSubmitting}
-              className="cursor-pointer text-xs h-7 px-2.5 gap-1.5"
+              className="cursor-pointer text-xs h-7 px-2.5"
             >
-              <ImagePlus className="size-3.5" />
-              <span>{currentDisplayAvatar ? "Đổi ảnh" : "Tải ảnh lên"}</span>
+              <ImagePlus data-icon="inline-start" />
+              {currentDisplayAvatar ? "Đổi ảnh" : "Tải ảnh lên"}
             </Button>
 
             {removeAvatar ? (
@@ -240,10 +240,10 @@ function EditRoomProfileDialogContent({
                 size="xs"
                 onClick={handleResetAvatar}
                 disabled={isSubmitting}
-                className="cursor-pointer text-xs h-7 px-2.5 gap-1 text-muted-foreground hover:text-foreground"
+                className="cursor-pointer text-xs h-7 px-2.5 text-muted-foreground hover:text-foreground"
               >
-                <RotateCcw className="size-3" />
-                <span>Hoàn tác gỡ</span>
+                <RotateCcw data-icon="inline-start" />
+                Hoàn tác gỡ
               </Button>
             ) : currentDisplayAvatar ? (
               <Button
@@ -252,10 +252,10 @@ function EditRoomProfileDialogContent({
                 size="xs"
                 onClick={handleRemoveAvatar}
                 disabled={isSubmitting}
-                className="cursor-pointer text-xs h-7 px-2.5 gap-1 text-destructive hover:bg-destructive/10"
+                className="cursor-pointer text-xs h-7 px-2.5 text-destructive hover:bg-destructive/10"
               >
-                <Trash2 className="size-3" />
-                <span>Gỡ ảnh</span>
+                <Trash2 data-icon="inline-start" />
+                Gỡ ảnh
               </Button>
             ) : null}
           </div>
@@ -332,14 +332,12 @@ function EditRoomProfileDialogContent({
             disabled={!hasChanges || !isTitleValid || isSubmitting}
             className="h-9 px-4 text-xs sm:text-sm cursor-pointer"
           >
-            {isSubmitting && <Spinner className="size-3.5 mr-1.5" />}
-            <span>
-              {isUploading
-                ? "Đang tải ảnh..."
-                : isSubmitting
-                  ? "Đang lưu..."
-                  : "Lưu thay đổi"}
-            </span>
+            {isSubmitting && <Spinner data-icon="inline-start" />}
+            {isUploading
+              ? "Đang tải ảnh..."
+              : isSubmitting
+                ? "Đang lưu..."
+                : "Lưu thay đổi"}
           </Button>
         </DialogFooter>
       </form>

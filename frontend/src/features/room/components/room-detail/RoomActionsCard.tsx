@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { BellOff, Bookmark, ChevronRight, LogOut, Pencil } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
-import { cn } from "@/src/lib/utils";
+import { Switch } from "@/src/components/ui/switch";
 import { toast } from "sonner";
 
 interface RoomActionsCardProps {
@@ -70,9 +70,9 @@ export default function RoomActionsCard({
           >
             <div className="flex items-center gap-3 min-w-0">
               <Pencil className="size-4 text-muted-foreground shrink-0" />
-              <span className="text-sm font-medium text-foreground truncate">
+              <p className="text-sm font-medium truncate">
                 Chỉnh sửa thông tin phòng
-              </span>
+              </p>
             </div>
             <ChevronRight className="size-4 text-muted-foreground shrink-0 group-hover:translate-x-0.5 transition-transform" />
           </button>
@@ -82,34 +82,20 @@ export default function RoomActionsCard({
           <div className="flex items-center gap-3 min-w-0 pr-3">
             <BellOff className="size-4 text-muted-foreground shrink-0" />
             <div className="flex flex-col min-w-0">
-              <span className="text-sm font-medium text-foreground">
+              <p className="text-sm font-medium">
                 Tắt thông báo phòng
-              </span>
-              <span className="text-xs text-muted-foreground truncate">
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
                 Chỉ nhận khi được nhắc đến (@)
-              </span>
+              </p>
             </div>
           </div>
 
-          <button
-            type="button"
-            role="switch"
-            aria-checked={isMuted}
-            onClick={handleToggleMute}
-            className={cn(
-              "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
-              isMuted ? "bg-primary" : "bg-input",
-            )}
-          >
-            <span
-              className={cn(
-                "pointer-events-none inline-block size-5 transform rounded-full shadow-md ring-0 transition duration-200 ease-in-out",
-                isMuted
-                  ? "translate-x-5 bg-primary-foreground"
-                  : "translate-x-0 bg-background",
-              )}
-            />
-          </button>
+          <Switch
+            checked={isMuted}
+            onCheckedChange={handleToggleMute}
+            aria-label="Tắt thông báo phòng"
+          />
         </div>
 
         <button
@@ -119,9 +105,9 @@ export default function RoomActionsCard({
         >
           <div className="flex items-center gap-3 min-w-0">
             <Bookmark className="size-4 text-muted-foreground shrink-0" />
-            <span className="text-sm font-medium text-foreground truncate">
+            <p className="text-sm font-medium truncate">
               Tin nhắn đã ghim (24)
-            </span>
+            </p>
           </div>
           <ChevronRight className="size-4 text-muted-foreground shrink-0 group-hover:translate-x-0.5 transition-transform" />
         </button>
@@ -133,9 +119,9 @@ export default function RoomActionsCard({
         >
           <div className="flex items-center gap-3 min-w-0">
             <LogOut className="size-4 text-muted-foreground group-hover:text-destructive shrink-0" />
-            <span className="text-sm font-medium text-foreground group-hover:text-destructive truncate">
+            <p className="text-sm font-medium group-hover:text-destructive truncate">
               Rời khỏi phòng
-            </span>
+            </p>
           </div>
           <ChevronRight className="size-4 text-muted-foreground shrink-0 group-hover:translate-x-0.5 group-hover:text-destructive transition-transform" />
         </button>

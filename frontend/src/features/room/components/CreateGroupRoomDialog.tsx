@@ -210,7 +210,7 @@ export default function CreateGroupRoomDialog({
               className="cursor-pointer"
             >
               {isCreating && <Spinner data-icon="inline-start" />}
-              <span>{isCreating ? "Đang tạo nhóm..." : "Tạo nhóm"}</span>
+              {isCreating ? "Đang tạo nhóm..." : "Tạo nhóm"}
             </Button>
           </DialogFooter>
         </form>

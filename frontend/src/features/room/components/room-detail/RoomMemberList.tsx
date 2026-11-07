@@ -98,7 +98,7 @@ export default function RoomMemberList({
                 onlineCount > 0 ? "bg-primary" : "bg-muted-foreground/30",
               )}
             />
-            <span>{onlineCount} đang trực tuyến</span>
+            {onlineCount} đang trực tuyến
           </div>
         </div>
       </CardHeader>
@@ -186,10 +186,10 @@ export default function RoomMemberList({
 
         {filteredMembers.length > 0 && (
           <div className="flex items-center justify-between pt-2 text-xs text-muted-foreground font-medium">
-            <span>
+            <p>
               Hiển thị {visibleMembers.length} / {filteredMembers.length} thành
               viên
-            </span>
+            </p>
 
             {filteredMembers.length > INITIAL_LIMIT && (
               <button
@@ -197,9 +197,7 @@ export default function RoomMemberList({
                 onClick={() => setIsExpanded(!isExpanded)}
                 className="inline-flex items-center gap-1 text-primary font-semibold hover:underline cursor-pointer"
               >
-                <span>
-                  {isExpanded ? "Thu gọn danh sách" : "Xem danh sách đầy đủ"}
-                </span>
+                {isExpanded ? "Thu gọn danh sách" : "Xem danh sách đầy đủ"}
                 {isExpanded ? (
                   <ChevronUp className="size-3.5" />
                 ) : (

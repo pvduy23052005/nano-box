@@ -151,32 +151,32 @@ export default function AddMemberDrawer({
               {loadingFriends ? (
                 <div className="flex h-full items-center justify-center p-4 text-xs text-muted-foreground gap-2">
                   <Spinner className="size-4" />
-                  <span>Đang tìm kiếm bạn bè...</span>
+                  Đang tìm kiếm bạn bè...
                 </div>
               ) : availableFriends.length === 0 ? (
                 <div className="flex flex-col h-full items-center justify-center p-4 text-xs text-muted-foreground text-center gap-1">
                   {searchQuery ? (
-                    <span>
+                    <p>
                       Không tìm thấy bạn bè nào khớp với &quot;{searchQuery}
                       &quot;
-                    </span>
+                    </p>
                   ) : (friends || []).length > 0 ? (
                     <>
-                      <span className="font-medium text-foreground">
-                         Tất cả bạn bè đã tham gia nhóm
-                      </span>
-                      <span className="text-[11px] text-muted-foreground">
+                      <p className="font-medium text-foreground">
+                        Tất cả bạn bè đã tham gia nhóm
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">
                         Không có bạn bè nào khác để thêm vào nhóm này.
-                      </span>
+                      </p>
                     </>
                   ) : (
                     <>
-                      <span className="font-medium text-foreground">
+                      <p className="font-medium text-foreground">
                         Bạn chưa có bạn bè nào
-                      </span>
-                      <span className="text-[11px] text-muted-foreground">
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">
                         Kết bạn trước để có thể thêm thành viên vào nhóm.
-                      </span>
+                      </p>
                     </>
                   )}
                 </div>
@@ -213,11 +213,9 @@ export default function AddMemberDrawer({
             className="cursor-pointer"
           >
             {isSubmitting && <Spinner data-icon="inline-start" />}
-            <span>
-              {selectedUsers.length > 0
-                ? `Thêm (${selectedUsers.length})`
-                : "Thêm thành viên"}
-            </span>
+            {selectedUsers.length > 0
+              ? `Thêm (${selectedUsers.length})`
+              : "Thêm thành viên"}
           </Button>
         </SheetFooter>
       </SheetContent>
