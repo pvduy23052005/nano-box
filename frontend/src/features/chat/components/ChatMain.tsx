@@ -71,7 +71,7 @@ export default function ChatMain() {
             "absolute top-2 left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-all duration-300 ease-out",
             isFetchingNextPage
               ? "opacity-100 translate-y-0 scale-100"
-              : "opacity-0 -translate-y-2 scale-95"
+              : "opacity-0 -translate-y-2 scale-95",
           )}
         >
           <div className="bg-background/90 backdrop-blur-md shadow-md rounded-full px-3 py-1.5 border border-border flex items-center gap-2 text-xs text-muted-foreground">
@@ -136,14 +136,14 @@ export default function ChatMain() {
                 );
               })}
             </div>
-        )}
+          )}
 
-        <div className="pb-4" />
-        <ChatLightbox />
+          <div className="pb-4" />
+          <ChatLightbox />
+        </div>
+
+        <ChatTypingIndicator typingUsers={typingList} />
       </div>
-
-      <ChatTypingIndicator typingUsers={typingList} />
-    </div>
-  </TooltipProvider>
-);
+    </TooltipProvider>
+  );
 }

@@ -7,16 +7,24 @@ export const createHttpLink = (token?: string | null) => {
 
   if (!uri) {
     if (typeof window !== "undefined") {
-      uri =
+      if (
+        process.env.NODE_ENV !== "production" &&
         window.location.port === "3000"
-          ? "http://localhost:5050/graphql"
-          : "/graphql";
+      ) {
+        uri = "http://localhost:5050/graphql";
+      } else {
+        uri = "/graphql";
+      }
     } else {
-      uri =
-        process.env.INTERNAL_GRAPHQL_API_URL ||
-        (process.env.NODE_ENV === "production"
-          ? "http://nano_box_backend:5050/graphql"
-          : "http://localhost:5050/graphql");
+      if (process.env.NODE_ENV !== "production") {
+        uri =
+          process.env.INTERNAL_GRAPHQL_API_URL ||
+          "http://localhost:5050/graphql";
+      } else {
+        uri =
+          process.env.INTERNAL_GRAPHQL_API_URL ||
+          "http://nano-box-backend:5050/graphql";
+      }
     }
   }
 
