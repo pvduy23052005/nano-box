@@ -86,7 +86,13 @@ describe('UserEntity', () => {
     });
 
     it('nên ném lỗi khi email không đúng định dạng (chỉ có @ hoặc thiếu domain/tld)', () => {
-      const invalidEmails = ['@', 'a@', 'invalid-email', 'user@domain', 'user@.com'];
+      const invalidEmails = [
+        '@',
+        'a@',
+        'invalid-email',
+        'user@domain',
+        'user@.com',
+      ];
       for (const email of invalidEmails) {
         expect(() =>
           UserEntity.create({
@@ -365,9 +371,9 @@ describe('UserEntity', () => {
         user.updateProfile({ avatar: '//evil.com/avatar.png' }),
       ).toThrow(DomainValidationException);
 
-      expect(() =>
-        user.updateProfile({ avatar: '   ' }),
-      ).toThrow(DomainValidationException);
+      expect(() => user.updateProfile({ avatar: '   ' })).toThrow(
+        DomainValidationException,
+      );
 
       const longAvatar = 'https://example.com/' + 'a'.repeat(2040);
       expect(() => user.updateProfile({ avatar: longAvatar })).toThrow(

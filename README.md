@@ -59,7 +59,7 @@ flowchart TD
     end
 
     subgraph Domain["3. Domain Layer (Entities - Core Business)"]
-        Entities["Domain Entities (Java-style getters)"]
+        Entities["Domain Entities"]
         Enums["Types & Domain Rules"]
     end
 
