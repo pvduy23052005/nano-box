@@ -1,5 +1,6 @@
 import { ApolloCache } from "@apollo/client";
 import { DocumentNode } from "graphql";
+import { GRAPHQL_TYPENAMES } from "@/src/core/constants/graphql.constant";
 import { Message, MessageReaction, PAGINATION_LIMIT } from "../types/chat.types";
 
 interface GetMessagesData {
@@ -23,7 +24,9 @@ export const appendMessageToCache = (
     reactions: newMessage.reactions ?? [],
     attachments: newMessage.attachments ?? [],
     isSystem: newMessage.isSystem ?? (newMessage.senderId === "system"),
-    __typename: (newMessage as { __typename?: string }).__typename ?? "ChatPayload",
+    __typename:
+      (newMessage as { __typename?: string }).__typename ??
+      GRAPHQL_TYPENAMES.CHAT_PAYLOAD,
   } as Message;
   const targetRoomId = roomId ?? newMessage.roomId ?? null;
   if (!targetRoomId) return;
@@ -79,8 +82,10 @@ export const updateMessageReactionInCache = (
 ): void => {
   try {
     const identifiedId =
-      cache.identify({ __typename: "ChatPayload", id: messageId }) ||
-      `ChatPayload:${messageId}`;
+      cache.identify({
+        __typename: GRAPHQL_TYPENAMES.CHAT_PAYLOAD,
+        id: messageId,
+      }) || `${GRAPHQL_TYPENAMES.CHAT_PAYLOAD}:${messageId}`;
 
     cache.modify({
       id: identifiedId,

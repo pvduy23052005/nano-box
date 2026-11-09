@@ -169,7 +169,10 @@ export default function ChatFooter() {
   const editor = useEditor({
     editable: Boolean(activeRoomId),
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        link: false,
+        underline: false,
+      }),
       UnderlineExtension,
       LinkExtension.configure({
         openOnClick: false,

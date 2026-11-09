@@ -28,6 +28,7 @@ export interface ReceiveRoomPayload {
   } | null;
   members: ReceiveRoomMember[];
   avatar?: string | null;
+  groupAvatars?: (string | null)[] | null;
 }
 
 export const useReceiveRoom = () => {
@@ -61,6 +62,7 @@ export const useReceiveRoom = () => {
           typeRoom: roomData.typeRoom,
           lastMessageId: roomData.lastMessageId,
           avatar: roomData.avatar,
+          groupAvatars: roomData.groupAvatars,
           members: roomData.members,
         },
         status,

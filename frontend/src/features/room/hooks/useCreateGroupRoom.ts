@@ -30,6 +30,7 @@ export const useCreateGroupRoom = () => {
               typeRoom: newRoom.typeRoom,
               lastMessageId: newRoom.lastMessageId,
               avatar: newRoom.avatar,
+              groupAvatars: newRoom.groupAvatars,
               members: newRoom.members,
             },
             MemberStatus.ACCEPTED,

@@ -36,12 +36,14 @@ export const useCreateRoomChatNotFriend = () => {
       title: targetUser.name || "Cuộc trò chuyện mới",
       typeRoom: RoomType.SINGLE,
       avatar: targetUser.avatar || null,
+      groupAvatars: null,
       lastMessageId: null,
       members: [
         {
           userId: otherUserId,
           role: MemberRole.MEMBER,
           status: MemberStatus.WAITTING,
+          lastReadMessageId: null,
         },
       ],
     };
@@ -73,6 +75,7 @@ export const useCreateRoomChatNotFriend = () => {
               typeRoom: newRoom.typeRoom,
               lastMessageId: newRoom.lastMessageId,
               avatar: newRoom.avatar,
+              groupAvatars: newRoom.groupAvatars,
               members: newRoom.members,
             },
             MemberStatus.ACCEPTED,

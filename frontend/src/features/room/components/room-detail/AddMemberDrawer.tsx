@@ -87,12 +87,7 @@ export default function AddMemberDrawer({
     try {
       await Promise.allSettled(
         usersToAdd.map((user) =>
-          addMember(
-            roomId,
-            user.id,
-            user.name || "người dùng",
-            user.avatar,
-          ),
+          addMember(roomId, user.id, user.name, user.avatar),
         ),
       );
     } finally {
@@ -185,7 +180,9 @@ export default function AddMemberDrawer({
                   <FriendSelectItem
                     key={friend.id}
                     friend={friend}
-                    isSelected={selectedUsers.some((u) => u.id === friend.id)}
+                    isSelected={selectedUsers.some(
+                      (user) => user.id === friend.id,
+                    )}
                     onToggle={handleToggleUser}
                   />
                 ))

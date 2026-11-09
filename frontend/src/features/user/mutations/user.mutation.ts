@@ -18,6 +18,7 @@ export const CREATE_ROOM_CHAT_NOT_FRIEND_MUTATION = graphql(`
       title
       typeRoom
       avatar
+      groupAvatars
       lastMessageId {
         id
         content
@@ -29,6 +30,7 @@ export const CREATE_ROOM_CHAT_NOT_FRIEND_MUTATION = graphql(`
         userId
         role
         status
+        lastReadMessageId
       }
     }
   }
