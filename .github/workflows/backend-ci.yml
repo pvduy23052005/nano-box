@@ -1,0 +1,62 @@
+name: Backend CI (Build, Test & Docker Push)
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+      - '.github/workflows/docker-publish.yml'
+  pull_request:
+    branches: ["main"]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+      - '.github/workflows/docker-publish.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  test-and-verify:
+    name: Test Verification
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+      - name: Checkout mã nguồn
+        uses: actions/checkout@v4
+
+      - name: Cài đặt PNPM CLI
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
+      - name: Khởi tạo môi trường Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+          cache-dependency-path: ./backend/pnpm-lock.yaml
+
+      - name: Cài đặt Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Chạy Unit Test
+        run: pnpm test
+
+  publish-docker:
+    name: Docker Build & Push
+    needs: test-and-verify
+    uses: ./.github/workflows/docker-publish.yml
+    with:
+      service: backend
+      context: ./backend
+      dockerfile: ./backend/Dockerfile
