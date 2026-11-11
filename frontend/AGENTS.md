@@ -43,6 +43,12 @@ pnpm dlx shadcn@latest info --json    # View project context & installed compone
 - **Always** run `npx tsc --noEmit` after type-sensitive changes
 - **Always** check installed components with `pnpm dlx shadcn@latest info --json` before adding new ones
 
+## Project Rules in `.agents/rules/`
+
+| File | What it covers |
+|---|---|
+| [`clean-components.md`](.agents/rules/clean-components.md) | Clean React/Next.js component decomposition, JSX shorthands, hooks, Tailwind styling, avoiding prop drilling |
+
 ## Detailed References in `.agents/`
 
 All deep-dive documentation lives under `.agents/skills/shadcn/`:
