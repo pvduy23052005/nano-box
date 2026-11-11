@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useApolloClient, useMutation } from "@apollo/client/react";
 import { toast } from "sonner";
+import { GRAPHQL_TYPENAMES } from "@/src/core/constants/graphql.constant";
 import {
   GET_ROOM_DETAIL_QUERY,
   UPDATE_ROOM_PROFILE_MUTATION,
@@ -58,14 +59,14 @@ export const useUpdateRoomProfile = () => {
 
       const optimisticResponse = currentRoom
         ? {
-          __typename: "Mutation" as const,
-          updateRoomProfile: {
-            __typename: "RoomOutput" as const,
-            ...currentRoom,
-            title,
-            avatar: finalAvatar ?? null,
-          },
-        }
+            __typename: GRAPHQL_TYPENAMES.MUTATION,
+            updateRoomProfile: {
+              __typename: GRAPHQL_TYPENAMES.ROOM,
+              ...currentRoom,
+              title,
+              avatar: finalAvatar ?? null,
+            },
+          }
         : undefined;
 
       updateActiveRoomProfile(title, finalAvatar);

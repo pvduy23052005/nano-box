@@ -118,14 +118,14 @@ export default function RoomCard({
                 alt={displayName}
                 className="rounded-full object-cover"
               />
-              <AvatarFallback className="rounded-full bg-emerald-50 text-emerald-700 text-sm font-semibold">
+              <AvatarFallback className="rounded-full bg-primary/10 text-primary text-sm font-semibold">
                 {initials}
               </AvatarFallback>
             </Avatar>
             {isOtherUserOnline && (
               <span
                 title="Đang hoạt động"
-                className="absolute bottom-0 right-0 size-3 rounded-full bg-emerald-500 ring-2 ring-card z-10"
+                className="absolute bottom-0 right-0 size-3 rounded-full bg-primary ring-2 ring-card z-10"
               />
             )}
           </>

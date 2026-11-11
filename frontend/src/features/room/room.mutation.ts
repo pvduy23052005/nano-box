@@ -63,7 +63,10 @@ export const GET_ROOM_DETAIL_QUERY = graphql(`
       avatar
       groupAvatars
       members {
+        userId
         role
+        status
+        lastReadMessageId
         user {
           id
           name
@@ -83,7 +86,10 @@ export const ADD_MEMBER_TO_ROOM_MUTATION = graphql(`
       avatar
       groupAvatars
       members {
+        userId
         role
+        status
+        lastReadMessageId
         user {
           id
           name
@@ -103,7 +109,10 @@ export const REMOVE_MEMBER_FROM_ROOM_MUTATION = graphql(`
       avatar
       groupAvatars
       members {
+        userId
         role
+        status
+        lastReadMessageId
         user {
           id
           name
@@ -123,7 +132,10 @@ export const ASSIGN_ROOM_ADMIN_MUTATION = graphql(`
       avatar
       groupAvatars
       members {
+        userId
         role
+        status
+        lastReadMessageId
         user {
           id
           name
@@ -143,7 +155,10 @@ export const REVOKE_ROOM_ADMIN_MUTATION = graphql(`
       avatar
       groupAvatars
       members {
+        userId
         role
+        status
+        lastReadMessageId
         user {
           id
           name
@@ -163,7 +178,10 @@ export const UPDATE_ROOM_PROFILE_MUTATION = graphql(`
       avatar
       groupAvatars
       members {
+        userId
         role
+        status
+        lastReadMessageId
         user {
           id
           name

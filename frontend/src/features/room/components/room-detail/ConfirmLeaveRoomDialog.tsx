@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/src/components/ui/dialog";
+import { Alert, AlertDescription } from "@/src/components/ui/alert";
 import { Button } from "@/src/components/ui/button";
 import { Spinner } from "@/src/components/ui/spinner";
 import { useLeaveRoom } from "../../hooks/useLeaveRoom";
@@ -62,17 +63,21 @@ export default function ConfirmLeaveRoomDialog({
         </DialogHeader>
 
         {isSuperAdmin && !isSoleMember && (
-          <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3 text-xs text-amber-900 dark:text-amber-200 flex gap-2 items-center">
-            <AlertTriangle className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
-            <span>Quyền Trưởng nhóm sẽ tự động chuyển cho thành viên khác.</span>
-          </div>
+          <Alert className="text-xs">
+            <AlertTriangle />
+            <AlertDescription className="text-xs">
+              Quyền Trưởng nhóm sẽ tự động chuyển cho thành viên khác.
+            </AlertDescription>
+          </Alert>
         )}
 
         {isSoleMember && (
-          <div className="rounded-xl border border-destructive/25 bg-destructive/10 p-3 text-xs text-destructive flex gap-2 items-center">
-            <AlertTriangle className="size-4 shrink-0" />
-            <span>Phòng trò chuyện sẽ bị giải tán và xóa vĩnh viễn.</span>
-          </div>
+          <Alert variant="destructive" className="text-xs">
+            <AlertTriangle />
+            <AlertDescription className="text-xs">
+              Phòng trò chuyện sẽ bị giải tán và xóa vĩnh viễn.
+            </AlertDescription>
+          </Alert>
         )}
 
         <DialogFooter className="gap-2 sm:gap-2">
@@ -90,9 +95,9 @@ export default function ConfirmLeaveRoomDialog({
             variant="destructive"
             onClick={handleConfirmLeave}
             disabled={isLeaving}
-            className="cursor-pointer gap-2"
+            className="cursor-pointer"
           >
-            {isLeaving && <Spinner className="size-4" />}
+            {isLeaving && <Spinner data-icon="inline-start" />}
             Rời phòng
           </Button>
         </DialogFooter>

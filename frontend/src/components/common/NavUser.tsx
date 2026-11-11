@@ -73,18 +73,18 @@ export default function NavUser() {
               align="end"
               sideOffset={8}
             >
-              <div className="space-y-0.5">
+              <div className="flex flex-col gap-0.5">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="w-full justify-start gap-2.5 h-9 text-xs font-medium cursor-pointer rounded-xl hover:bg-accent text-foreground hover:text-foreground"
+                  className="w-full justify-start h-9 text-xs font-medium cursor-pointer rounded-xl hover:bg-accent text-foreground hover:text-foreground"
                   onClick={() => {
                     setIsOpen(false);
                     setIsEditProfileOpen(true);
                   }}
                 >
-                  <UserPen className="size-4 text-muted-foreground" />
-                  <span>Thông tin tài khoản</span>
+                  <UserPen data-icon="inline-start" className="text-muted-foreground" />
+                  Thông tin tài khoản
                 </Button>
 
                 <Button
@@ -93,14 +93,14 @@ export default function NavUser() {
                   size="sm"
                   onClick={logout}
                   disabled={isLoggingOut}
-                  className="w-full justify-start gap-2.5 h-9 text-xs font-medium cursor-pointer rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  className="w-full justify-start h-9 text-xs font-medium cursor-pointer rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive"
                 >
                   {isLoggingOut ? (
                     <Spinner data-icon="inline-start" />
                   ) : (
-                    <LogOut data-icon="inline-start" className="size-4" />
+                    <LogOut data-icon="inline-start" />
                   )}
-                  <span>Đăng xuất</span>
+                  Đăng xuất
                 </Button>
               </div>
             </PopoverContent>

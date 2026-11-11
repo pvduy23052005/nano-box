@@ -102,18 +102,18 @@ export default function RoomMemberItem({
 
         <div className="flex flex-col min-w-0 flex-1">
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="font-bold text-xs sm:text-sm text-foreground truncate">
+            <p className="font-bold text-xs sm:text-sm truncate">
               {memberName}
-            </span>
+            </p>
             {isMe && (
               <span className="text-[11px] font-normal text-muted-foreground shrink-0">
                 (Bạn)
               </span>
             )}
           </div>
-          <span className="text-[11px] sm:text-xs text-muted-foreground truncate">
+          <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
             {isOnline ? "Đang hoạt động" : "Ngoại tuyến"}
-          </span>
+          </p>
         </div>
       </div>
 

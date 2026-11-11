@@ -2,6 +2,7 @@
 
 import { useApolloClient, useMutation } from "@apollo/client/react";
 import { toast } from "sonner";
+import { GRAPHQL_TYPENAMES } from "@/src/core/constants/graphql.constant";
 import type { GetRoomDetailQuery } from "@/src/types/graphql/graphql";
 import {
   GET_ROOM_DETAIL_QUERY,
@@ -28,9 +29,9 @@ export const useRemoveMember = () => {
 
       const optimisticResponse = currentRoom
         ? {
-            __typename: "Mutation" as const,
+            __typename: GRAPHQL_TYPENAMES.MUTATION,
             removeMemberFromRoom: {
-              __typename: "RoomOutput" as const,
+              __typename: GRAPHQL_TYPENAMES.ROOM,
               ...currentRoom,
               members: (currentRoom.members || []).filter(
                 (m) => m.user?.id !== userId,

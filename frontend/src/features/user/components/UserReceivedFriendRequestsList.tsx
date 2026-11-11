@@ -49,7 +49,7 @@ export default function ReceivedFriendRequestsList() {
               <div className="relative shrink-0">
                 <Avatar className="size-10 after:border-none">
                   <AvatarImage src={sender.avatar || ""} alt={sender.name} />
-                  <AvatarFallback className="bg-emerald-100 text-emerald-700 text-sm font-semibold">
+                  <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
                     {sender.name.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
@@ -75,12 +75,12 @@ export default function ReceivedFriendRequestsList() {
             <div className="flex items-center gap-1.5 shrink-0">
               <Button
                 size="sm"
-                className="text-xs h-8 px-2.5 bg-primary text-white hover:bg-primary/90 cursor-pointer shadow-xs"
+                className="text-xs h-8 px-2.5 cursor-pointer shadow-xs"
                 onClick={() => acceptRequest(sender.id)}
                 title="Chấp nhận"
               >
-                <Check className="size-3.5 mr-1" />
-                <span>Đồng ý</span>
+                <Check data-icon="inline-start" />
+                Đồng ý
               </Button>
 
               <Button
@@ -90,8 +90,8 @@ export default function ReceivedFriendRequestsList() {
                 onClick={() => rejectRequest(sender.id)}
                 title="Từ chối"
               >
-                <X className="size-3.5 mr-1" />
-                <span>Từ chối</span>
+                <X data-icon="inline-start" />
+                Từ chối
               </Button>
             </div>
           </div>

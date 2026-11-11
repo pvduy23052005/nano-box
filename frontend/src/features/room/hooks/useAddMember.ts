@@ -2,7 +2,8 @@
 
 import { useApolloClient, useMutation } from "@apollo/client/react";
 import { toast } from "sonner";
-import { MemberRole } from "../types/room.type";
+import { GRAPHQL_TYPENAMES } from "@/src/core/constants/graphql.constant";
+import { MemberRole, MemberStatus } from "../types/room.type";
 import type { GetRoomDetailQuery } from "@/src/types/graphql/graphql";
 import {
   ADD_MEMBER_TO_ROOM_MUTATION,
@@ -30,17 +31,20 @@ export const useAddMember = () => {
 
       const optimisticResponse = currentRoom
         ? {
-            __typename: "Mutation" as const,
+            __typename: GRAPHQL_TYPENAMES.MUTATION,
             addMemberToRoom: {
-              __typename: "RoomOutput" as const,
+              __typename: GRAPHQL_TYPENAMES.ROOM,
               ...currentRoom,
               members: [
                 ...(currentRoom.members || []),
                 {
-                  __typename: "RoomMemberOutput" as const,
+                  __typename: GRAPHQL_TYPENAMES.ROOM_MEMBER,
+                  userId,
                   role: MemberRole.MEMBER,
+                  status: MemberStatus.ACCEPTED,
+                  lastReadMessageId: null,
                   user: {
-                    __typename: "RoomMemberUserOutput" as const,
+                    __typename: GRAPHQL_TYPENAMES.ROOM_MEMBER_USER,
                     id: userId,
                     name: memberName || "Người dùng",
                     avatar: memberAvatar || "",

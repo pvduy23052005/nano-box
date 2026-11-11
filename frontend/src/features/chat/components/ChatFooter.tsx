@@ -19,12 +19,15 @@ import {
 } from "./mention/suggestion";
 import { MentionSuggestionItem } from "./mention/MentionList";
 import { Button } from "@/src/components/ui/button";
+import { Separator } from "@/src/components/ui/separator";
+import { cn } from "@/src/lib/utils";
 import ChatEmojiPicker from "./ChatEmojiPicker";
 import ChatImagePreview, {
   PendingImage,
   UploadStatus,
 } from "./ChatImagePreview";
 import { uploadTempFile } from "@/src/services/upload.service";
+import { useChatDropStore } from "../stores/useChatDropStore";
 import { useRef, useState, useEffect } from "react";
 import {
   AtSign,
@@ -149,12 +152,27 @@ export default function ChatFooter() {
     });
   };
 
+  const handleSelectFilesRef = useRef(handleSelectFiles);
+  useEffect(() => {
+    handleSelectFilesRef.current = handleSelectFiles;
+  });
+
+  useEffect(() => {
+    const unregister = useChatDropStore
+      .getState()
+      .registerDropHandler((files) => handleSelectFilesRef.current(files));
+    return unregister;
+  }, []);
+
   const handleSendRef = useRef<() => void>(() => {});
 
   const editor = useEditor({
     editable: Boolean(activeRoomId),
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        link: false,
+        underline: false,
+      }),
       UnderlineExtension,
       LinkExtension.configure({
         openOnClick: false,
@@ -211,6 +229,15 @@ export default function ChatFooter() {
         if (pastedFiles.length > 0) {
           event.preventDefault();
           handleSelectFiles(pastedFiles);
+          return true;
+        }
+        return false;
+      },
+      handleDrop: (view, event) => {
+        const files = event.dataTransfer?.files;
+        if (files && files.length > 0) {
+          event.preventDefault();
+          handleSelectFiles(Array.from(files));
           return true;
         }
         return false;
@@ -316,111 +343,103 @@ export default function ChatFooter() {
             variant="ghost"
             size="icon"
             type="button"
-            className={`size-8 text-muted-foreground hover:text-foreground ${
-              editor?.isActive("bold")
-                ? "bg-accent text-accent-foreground font-bold"
-                : ""
-            }`}
+            className={cn(
+              "size-8 text-muted-foreground hover:text-foreground",
+              editor?.isActive("bold") && "bg-accent text-accent-foreground font-bold",
+            )}
             onClick={() => editor?.chain().focus().toggleBold().run()}
           >
-            <Bold className="size-4.5" />
+            <Bold />
           </Button>
           <Button
             variant="ghost"
             size="icon"
             type="button"
-            className={`size-8 text-muted-foreground hover:text-foreground ${
-              editor?.isActive("italic")
-                ? "bg-accent text-accent-foreground font-bold"
-                : ""
-            }`}
+            className={cn(
+              "size-8 text-muted-foreground hover:text-foreground",
+              editor?.isActive("italic") && "bg-accent text-accent-foreground font-bold",
+            )}
             onClick={() => editor?.chain().focus().toggleItalic().run()}
           >
-            <Italic className="size-4.5" />
+            <Italic />
           </Button>
           <Button
             variant="ghost"
             size="icon"
             type="button"
-            className={`size-8 text-muted-foreground hover:text-foreground ${
-              editor?.isActive("underline")
-                ? "bg-accent text-accent-foreground font-bold"
-                : ""
-            }`}
+            className={cn(
+              "size-8 text-muted-foreground hover:text-foreground",
+              editor?.isActive("underline") && "bg-accent text-accent-foreground font-bold",
+            )}
             onClick={() => editor?.chain().focus().toggleUnderline().run()}
           >
-            <Underline className="size-4.5" />
+            <Underline />
           </Button>
           <Button
             variant="ghost"
             size="icon"
             type="button"
-            className={`size-8 text-muted-foreground hover:text-foreground ${
-              editor?.isActive("strike")
-                ? "bg-accent text-accent-foreground font-bold"
-                : ""
-            }`}
+            className={cn(
+              "size-8 text-muted-foreground hover:text-foreground",
+              editor?.isActive("strike") && "bg-accent text-accent-foreground font-bold",
+            )}
             onClick={() => editor?.chain().focus().toggleStrike().run()}
           >
-            <Strikethrough className="size-4.5" />
+            <Strikethrough />
           </Button>
 
-          <div className="w-[1px] h-4 bg-border mx-1 shrink-0" />
+          <Separator orientation="vertical" className="h-4 mx-1 shrink-0" />
 
           <Button
             variant="ghost"
             size="icon"
             type="button"
-            className={`size-8 text-muted-foreground hover:text-foreground ${
-              editor?.isActive("link")
-                ? "bg-accent text-accent-foreground font-bold"
-                : ""
-            }`}
+            className={cn(
+              "size-8 text-muted-foreground hover:text-foreground",
+              editor?.isActive("link") && "bg-accent text-accent-foreground font-bold",
+            )}
             onClick={handleSetLink}
           >
-            <Link className="size-4.5" />
+            <Link />
           </Button>
           <Button
             variant="ghost"
             size="icon"
             type="button"
-            className={`size-8 text-muted-foreground hover:text-foreground ${
-              editor?.isActive("orderedList")
-                ? "bg-accent text-accent-foreground font-bold"
-                : ""
-            }`}
+            className={cn(
+              "size-8 text-muted-foreground hover:text-foreground",
+              editor?.isActive("orderedList") && "bg-accent text-accent-foreground font-bold",
+            )}
             onClick={() => editor?.chain().focus().toggleOrderedList().run()}
           >
-            <ListOrdered className="size-4.5" />
+            <ListOrdered />
           </Button>
           <Button
             variant="ghost"
             size="icon"
             type="button"
-            className={`size-8 text-muted-foreground hover:text-foreground ${
-              editor?.isActive("bulletList")
-                ? "bg-accent text-accent-foreground font-bold"
-                : ""
-            }`}
+            className={cn(
+              "size-8 text-muted-foreground hover:text-foreground",
+              editor?.isActive("bulletList") && "bg-accent text-accent-foreground font-bold",
+            )}
             onClick={() => editor?.chain().focus().toggleBulletList().run()}
           >
-            <List className="size-4.5" />
+            <List />
           </Button>
 
-          <div className="w-[1px] h-4 bg-border mx-1 shrink-0" />
+          <Separator orientation="vertical" className="h-4 mx-1 shrink-0" />
 
           <Button
             variant="ghost"
             size="icon"
             type="button"
-            className={`size-8 text-muted-foreground hover:text-foreground ${
-              editor?.isActive("blockquote")
-                ? "bg-accent text-accent-foreground font-bold"
-                : ""
-            }`}
+            className={cn(
+              "size-8 text-muted-foreground hover:text-foreground",
+              editor?.isActive("blockquote") && "bg-accent text-accent-foreground font-bold",
+            )}
             onClick={() => editor?.chain().focus().toggleBlockquote().run()}
           >
-            <Outdent className="size-4.5" />
+            <Outdent />
           </Button>
         </div>
 
@@ -456,7 +475,7 @@ export default function ChatFooter() {
               onClick={() => fileInputRef.current?.click()}
               title="Chọn ảnh"
             >
-              <ImageIcon className="size-5" />
+              <ImageIcon />
             </Button>
 
             <Button
@@ -468,7 +487,7 @@ export default function ChatFooter() {
               onClick={() => docInputRef.current?.click()}
               title="Đính kèm file"
             >
-              <FileText className="size-5" />
+              <FileText />
             </Button>
 
             <Button
@@ -482,7 +501,7 @@ export default function ChatFooter() {
               }}
               title="Nhắc đến ai đó"
             >
-              <AtSign className="size-5" />
+              <AtSign />
             </Button>
 
             <input
@@ -504,7 +523,7 @@ export default function ChatFooter() {
             className="size-10 text-primary hover:text-primary/80 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             onClick={handleSend}
           >
-            <SendHorizontal className="size-5" />
+            <SendHorizontal />
           </Button>
         </div>
       </div>

@@ -6,6 +6,7 @@ import {
 } from "../room.mutation";
 import { useApolloClient, useMutation } from "@apollo/client/react";
 import { toast } from "sonner";
+import { GRAPHQL_TYPENAMES } from "@/src/core/constants/graphql.constant";
 import { MemberRole } from "../types/room.type";
 import type { GetRoomDetailQuery } from "@/src/types/graphql/graphql";
 
@@ -29,9 +30,9 @@ export const useRevokeAdmin = () => {
 
       const optimisticResponse = currentRoom
         ? {
-            __typename: "Mutation" as const,
+            __typename: GRAPHQL_TYPENAMES.MUTATION,
             revokeRoomAdmin: {
-              __typename: "RoomOutput" as const,
+              __typename: GRAPHQL_TYPENAMES.ROOM,
               ...currentRoom,
               members: (currentRoom.members || []).map((m) =>
                 m.user?.id === userId ? { ...m, role: MemberRole.MEMBER } : m,

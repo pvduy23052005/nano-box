@@ -17,13 +17,62 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://nano-boxes.id.vn";
+
 export const metadata: Metadata = {
-  title: "Nano Box",
-  description: "Nhắn tin và quản lý lịch trình",
+  metadataBase: new URL(APP_URL),
+  title: {
+    default: "Nano Box - Nền tảng nhắn tin và quản lý lịch trình",
+    template: "%s | Nano Box",
+  },
+  description:
+    "Nano Box - Nền tảng nhắn tin bảo mật, trò chuyện nhóm và đồng bộ lịch trình thời gian thực.",
+  applicationName: "Nano Box",
+  keywords: [
+    "Nano Box",
+    "chat",
+    "nhắn tin",
+    "lịch trình",
+    "realtime",
+    "bảo mật",
+  ],
+  authors: [{ name: "Nano Box Team" }],
+  creator: "Nano Box",
   icons: {
-    icon: [{ url: "/logo.svg", type: "image/svg+xml" }],
+    icon: [
+      { url: "/logo.svg", type: "image/svg+xml" },
+      { url: "/logo.png", type: "image/png" },
+    ],
     shortcut: "/logo.svg",
-    apple: "/logo.svg",
+    apple: "/logo.png",
+  },
+  openGraph: {
+    type: "website",
+    locale: "vi_VN",
+    url: APP_URL,
+    siteName: "Nano Box",
+    title: "Nano Box - Nền tảng nhắn tin và quản lý lịch trình",
+    description:
+      "Nano Box - Nền tảng nhắn tin bảo mật, trò chuyện nhóm và đồng bộ lịch trình thời gian thực.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Nano Box - Nền tảng nhắn tin và quản lý lịch trình",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nano Box - Nền tảng nhắn tin và quản lý lịch trình",
+    description:
+      "Nano Box - Nền tảng nhắn tin bảo mật, trò chuyện nhóm và đồng bộ lịch trình thời gian thực.",
+    images: ["/og-image.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 

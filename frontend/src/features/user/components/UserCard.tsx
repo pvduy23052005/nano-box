@@ -7,6 +7,7 @@ import { Spinner } from "../../../components/ui/spinner";
 import { Button } from "../../../components/ui/button";
 import { MessageSquare, UserCheck, UserPlus } from "lucide-react";
 import { Typography } from "@/src/components/ui/typography";
+import { cn } from "@/src/lib/utils";
 
 export interface UserItem {
   id: string;
@@ -59,11 +60,12 @@ export default function UserCard({
           variant="outline"
           size="icon"
           disabled={isFriendRequestSent || isCreating}
-          className={`size-8 cursor-pointer transition-colors ${
+          className={cn(
+            "size-8 cursor-pointer transition-colors",
             isFriendRequestSent
-              ? "text-emerald-600 bg-emerald-50 border-emerald-200"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-          }`}
+              ? "text-primary bg-primary/10 border-primary/20"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted",
+          )}
           onClick={(e) => {
             e.stopPropagation();
             if (!isFriendRequestSent) {
@@ -76,26 +78,22 @@ export default function UserCard({
               : "Kết bạn"
           }
         >
-          {isFriendRequestSent ? (
-            <UserCheck className="size-4" />
-          ) : (
-            <UserPlus className="size-4" />
-          )}
+          {isFriendRequestSent ? <UserCheck /> : <UserPlus />}
         </Button>
 
         <Button
           size="sm"
           disabled={isCreating}
-          className="text-xs h-8 px-3.5 text-white bg-primary hover:bg-primary/90 transition-colors cursor-pointer font-medium shadow-xs"
+          className="text-xs h-8 px-3.5 transition-colors cursor-pointer font-medium shadow-xs"
           onClick={(e) => {
             e.stopPropagation();
             onStartChat(user.id);
           }}
         >
           {isCreating ? (
-            <Spinner className="size-3.5 mr-1.5" />
+            <Spinner data-icon="inline-start" />
           ) : (
-            <MessageSquare className="size-3.5 mr-1.5" />
+            <MessageSquare data-icon="inline-start" />
           )}
           <span className="md:hidden lg:block">Nhắn tin</span>
         </Button>

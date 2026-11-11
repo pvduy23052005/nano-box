@@ -82,13 +82,8 @@ export class NotificationListener {
     payload: MessageMentionEventPayload,
   ): Promise<void> {
     try {
-      const {
-        message,
-        mentionedUserIds,
-        senderId,
-        senderName,
-        senderAvatar,
-      } = payload;
+      const { message, mentionedUserIds, senderId, senderName, senderAvatar } =
+        payload;
 
       if (!message || !mentionedUserIds?.length || !senderId) return;
 
@@ -106,9 +101,7 @@ export class NotificationListener {
       const title = displaySenderName || 'Tin nhắn mới';
       const content = `${displaySenderName || 'Ai đó'} đã nhắc đến bạn trong một tin nhắn.`;
 
-      const recipients = mentionedUserIds.filter(
-        (id) => id && id !== senderId,
-      );
+      const recipients = mentionedUserIds.filter((id) => id && id !== senderId);
 
       const results = await Promise.allSettled(
         recipients.map(async (recipientId) => {

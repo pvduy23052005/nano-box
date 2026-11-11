@@ -1,4 +1,5 @@
 import { ApolloCache } from "@apollo/client";
+import { GRAPHQL_TYPENAMES } from "@/src/core/constants/graphql.constant";
 import {
   GET_ROOMS_BY_STATUS_QUERY,
   GET_ROOM_DETAIL_QUERY,
@@ -38,24 +39,27 @@ export const appendRoomToCache = (
   tempId?: string,
 ): void => {
   const normalizedRoom = {
+    __typename: GRAPHQL_TYPENAMES.ROOM,
     id: newRoom.id,
     title: newRoom.title ?? null,
     typeRoom: newRoom.typeRoom,
     lastMessageId: newRoom.lastMessageId
       ? {
-        id: newRoom.lastMessageId.id ?? null,
-        content: newRoom.lastMessageId.content ?? null,
-        senderId: newRoom.lastMessageId.senderId ?? null,
-        createdAt: newRoom.lastMessageId.createdAt ?? null,
-        mentionedUserIds: newRoom.lastMessageId.mentionedUserIds ?? null,
-      }
+          __typename: GRAPHQL_TYPENAMES.LAST_MESSAGE,
+          id: newRoom.lastMessageId.id ?? null,
+          content: newRoom.lastMessageId.content ?? null,
+          senderId: newRoom.lastMessageId.senderId ?? null,
+          createdAt: newRoom.lastMessageId.createdAt ?? null,
+          mentionedUserIds: newRoom.lastMessageId.mentionedUserIds ?? null,
+        }
       : null,
     avatar: newRoom.avatar ?? null,
     groupAvatars: newRoom.groupAvatars ?? null,
     members: newRoom.members
-      ? newRoom.members.map((m) => ({
-          userId: m.userId,
-          lastReadMessageId: m.lastReadMessageId ?? null,
+      ? newRoom.members.map((member) => ({
+          __typename: GRAPHQL_TYPENAMES.ROOM_MEMBER,
+          userId: member.userId,
+          lastReadMessageId: member.lastReadMessageId ?? null,
         }))
       : null,
   };
@@ -118,12 +122,13 @@ export const updateRoomLastMessageInCache = (
           ...targetRoom,
           lastMessageId: lastMessage
             ? {
-              id: lastMessage.id ?? null,
-              content: lastMessage.content ?? null,
-              senderId: lastMessage.senderId ?? null,
-              createdAt: lastMessage.createdAt ?? null,
-              mentionedUserIds: lastMessage.mentionedUserIds ?? null,
-            }
+                __typename: GRAPHQL_TYPENAMES.LAST_MESSAGE,
+                id: lastMessage.id ?? null,
+                content: lastMessage.content ?? null,
+                senderId: lastMessage.senderId ?? null,
+                createdAt: lastMessage.createdAt ?? null,
+                mentionedUserIds: lastMessage.mentionedUserIds ?? null,
+              }
             : null,
         };
 
@@ -205,7 +210,7 @@ export const removeRoomFromCache = (
   }
 
   cache.evict({
-    id: cache.identify({ __typename: "RoomOutput", id: roomId }),
+    id: cache.identify({ __typename: GRAPHQL_TYPENAMES.ROOM, id: roomId }),
   });
   cache.gc();
 };
