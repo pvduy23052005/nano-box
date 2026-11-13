@@ -22,7 +22,7 @@ export default function FriendSelectItem({
     <div
       onClick={() => onToggle(friend)}
       className={cn(
-        "flex items-center justify-between p-2.5 sm:px-3 hover:bg-accent/60 transition-colors cursor-pointer select-none",
+        "w-full text-left flex items-center justify-between p-2.5 sm:px-3 hover:bg-accent/60 transition-colors cursor-pointer select-none",
         isSelected && "bg-accent/80",
       )}
     >

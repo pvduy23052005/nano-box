@@ -23,11 +23,8 @@ import {
 } from "@/src/components/ui/input-group";
 import { Spinner } from "@/src/components/ui/spinner";
 import { Search, Users, X } from "lucide-react";
-import { useDebounce } from "@/src/hooks/useDebounce";
-import { useFriends } from "@/src/features/user/hooks/useGetFriends";
-import { useAuthStore } from "@/src/features/auth/store/useAuthStore";
 import { useCreateGroupRoom } from "../hooks/useCreateGroupRoom";
-import { SelectedUser } from "./create-group/types";
+import { useSelectableFriends } from "../hooks/useSelectableFriends";
 import SelectedFriendBadges from "./create-group/SelectedFriendBadges";
 import FriendSelectList from "./create-group/FriendSelectList";
 
@@ -40,50 +37,45 @@ export default function CreateGroupRoomDialog({
 }: CreateGroupRoomDialogProps) {
   const [title, setTitle] = useState("");
   const [titleError, setTitleError] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedUsers, setSelectedUsers] = useState<SelectedUser[]>([]);
 
-  const debouncedSearch = useDebounce(searchQuery.trim(), 300);
-  const { friends, loading: loadingFriends } = useFriends(debouncedSearch);
-  const currentUser = useAuthStore((state) => state.user);
+  const {
+    searchQuery,
+    setSearchQuery,
+    selectedUsers,
+    availableFriends,
+    loadingFriends,
+    handleToggleUser,
+    handleRemoveSelectedUser,
+    resetSelection,
+  } = useSelectableFriends();
+
   const { createGroupRoom, loading: isCreating } = useCreateGroupRoom();
-
-  const availableFriends = (friends || []).filter(
-    (friend) => friend.id !== currentUser?.id,
-  );
 
   const handleClose = () => {
     setTitle("");
     setTitleError("");
-    setSearchQuery("");
-    setSelectedUsers([]);
+    resetSelection();
     onClose();
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    if (!open) {
+      handleClose();
+    }
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setTitle(val);
-    if (!val.trim()) {
-      setTitleError("Tên nhóm không được để trống");
-    } else {
-      setTitleError("");
-    }
+    setTitleError(val.trim() ? "" : "Tên nhóm không được để trống");
   };
 
-  const handleToggleUser = (user: SelectedUser) => {
-    setSelectedUsers((prev) => {
-      const exists = prev.some((selectedUser) => selectedUser.id === user.id);
-      if (exists) {
-        return prev.filter((selectedUser) => selectedUser.id !== user.id);
-      }
-      return [...prev, user];
-    });
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
   };
 
-  const handleRemoveSelectedUser = (userId: string) => {
-    setSelectedUsers((prev) =>
-      prev.filter((selectedUser) => selectedUser.id !== userId),
-    );
+  const handleClearSearch = () => {
+    setSearchQuery("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -105,14 +97,15 @@ export default function CreateGroupRoomDialog({
         memberIds: selectedUsers.map((selectedUser) => selectedUser.id),
       });
       handleClose();
-    } catch {}
+    } catch {
+    }
   };
 
   const isSubmitDisabled =
     isCreating || !title.trim() || selectedUsers.length < 2;
 
   return (
-    <Dialog open onOpenChange={(open) => !open && handleClose()}>
+    <Dialog open onOpenChange={handleDialogOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden">
         <DialogHeader className="p-4 sm:p-5 border-b border-border/60">
           <DialogTitle className="text-base sm:text-lg font-semibold">
@@ -162,7 +155,7 @@ export default function CreateGroupRoomDialog({
                     className="text-xs"
                     placeholder="Tìm kiếm bạn bè theo tên..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={handleSearchChange}
                     disabled={isCreating}
                   />
                   {searchQuery && (
@@ -170,10 +163,9 @@ export default function CreateGroupRoomDialog({
                       <InputGroupButton
                         size="icon-xs"
                         variant="ghost"
-                        onClick={() => setSearchQuery("")}
+                        onClick={handleClearSearch}
                         title="Xóa tìm kiếm"
                         aria-label="Xóa tìm kiếm"
-                        className="cursor-pointer"
                       >
                         <X />
                       </InputGroupButton>
@@ -199,7 +191,6 @@ export default function CreateGroupRoomDialog({
               size="sm"
               onClick={handleClose}
               disabled={isCreating}
-              className="cursor-pointer"
             >
               Hủy
             </Button>
@@ -207,7 +198,6 @@ export default function CreateGroupRoomDialog({
               type="submit"
               size="sm"
               disabled={isSubmitDisabled}
-              className="cursor-pointer"
             >
               {isCreating && <Spinner data-icon="inline-start" />}
               {isCreating ? "Đang tạo nhóm..." : "Tạo nhóm"}

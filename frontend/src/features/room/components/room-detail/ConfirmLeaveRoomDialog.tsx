@@ -40,10 +40,20 @@ export default function ConfirmLeaveRoomDialog({
     }
   };
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!isLeaving) {
+      onOpenChange(nextOpen);
+    }
+  };
+
+  const handleCancel = () => {
+    handleOpenChange(false);
+  };
+
   const isSoleMember = memberCount <= 1;
 
   return (
-    <Dialog open={open} onOpenChange={isLeaving ? () => {} : onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="flex flex-col items-center sm:items-start gap-2">
           <div className="size-11 rounded-full bg-destructive/10 text-destructive flex items-center justify-center">
@@ -84,9 +94,8 @@ export default function ConfirmLeaveRoomDialog({
           <Button
             type="button"
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={handleCancel}
             disabled={isLeaving}
-            className="cursor-pointer"
           >
             Hủy
           </Button>
@@ -95,7 +104,6 @@ export default function ConfirmLeaveRoomDialog({
             variant="destructive"
             onClick={handleConfirmLeave}
             disabled={isLeaving}
-            className="cursor-pointer"
           >
             {isLeaving && <Spinner data-icon="inline-start" />}
             Rời phòng

@@ -1,5 +1,3 @@
-"use client";
-
 import RoomList from "./RoomList";
 import { ChatRoom } from "../stores/useRoomStore";
 

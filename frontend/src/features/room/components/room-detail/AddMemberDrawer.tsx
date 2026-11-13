@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -17,13 +17,10 @@ import {
 } from "@/src/components/ui/input-group";
 import { Spinner } from "@/src/components/ui/spinner";
 import { Search, X } from "lucide-react";
-import { useDebounce } from "@/src/hooks/useDebounce";
-import { useFriends } from "@/src/features/user/hooks/useGetFriends";
-import { useAuthStore } from "@/src/features/auth/store/useAuthStore";
 import { useAddMember } from "../../hooks/useAddMember";
-import { SelectedUser } from "../create-group/types";
+import { useSelectableFriends } from "../../hooks/useSelectableFriends";
 import SelectedFriendBadges from "../create-group/SelectedFriendBadges";
-import FriendSelectItem from "../create-group/FriendSelectItem";
+import FriendSelectList from "../create-group/FriendSelectList";
 
 interface AddMemberDrawerProps {
   onClose: () => void;
@@ -36,45 +33,26 @@ export default function AddMemberDrawer({
   roomId,
   existingMemberIds,
 }: AddMemberDrawerProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedUsers, setSelectedUsers] = useState<SelectedUser[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const debouncedSearch = useDebounce(searchQuery.trim(), 300);
-  const { friends, loading: loadingFriends } = useFriends(debouncedSearch);
-  const currentUser = useAuthStore((state) => state.user);
-  const currentUserId = currentUser?.id;
-  const { addMember } = useAddMember();
+  const {
+    searchQuery,
+    setSearchQuery,
+    selectedUsers,
+    availableFriends,
+    totalFriendsCount,
+    loadingFriends,
+    handleToggleUser,
+    handleRemoveSelectedUser,
+    resetSelection,
+  } = useSelectableFriends({ excludeIds: existingMemberIds });
 
-  const availableFriends = useMemo(() => {
-    const existingSet = new Set(existingMemberIds);
-    if (currentUserId) {
-      existingSet.add(currentUserId);
-    }
-    return (friends || []).filter((friend) => !existingSet.has(friend.id));
-  }, [friends, existingMemberIds, currentUserId]);
+  const { addMember } = useAddMember();
 
   const handleClose = () => {
     if (isSubmitting) return;
-    setSearchQuery("");
-    setSelectedUsers([]);
+    resetSelection();
     onClose();
-  };
-
-  const handleToggleUser = (user: SelectedUser) => {
-    setSelectedUsers((prev) => {
-      const exists = prev.some((selectedUser) => selectedUser.id === user.id);
-      if (exists) {
-        return prev.filter((selectedUser) => selectedUser.id !== user.id);
-      }
-      return [...prev, user];
-    });
-  };
-
-  const handleRemoveSelectedUser = (userId: string) => {
-    setSelectedUsers((prev) =>
-      prev.filter((selectedUser) => selectedUser.id !== userId),
-    );
   };
 
   const handleSubmit = async () => {
@@ -94,6 +72,14 @@ export default function AddMemberDrawer({
       setIsSubmitting(false);
     }
   };
+
+  const hasFriends = totalFriendsCount > 0;
+  const emptyTitle = hasFriends
+    ? "Tất cả bạn bè đã tham gia nhóm"
+    : "Bạn chưa có bạn bè nào";
+  const emptyDescription = hasFriends
+    ? "Không có bạn bè nào khác để thêm vào nhóm này."
+    : "Kết bạn trước để có thể thêm thành viên vào nhóm.";
 
   return (
     <Sheet open onOpenChange={(open) => !open && handleClose()}>
@@ -115,7 +101,7 @@ export default function AddMemberDrawer({
 
           <InputGroup className="h-9 shrink-0">
             <InputGroupAddon align="inline-start">
-              <Search className="size-4 text-muted-foreground" />
+              <Search />
             </InputGroupAddon>
             <InputGroupInput
               id="drawer-friend-search"
@@ -133,62 +119,23 @@ export default function AddMemberDrawer({
                   onClick={() => setSearchQuery("")}
                   title="Xóa tìm kiếm"
                   aria-label="Xóa tìm kiếm"
-                  className="cursor-pointer"
                 >
-                  <X className="size-3.5" />
+                  <X />
                 </InputGroupButton>
               </InputGroupAddon>
             )}
           </InputGroup>
 
-          <div className="border border-border/60 rounded-xl overflow-hidden flex flex-col flex-1 min-h-[240px] bg-muted/10">
-            <div className="flex-1 overflow-y-auto divide-y divide-border/40">
-              {loadingFriends ? (
-                <div className="flex h-full items-center justify-center p-4 text-xs text-muted-foreground gap-2">
-                  <Spinner className="size-4" />
-                  Đang tìm kiếm bạn bè...
-                </div>
-              ) : availableFriends.length === 0 ? (
-                <div className="flex flex-col h-full items-center justify-center p-4 text-xs text-muted-foreground text-center gap-1">
-                  {searchQuery ? (
-                    <p>
-                      Không tìm thấy bạn bè nào khớp với &quot;{searchQuery}
-                      &quot;
-                    </p>
-                  ) : (friends || []).length > 0 ? (
-                    <>
-                      <p className="font-medium text-foreground">
-                        Tất cả bạn bè đã tham gia nhóm
-                      </p>
-                      <p className="text-[11px] text-muted-foreground">
-                        Không có bạn bè nào khác để thêm vào nhóm này.
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="font-medium text-foreground">
-                        Bạn chưa có bạn bè nào
-                      </p>
-                      <p className="text-[11px] text-muted-foreground">
-                        Kết bạn trước để có thể thêm thành viên vào nhóm.
-                      </p>
-                    </>
-                  )}
-                </div>
-              ) : (
-                availableFriends.map((friend) => (
-                  <FriendSelectItem
-                    key={friend.id}
-                    friend={friend}
-                    isSelected={selectedUsers.some(
-                      (user) => user.id === friend.id,
-                    )}
-                    onToggle={handleToggleUser}
-                  />
-                ))
-              )}
-            </div>
-          </div>
+          <FriendSelectList
+            friends={availableFriends}
+            selectedUsers={selectedUsers}
+            onToggleUser={handleToggleUser}
+            loading={loadingFriends}
+            searchQuery={searchQuery}
+            emptyTitle={emptyTitle}
+            emptyDescription={emptyDescription}
+            className="flex-1 min-h-[240px] rounded-xl h-auto"
+          />
         </div>
 
         <SheetFooter className="p-3 sm:p-4 border-t border-border/60 bg-muted/20 gap-2 flex-row justify-end mt-0">
@@ -198,7 +145,6 @@ export default function AddMemberDrawer({
             size="sm"
             onClick={handleClose}
             disabled={isSubmitting}
-            className="cursor-pointer"
           >
             Hủy
           </Button>
@@ -207,7 +153,6 @@ export default function AddMemberDrawer({
             size="sm"
             onClick={handleSubmit}
             disabled={isSubmitting || selectedUsers.length === 0}
-            className="cursor-pointer"
           >
             {isSubmitting && <Spinner data-icon="inline-start" />}
             {selectedUsers.length > 0

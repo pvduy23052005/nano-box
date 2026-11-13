@@ -13,7 +13,6 @@ import { useAuthStore } from "../../auth/store/useAuthStore";
 import { useReadReceiptStore } from "@/src/features/chat/stores/useReadReceiptStore";
 import { usePresenceStore } from "@/src/features/user/stores/usePresenceStore";
 import { formatMessageTime } from "@/src/utils/formatTime";
-
 import { RoomType } from "../types/room.type";
 import { GroupAvatar } from "./GroupAvatar";
 
@@ -27,6 +26,23 @@ const cleanHtmlText = (html: string) => {
   return DOMPurify.sanitize(html, { ALLOWED_TAGS: [] })
     .replace(/&nbsp;/g, " ")
     .trim();
+};
+
+const getRoomPreviewText = (room: ChatRoom, isMe: boolean): string => {
+  if (!room.lastMessageId) {
+    return "Bắt đầu cuộc trò chuyện";
+  }
+
+  if (typeof room.lastMessageId !== "object" || room.lastMessageId === null) {
+    return "Tin nhắn mới nhất";
+  }
+
+  const rawContent = room.lastMessageId.content
+    ? cleanHtmlText(room.lastMessageId.content)
+    : "";
+  const displayContent = rawContent || "Tin nhắn mới nhất";
+
+  return isMe ? `Bạn: ${displayContent}` : displayContent;
 };
 
 export default function RoomCard({
@@ -50,7 +66,7 @@ export default function RoomCard({
     (state) => state.readByRoom[room.id]?.[user?.id ?? ""],
   );
   const myLastReadIdFromRoom = room.members?.find(
-    (m) => m.userId === user?.id,
+    (member) => member.userId === user?.id,
   )?.lastReadMessageId;
   const effectiveMyLastReadId = myLastReadId || myLastReadIdFromRoom;
 
@@ -73,30 +89,14 @@ export default function RoomCard({
     !!user?.id &&
     Boolean(lastMessage?.mentionedUserIds?.includes(user.id));
 
-  const getPreviewText = () => {
-    if (!room.lastMessageId) {
-      return "Bắt đầu cuộc trò chuyện";
-    }
-
-    if (!lastMessage) {
-      return "Tin nhắn mới nhất";
-    }
-
-    const rawContent = lastMessage.content
-      ? cleanHtmlText(lastMessage.content)
-      : "";
-    const displayContent = rawContent || "Tin nhắn mới nhất";
-
-    return isMe ? `Bạn: ${displayContent}` : displayContent;
-  };
-
+  const previewText = getRoomPreviewText(room, isMe);
   const timeText = formatMessageTime(lastMessage?.createdAt);
 
   return (
     <div
       onClick={onClick}
       className={cn(
-        "relative flex items-center bg-card justify-start gap-3 cursor-pointer p-2.5 sm:p-2.5 transition-all duration-150 w-full active:scale-[0.99] active:bg-accent/40 select-none",
+        "relative flex items-center bg-card justify-start gap-3 cursor-pointer p-2.5 transition-all duration-150 w-full active:scale-[0.99] active:bg-accent/40 select-none",
         isSelected
           ? "bg-accent/40 text-foreground border-l-4 border-primary"
           : "hover:bg-accent/20 text-foreground",
@@ -136,7 +136,7 @@ export default function RoomCard({
         <div className="flex items-center justify-between gap-1">
           <Typography
             variant="small"
-            className={cn("truncate font-semibold text-[13px] text-foreground")}
+            className="truncate font-semibold text-[13px] text-foreground"
           >
             {displayName}
           </Typography>
@@ -159,7 +159,7 @@ export default function RoomCard({
             {isUnread && isMentioned && (
               <span className="text-primary font-semibold mr-1">[@Bạn]</span>
             )}
-            {getPreviewText()}
+            {previewText}
           </Typography>
           {isUnread && (
             <span
@@ -170,7 +170,7 @@ export default function RoomCard({
                   : "size-2 bg-primary",
               )}
             >
-              {isMentioned ? "@" : null}
+              {isMentioned && "@"}
             </span>
           )}
         </div>

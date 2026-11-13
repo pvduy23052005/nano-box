@@ -19,26 +19,25 @@ export default function RoomList({
   error,
   emptyMessage = "Chưa có cuộc trò chuyện nào",
 }: RoomListProps) {
-  const { activeRoomId, setActiveRoom } = useRoomStore();
+  const activeRoomId = useRoomStore((state) => state.activeRoomId);
+  const setActiveRoom = useRoomStore((state) => state.setActiveRoom);
+
+  if (isLoading && rooms.length === 0) return <RoomSkeleton />;
+
+  if (error) return <RoomError />;
+
+  if (rooms.length === 0) return <RoomEmptyState message={emptyMessage} />;
 
   return (
     <>
-      {isLoading && rooms.length === 0 ? (
-        <RoomSkeleton />
-      ) : error ? (
-        <RoomError />
-      ) : rooms.length === 0 ? (
-        <RoomEmptyState message={emptyMessage} />
-      ) : (
-        rooms.map((room) => (
-          <RoomCard
-            key={room.id}
-            room={room}
-            isSelected={activeRoomId === room.id}
-            onClick={() => setActiveRoom(room)}
-          />
-        ))
-      )}
+      {rooms.map((room) => (
+        <RoomCard
+          key={room.id}
+          room={room}
+          isSelected={activeRoomId === room.id}
+          onClick={() => setActiveRoom(room)}
+        />
+      ))}
     </>
   );
 }

@@ -1,5 +1,3 @@
-"use client";
-
 import { User } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 import {
@@ -17,9 +15,9 @@ export interface GroupAvatarProps {
 }
 
 const slotColors = [
-  "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
-  "bg-blue-500/15 text-blue-600 dark:text-blue-400",
-  "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+  "bg-primary/15 text-primary",
+  "bg-secondary text-secondary-foreground",
+  "bg-muted text-muted-foreground",
 ];
 
 export function GroupAvatar({
@@ -47,7 +45,7 @@ export function GroupAvatar({
           alt={title || "Group avatar"}
           className="rounded-full object-cover"
         />
-        <AvatarFallback className="rounded-full bg-emerald-50 text-emerald-700 text-sm font-semibold">
+        <AvatarFallback className="rounded-full bg-primary/10 text-primary text-sm font-semibold">
           {initials}
         </AvatarFallback>
       </Avatar>
@@ -84,26 +82,27 @@ export function GroupAvatar({
             className={cn(
               "absolute size-[52%] rounded-full overflow-hidden flex items-center justify-center shadow-xs",
               size === "md"
-                ? "ring-1.5 ring-background"
+                ? "ring-[1.5px] ring-background"
                 : "ring-1 ring-background",
               slotPositions[index],
             )}
           >
             <Avatar className="size-full rounded-full after:hidden">
-              {avatarSrc ? (
+              {avatarSrc && (
                 <AvatarImage
                   src={avatarSrc}
                   alt={`Thành viên ${index + 1}`}
                   className="object-cover size-full"
                 />
-              ) : null}
+              )}
               <AvatarFallback
                 className={cn(
                   "flex items-center justify-center size-full",
+                  size === "md" ? "[&_svg]:size-2.5" : "[&_svg]:size-2",
                   slotColors[index],
                 )}
               >
-                <User className={size === "md" ? "size-2.5" : "size-2"} />
+                <User />
               </AvatarFallback>
             </Avatar>
           </div>
