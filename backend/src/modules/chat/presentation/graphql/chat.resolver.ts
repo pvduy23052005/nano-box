@@ -92,6 +92,7 @@ export class ChatResolver {
 
     return {
       ...message,
+      createdAt: message.createdAt ? new Date(message.createdAt) : null,
       isSystem: message.isSystem ?? false,
     };
   }
@@ -133,6 +134,7 @@ export class ChatResolver {
       readBy: message.readBy || [],
       reactions: message.reactions || [],
       isSystem: message.isSystem ?? false,
+      createdAt: message.createdAt ? new Date(message.createdAt) : null,
     };
   }
 }

@@ -44,6 +44,10 @@ export default function ConfirmMemberActionDialog({
 }: ConfirmMemberActionDialogProps) {
   const initials = memberName.slice(0, 2).toUpperCase();
 
+  const handleCancel = () => {
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -77,9 +81,9 @@ export default function ConfirmMemberActionDialog({
           <Button
             type="button"
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={handleCancel}
             disabled={loading}
-            className="h-9 px-4 text-xs sm:text-sm cursor-pointer"
+            className="h-9 px-4 text-xs sm:text-sm"
           >
             Hủy
           </Button>
@@ -88,9 +92,9 @@ export default function ConfirmMemberActionDialog({
             variant={confirmVariant}
             onClick={onConfirm}
             disabled={loading}
-            className="h-9 px-4 text-xs sm:text-sm cursor-pointer"
+            className="h-9 px-4 text-xs sm:text-sm"
           >
-            {loading && <Spinner className="size-3.5 mr-1.5" />}
+            {loading && <Spinner data-icon="inline-start" />}
             {confirmLabel}
           </Button>
         </DialogFooter>

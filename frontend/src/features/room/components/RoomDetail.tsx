@@ -1,67 +1,45 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useGetRoomDetail } from "../hooks/useGetRoomDetail";
-import { useAuthStore } from "../../auth/store/useAuthStore";
-import { usePresenceStore } from "@/src/features/user/stores/usePresenceStore";
-import { MemberRole, RoomType } from "../types/room.type";
+import { ArrowLeft, UserPlus } from "lucide-react";
+import { Button } from "@/src/components/ui/button";
+import { useRoomDetailController } from "../hooks/useRoomDetailController";
 import RoomProfileCard from "./room-detail/RoomProfileCard";
 import RoomActionsCard from "./room-detail/RoomActionsCard";
 import RoomMemberList from "./room-detail/RoomMemberList";
 import RoomDetailSkeleton from "./room-detail/RoomDetailSkeleton";
 import RoomDetailError from "./room-detail/RoomDetailError";
-import AddMemberDrawer from "./room-detail/AddMemberDrawer";
-import EditRoomProfileDialog from "./room-detail/EditRoomProfileDialog";
-import ConfirmLeaveRoomDialog from "./room-detail/ConfirmLeaveRoomDialog";
-import { ArrowLeft, UserPlus } from "lucide-react";
-import { Button } from "@/src/components/ui/button";
+import RoomDetailModals from "./room-detail/RoomDetailModals";
 
-interface RoomDetailViewProps {
+interface RoomDetailProps {
   roomId: string;
 }
 
-export default function RoomDetailView({ roomId }: RoomDetailViewProps) {
+export default function RoomDetail({ roomId }: RoomDetailProps) {
   const router = useRouter();
-  const currentUserId = useAuthStore((state) => state.user?.id);
-  const onlineUsers = usePresenceStore((state) => state.onlineUsers);
-  const [isAddMemberDrawerOpen, setIsAddMemberDrawerOpen] = useState(false);
-  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
-  const [isLeaveRoomOpen, setIsLeaveRoomOpen] = useState(false);
-
-  const { room, loading, error, refetch } = useGetRoomDetail(roomId);
+  const {
+    room,
+    loading,
+    error,
+    refetch,
+    currentUserId,
+    onlineUsers,
+    isGroup,
+    members,
+    existingMemberIds,
+    isSuperAdmin,
+    canAddMember,
+    isAddMemberDrawerOpen,
+    setIsAddMemberDrawerOpen,
+    isEditProfileOpen,
+    setIsEditProfileOpen,
+    isLeaveRoomOpen,
+    setIsLeaveRoomOpen,
+  } = useRoomDetailController(roomId);
 
   const handleBack = () => {
     router.push("/chat");
   };
-
-  const isGroup = room?.typeRoom === RoomType.GROUP;
-  const members = useMemo(() => room?.members ?? [], [room?.members]);
-
-  const existingMemberIds = useMemo(() => {
-    return members
-      .map((m) => m.user?.id)
-      .filter((id): id is string => Boolean(id));
-  }, [members]);
-
-  const isSuperAdmin = useMemo(() => {
-    if (!isGroup || !currentUserId) return false;
-    const myMember = members.find(
-      (member) => member?.user?.id === currentUserId,
-    );
-    return myMember?.role === MemberRole.SUPER_ADMIN;
-  }, [isGroup, currentUserId, members]);
-
-  const canAddMember = useMemo(() => {
-    if (!isGroup || !currentUserId) return false;
-    const myMember = members.find(
-      (member) => member?.user?.id === currentUserId,
-    );
-    return (
-      myMember?.role === MemberRole.SUPER_ADMIN ||
-      myMember?.role === MemberRole.ADMIN
-    );
-  }, [isGroup, currentUserId, members]);
 
   if (loading) {
     return <RoomDetailSkeleton />;
@@ -78,7 +56,7 @@ export default function RoomDetailView({ roomId }: RoomDetailViewProps) {
           <Button
             variant="ghost"
             onClick={handleBack}
-            className="text-primary hover:text-primary/80 h-9 px-2 text-sm font-medium cursor-pointer"
+            className="text-primary hover:text-primary/80 h-9 px-2 text-sm font-medium"
           >
             <ArrowLeft data-icon="inline-start" />
             <span className="truncate">Quay lại cuộc trò chuyện</span>
@@ -88,7 +66,7 @@ export default function RoomDetailView({ roomId }: RoomDetailViewProps) {
             <Button
               size="icon"
               aria-label="Thêm thành viên"
-              className="shrink-0 cursor-pointer"
+              className="shrink-0"
               onClick={() => setIsAddMemberDrawerOpen(true)}
             >
               <UserPlus />
@@ -98,17 +76,13 @@ export default function RoomDetailView({ roomId }: RoomDetailViewProps) {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 items-start w-full min-w-0">
           <div className="lg:col-span-4 flex flex-col gap-2 w-full min-w-0">
-            <RoomProfileCard
-              room={room}
-              currentUserId={currentUserId}
-              canEdit={canAddMember}
-              onEdit={() => setIsEditProfileOpen(true)}
-              onClickAddMember={() => setIsAddMemberDrawerOpen(true)}
-            />
+            <RoomProfileCard room={room} currentUserId={currentUserId} />
             <RoomActionsCard
               isGroup={isGroup}
               onLeaveRoom={() => setIsLeaveRoomOpen(true)}
-              onEditRoom={canAddMember ? () => setIsEditProfileOpen(true) : undefined}
+              onEditRoom={
+                canAddMember ? () => setIsEditProfileOpen(true) : undefined
+              }
             />
           </div>
 
@@ -123,35 +97,21 @@ export default function RoomDetailView({ roomId }: RoomDetailViewProps) {
         </div>
       </div>
 
-      {canAddMember && isAddMemberDrawerOpen && (
-        <AddMemberDrawer
-          onClose={() => setIsAddMemberDrawerOpen(false)}
-          roomId={roomId}
-          existingMemberIds={existingMemberIds}
-        />
-      )}
-
-      {canAddMember && (
-        <EditRoomProfileDialog
-          open={isEditProfileOpen}
-          onOpenChange={setIsEditProfileOpen}
-          roomId={roomId}
-          initialTitle={room.title || ""}
-          initialAvatar={room.avatar}
-          groupAvatars={room.groupAvatars}
-        />
-      )}
-
-      {isGroup && (
-        <ConfirmLeaveRoomDialog
-          open={isLeaveRoomOpen}
-          onOpenChange={setIsLeaveRoomOpen}
-          roomId={roomId}
-          roomTitle={room.title ?? ""}
-          isSuperAdmin={isSuperAdmin}
-          memberCount={members.length}
-        />
-      )}
+      <RoomDetailModals
+        roomId={roomId}
+        room={room}
+        isGroup={isGroup}
+        isSuperAdmin={isSuperAdmin}
+        canAddMember={canAddMember}
+        existingMemberIds={existingMemberIds}
+        memberCount={members.length}
+        isAddMemberDrawerOpen={isAddMemberDrawerOpen}
+        setIsAddMemberDrawerOpen={setIsAddMemberDrawerOpen}
+        isEditProfileOpen={isEditProfileOpen}
+        setIsEditProfileOpen={setIsEditProfileOpen}
+        isLeaveRoomOpen={isLeaveRoomOpen}
+        setIsLeaveRoomOpen={setIsLeaveRoomOpen}
+      />
     </div>
   );
 }

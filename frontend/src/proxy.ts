@@ -5,7 +5,7 @@ import { jwtVerify } from "jose";
 const privatePath = ["/chat", "/users", "/room"];
 const publicPath = ["/login", "/register"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const accessToken = request.cookies.get("accessToken")?.value;
 

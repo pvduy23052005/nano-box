@@ -26,6 +26,7 @@ export const useGetMessages = () => {
       roomId: message.roomId || activeRoomId,
       isMe: message.senderId === currentUserId,
       isSystem: message.isSystem ?? (message.senderId === "system"),
+      createdAt: (message.createdAt as string | Date | undefined) ?? undefined,
     }));
   }, [data?.getMessages?.items, currentUserId, activeRoomId]);
 

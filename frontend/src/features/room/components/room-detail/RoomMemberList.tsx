@@ -20,11 +20,17 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/src/components/ui/input-group";
+import { ToggleGroup, ToggleGroupItem } from "@/src/components/ui/toggle-group";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+} from "@/src/components/ui/empty";
+import { Button } from "@/src/components/ui/button";
 import { cn } from "@/src/lib/utils";
 import { RoomDetailMember } from "./types";
 import RoomMemberItem from "./RoomMemberItem";
 import { MemberRole } from "../../types/room.type";
-import { Button } from "@/src/components/ui/button";
 
 interface RoomMemberListProps {
   roomId: string;
@@ -86,6 +92,21 @@ export default function RoomMemberList({
     ? filteredMembers
     : filteredMembers.slice(0, INITIAL_LIMIT);
 
+  const handleFilterRoleChange = (nextValues: string[]) => {
+    const nextRole = nextValues[0] as FilterRole | undefined;
+    if (nextRole) {
+      setFilterRole(nextRole);
+    }
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleToggleExpanded = () => {
+    setIsExpanded((prev) => !prev);
+  };
+
   return (
     <Card className="shadow-sm w-full min-w-0">
       <CardHeader className="p-2 sm:p-5 pb-0 sm:pb-0 flex-row items-center justify-between border-0 gap-2">
@@ -113,57 +134,59 @@ export default function RoomMemberList({
               <InputGroupInput
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Tìm theo tên, email hoặc tài..."
+                onChange={handleSearchChange}
+                placeholder="Tìm theo tên thành viên..."
               />
             </InputGroup>
           </div>
 
-          <div className="inline-flex items-center p-1 bg-muted/40 border border-border rounded-xl shrink-0 gap-1">
-            <Button
-              type="button"
-              variant={filterRole === "ALL" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setFilterRole("ALL")}
-              className="h-7 sm:h-8 px-2 sm:px-3 text-xs whitespace-nowrap cursor-pointer"
+          <ToggleGroup
+            value={[filterRole]}
+            onValueChange={handleFilterRoleChange}
+            size="sm"
+            spacing={1}
+            aria-label="Lọc thành viên theo vai trò"
+            className="p-1 bg-card border border-border rounded-xl shrink-0"
+          >
+            <ToggleGroupItem
+              value="ALL"
               title="Tất cả"
               aria-label="Tất cả"
+              className="h-7 sm:h-8 px-2 sm:px-3 text-xs cursor-pointer"
             >
               <Users data-icon="inline-start" />
               <span className="hidden sm:inline">Tất cả</span>
-            </Button>
-            <Button
-              type="button"
-              variant={filterRole === "ADMIN" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setFilterRole("ADMIN")}
-              className="h-7 sm:h-8 px-2 sm:px-3 text-xs whitespace-nowrap cursor-pointer"
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="ADMIN"
               title="Quản trị viên"
               aria-label="Quản trị viên"
+              className="h-7 sm:h-8 px-2 sm:px-3 text-xs cursor-pointer"
             >
               <ShieldCheck data-icon="inline-start" />
               <span className="hidden sm:inline">Quản trị viên</span>
-            </Button>
-            <Button
-              type="button"
-              variant={filterRole === "MEMBER" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setFilterRole("MEMBER")}
-              className="h-7 sm:h-8 px-2 sm:px-3 text-xs whitespace-nowrap cursor-pointer"
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="MEMBER"
               title="Thành viên"
               aria-label="Thành viên"
+              className="h-7 sm:h-8 px-2 sm:px-3 text-xs cursor-pointer"
             >
               <User data-icon="inline-start" />
               <span className="hidden sm:inline">Thành viên</span>
-            </Button>
-          </div>
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
 
         <div className="flex flex-col gap-2 w-full min-w-0">
           {visibleMembers.length === 0 ? (
-            <div className="p-8 text-center text-sm text-muted-foreground">
-              Không tìm thấy thành viên phù hợp
-            </div>
+            <Empty className="p-8 border-0">
+              <EmptyHeader>
+                <EmptyDescription>
+                  Không tìm thấy thành viên phù hợp
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           ) : (
             visibleMembers.map((member, index) => {
               const memberId = member.user?.id;
@@ -192,18 +215,20 @@ export default function RoomMemberList({
             </p>
 
             {filteredMembers.length > INITIAL_LIMIT && (
-              <button
+              <Button
                 type="button"
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="inline-flex items-center gap-1 text-primary font-semibold hover:underline cursor-pointer"
+                variant="link"
+                size="sm"
+                onClick={handleToggleExpanded}
+                className="h-auto p-0 text-xs font-semibold"
               >
                 {isExpanded ? "Thu gọn danh sách" : "Xem danh sách đầy đủ"}
                 {isExpanded ? (
-                  <ChevronUp className="size-3.5" />
+                  <ChevronUp data-icon="inline-end" />
                 ) : (
-                  <ChevronDown className="size-3.5" />
+                  <ChevronDown data-icon="inline-end" />
                 )}
-              </button>
+              </Button>
             )}
           </div>
         )}

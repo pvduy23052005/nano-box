@@ -34,30 +34,30 @@ export default function RoomActionsCard({
   const handleEdit = () => {
     if (onEditRoom) {
       onEditRoom();
-    } else {
-      toast.info("Tính năng chỉnh sửa thông tin đang được cập nhật");
+      return;
     }
+    toast.info("Tính năng chỉnh sửa thông tin đang được cập nhật");
   };
 
   const handlePinned = () => {
     if (onPinnedMessages) {
       onPinnedMessages();
-    } else {
-      toast.info("Xem tin nhắn đã ghim");
+      return;
     }
+    toast.info("Xem tin nhắn đã ghim");
   };
 
   const handleLeave = () => {
     if (onLeaveRoom) {
       onLeaveRoom();
-    } else {
-      toast.info(isGroup ? "Rời khỏi nhóm trò chuyện" : "Đóng cuộc trò chuyện");
+      return;
     }
+    toast.info(isGroup ? "Rời khỏi nhóm trò chuyện" : "Đóng cuộc trò chuyện");
   };
 
   return (
     <Card className="shadow-sm">
-      <CardHeader className="p-3 pb-0 flex-row items-center justify-between border-0">
+      <CardHeader className="p-3 pb-0 flex-row items-center justify-between">
         <CardTitle className="text-base font-bold">Thao tác phòng</CardTitle>
       </CardHeader>
 
@@ -81,20 +81,23 @@ export default function RoomActionsCard({
         <div className="w-full flex items-center justify-between p-3.5 rounded-xl bg-muted/40">
           <div className="flex items-center gap-3 min-w-0 pr-3">
             <BellOff className="size-4 text-muted-foreground shrink-0" />
-            <div className="flex flex-col min-w-0">
-              <p className="text-sm font-medium">
+            <label
+              htmlFor="mute-room-notifications"
+              className="flex flex-col min-w-0 cursor-pointer"
+            >
+              <span className="text-sm font-medium">
                 Tắt thông báo phòng
-              </p>
-              <p className="text-xs text-muted-foreground truncate">
+              </span>
+              <span className="text-xs text-muted-foreground truncate">
                 Chỉ nhận khi được nhắc đến (@)
-              </p>
-            </div>
+              </span>
+            </label>
           </div>
 
           <Switch
+            id="mute-room-notifications"
             checked={isMuted}
             onCheckedChange={handleToggleMute}
-            aria-label="Tắt thông báo phòng"
           />
         </div>
 

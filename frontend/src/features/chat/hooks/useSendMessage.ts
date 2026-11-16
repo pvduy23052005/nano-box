@@ -39,6 +39,7 @@ export const useSendMessage = () => {
       mentionedUserIds: mentionedUserIds ?? [],
       isMe: true,
       isSystem: false,
+      createdAt: new Date().toISOString(),
     };
     appendMessageToCache(client.cache, GET_MESSAGE_QUERY, optimisticMsg, undefined, targetRoomId);
 
@@ -76,6 +77,9 @@ export const useSendMessage = () => {
                 mentionedUserIds: data.sendMessage.mentionedUserIds ?? [],
                 isSystem: data.sendMessage.isSystem ?? false,
                 isMe: data.sendMessage.senderId === user.id,
+                createdAt:
+                  (data.sendMessage.createdAt as string | Date | undefined) ||
+                  new Date().toISOString(),
               },
               optimisticId,
               targetRoomId,

@@ -54,6 +54,7 @@ export const useAddEmojiMessage = () => {
             attachments: currentMsg?.attachments ?? [],
             mentionedUserIds: currentMsg?.mentionedUserIds ?? [],
             isSystem: currentMsg?.isSystem ?? false,
+            createdAt: currentMsg?.createdAt ?? new Date().toISOString(),
             reactions: optimisticReactions.map((reaction) => ({
               emoji: reaction.emoji,
               userIds: reaction.userIds,

@@ -13,7 +13,7 @@ export const useSendTyping = (roomId?: string, timeout = 2000) => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const currentRoomIdRef = useRef<string | null>(targetRoomId ?? null);
   const user = useAuthStore((state) => state.user);
-  const userAvatar = user?.avatar || "/images/default-avatar.webp";
+  const userAvatar = user?.avatar || "/logo.png";
 
   useEffect(() => {
     if (

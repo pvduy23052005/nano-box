@@ -30,7 +30,7 @@ export default function ChatTypingIndicator({
     <div className="px-4 pt-4 flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200 pointer-events-auto">
       <Avatar className="size-6">
         <AvatarImage
-          src={typingUsers[0]?.avatarTyping || "/images/default-avatar.webp"}
+          src={typingUsers[0]?.avatarTyping || "/logo.png"}
         />
         <AvatarFallback className="text-[10px] bg-muted font-medium">
           {typingUsers[0]?.nameTyping?.[0]?.toUpperCase() || "U"}
