@@ -67,7 +67,7 @@ export class RoomMapper {
     currentUserId?: string,
   ): RoomProps {
     let title: string | null = rawRoom.title ?? null;
-    let avatar: string = rawRoom.avatar || '/images/default-avatar.webp';
+    let avatar: string = rawRoom.avatar || '/logo.png';
 
     const typeRoom: RoomType = rawRoom.type_room || RoomType.SINGLE;
 
@@ -116,7 +116,7 @@ export class RoomMapper {
       const avatars: string[] = [];
       for (const member of rawRoom.members) {
         if (isPopulatedUser(member.user_id)) {
-          avatars.push(member.user_id.avatar || '/images/default-avatar.webp');
+          avatars.push(member.user_id.avatar || '/logo.png');
         }
       }
       groupAvatars = avatars.length > 0 ? avatars : null;

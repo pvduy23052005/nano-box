@@ -59,3 +59,36 @@ export const formatNotificationTime = (rawDate: unknown): string => {
 
   return formatMessageTime(date);
 };
+
+export const formatChatTimestamp = (rawDate: unknown): string => {
+  if (!rawDate) return '';
+
+  const date =
+    rawDate instanceof Date ? rawDate : new Date(rawDate as string | number);
+  if (isNaN(date.getTime())) return '';
+
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
+export const formatFullTimestamp = (
+  rawDate: unknown,
+  isSending?: boolean,
+): string => {
+  if (!rawDate) return '';
+
+  const date =
+    rawDate instanceof Date ? rawDate : new Date(rawDate as string | number);
+  if (isNaN(date.getTime())) return '';
+
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+
+  const formatted = `${hours}:${minutes}:${seconds}, ${day}/${month}/${year}`;
+  return isSending ? `${formatted} (Đang gửi...)` : formatted;
+};

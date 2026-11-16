@@ -27,8 +27,14 @@ export function GroupAvatar({
   size = "md",
   className,
 }: GroupAvatarProps) {
+  const isDefaultAvatar = (url?: string | null) =>
+    !url ||
+    url.trim() === "" ||
+    url === "/images/default-avatar.webp" ||
+    url === "/logo.png";
+
   const hasCustomSingleAvatar =
-    Boolean(singleAvatar) && singleAvatar !== "/images/default-avatar.webp";
+    Boolean(singleAvatar) && !isDefaultAvatar(singleAvatar);
 
   if (hasCustomSingleAvatar && singleAvatar) {
     const initials = title ? title.slice(0, 2).toUpperCase() : "GR";
@@ -52,8 +58,8 @@ export function GroupAvatar({
     );
   }
 
-  const validAvatars = (avatars || []).filter((url): url is string =>
-    Boolean(url && url.trim() !== "" && url !== "/images/default-avatar.webp"),
+  const validAvatars = (avatars || []).filter(
+    (url): url is string => !isDefaultAvatar(url),
   );
 
   const slotPositions = [

@@ -18,6 +18,7 @@ export const GET_MESSAGE_QUERY = graphql(`
         }
         mentionedUserIds
         isSystem
+        createdAt
       }
       hasMore
       nextCursor
@@ -42,6 +43,7 @@ export const SEND_MESSAGE_MUTATION = graphql(`
       }
       mentionedUserIds
       isSystem
+      createdAt
     }
   }
 `);
@@ -63,6 +65,7 @@ export const ADD_EMOJI_MESSAGE_MUTATION = graphql(`
       }
       mentionedUserIds
       isSystem
+      createdAt
     }
   }
 `);

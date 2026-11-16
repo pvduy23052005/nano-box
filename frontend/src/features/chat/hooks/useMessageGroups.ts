@@ -31,13 +31,24 @@ export function useMessageGroups(messages: Message[]): MessageGroup[] {
         }
 
         const lastGroup = groups[groups.length - 1];
+        const lastMessage = lastGroup?.messages[lastGroup.messages.length - 1];
+
+        const isWithinTimeThreshold = () => {
+          if (!lastMessage?.createdAt || !message.createdAt) return true;
+          const prevTime = new Date(lastMessage.createdAt).getTime();
+          const currTime = new Date(message.createdAt).getTime();
+          if (isNaN(prevTime) || isNaN(currTime)) return true;
+          return Math.abs(currTime - prevTime) <= 5 * 60 * 1000;
+        };
+
         const isSameSender =
           lastGroup &&
           !lastGroup.isSystem &&
           lastGroup.isMe === message.isMe &&
           (!lastGroup.senderId ||
             !message.senderId ||
-            lastGroup.senderId === message.senderId);
+            lastGroup.senderId === message.senderId) &&
+          isWithinTimeThreshold();
 
         if (isSameSender) {
           if (!lastGroup.avatar && (message.senderAvatar || message.avatar)) {
