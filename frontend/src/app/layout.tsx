@@ -2,6 +2,7 @@ import "./globals.css";
 import { cn } from "@/src/lib/utils";
 import { Roboto, Geist_Mono } from "next/font/google";
 import { ApolloProvider } from "@/src/core/apolloProvider";
+import DomMutationGuard from "@/src/components/common/DomMutationGuard";
 import { Toaster } from "sonner";
 import { Metadata } from "next";
 
@@ -38,14 +39,6 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Nano Box Team" }],
   creator: "Nano Box",
-  icons: {
-    icon: [
-      { url: "/logo.svg", type: "image/svg+xml" },
-      { url: "/logo.png", type: "image/png" },
-    ],
-    shortcut: "/logo.svg",
-    apple: "/logo.png",
-  },
   openGraph: {
     type: "website",
     locale: "vi_VN",
@@ -74,6 +67,9 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  other: {
+    google: "notranslate",
+  },
 };
 
 export default function RootLayout({
@@ -83,7 +79,8 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="vi"
+      translate="no"
       suppressHydrationWarning
       className={cn(
         "h-full",
@@ -93,7 +90,17 @@ export default function RootLayout({
         "font-sans",
       )}
     >
-      <body className="min-h-full flex flex-col">
+      <head>
+        <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+        <link rel="icon" href="/logo.png" type="image/png" />
+        <link rel="shortcut icon" href="/logo.svg" />
+        <link rel="apple-touch-icon" href="/logo.png" />
+      </head>
+      <body
+        className="notranslate min-h-full flex flex-col"
+        translate="no"
+      >
+        <DomMutationGuard />
         <ApolloProvider>{children}</ApolloProvider>
         <Toaster richColors position="top-right" />
       </body>
