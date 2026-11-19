@@ -1,5 +1,4 @@
 name: nano-box
-version: '3.8'
 
 services:
   mongodb:
@@ -24,6 +23,36 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  redis:
+    image: redis:7-alpine
+    container_name: nano-redis
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    command: >
+      sh -c 'exec redis-server --requirepass "$$REDIS_PASSWORD" --maxmemory 50mb --maxmemory-policy allkeys-lru --appendonly yes'
+    expose:
+      - "6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - nano_network
+    deploy:
+      resources:
+        limits:
+          memory: 80M
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli $${REDIS_PASSWORD:+-a \"$$REDIS_PASSWORD\"} ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   backend:
     image: ghcr.io/pvduy23052005/nano-box-backend:latest
     container_name: nano-box-backend
@@ -34,6 +63,8 @@ services:
       - ./backend/.env
     depends_on:
       mongodb:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - nano_network
@@ -85,6 +116,9 @@ services:
 volumes:
   mongodb_data:
     name: nano_mongodb_data
+    driver: local
+  redis_data:
+    name: nano_redis_data
     driver: local
 
 
