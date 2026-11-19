@@ -1,0 +1,11 @@
+*.pem
+*.key
+*.crt
+.DS_Store
+ssl
+
+docs/
+
+monitoring/.env
+backups/
+*.gz

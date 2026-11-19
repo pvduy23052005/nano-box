@@ -100,3 +100,33 @@
   text-decoration: underline;
   cursor: pointer;
 }
+
+.tiptap .mention-node,
+.ProseMirror .mention-node,
+.chat-html-content [data-type="mention"],
+.chat-html-content .mention-node {
+  color: var(--primary);
+  font-weight: 600;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.375rem;
+  display: inline-block;
+  line-height: 1.25;
+  user-select: all;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.tiptap .mention-node:hover,
+.chat-html-content [data-type="mention"]:hover {
+  background-color: color-mix(in srgb, var(--primary) 22%, transparent);
+}
+
+[data-variant="default"] .chat-html-content [data-type="mention"],
+[data-variant="default"] .chat-html-content .mention-node {
+  color: var(--primary-foreground) !important;
+}
+
+[data-variant="default"] .chat-html-content [data-type="mention"]:hover,
+[data-variant="default"] .chat-html-content .mention-node:hover {
+  background-color: color-mix(in srgb, var(--primary-foreground) 30%, transparent);
+}

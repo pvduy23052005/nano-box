@@ -113,7 +113,7 @@ export default function RegisterPage() {
                     control={control}
                     name="name"
                     render={({ field }) => (
-                      <InputGroup>
+                      <InputGroup className="h-10">
                         <InputGroupAddon>
                           <UserIcon />
                         </InputGroupAddon>
@@ -138,7 +138,7 @@ export default function RegisterPage() {
                     control={control}
                     name="email"
                     render={({ field }) => (
-                      <InputGroup>
+                      <InputGroup className="h-10">
                         <InputGroupAddon>
                           <MailIcon />
                         </InputGroupAddon>
@@ -162,7 +162,7 @@ export default function RegisterPage() {
                     control={control}
                     name="password"
                     render={({ field }) => (
-                      <InputGroup>
+                      <InputGroup className="h-10">
                         <InputGroupAddon align="inline-start">
                           <LockIcon />
                         </InputGroupAddon>
@@ -203,7 +203,7 @@ export default function RegisterPage() {
                     control={control}
                     name="confirmPassword"
                     render={({ field }) => (
-                      <InputGroup>
+                      <InputGroup className="h-10">
                         <InputGroupAddon align="inline-start">
                           <LockIcon />
                         </InputGroupAddon>
@@ -239,7 +239,7 @@ export default function RegisterPage() {
                 </Field>
               </FieldGroup>
 
-              <Button type="submit" className="mt-6 w-full cursor-pointer">
+              <Button type="submit" className="mt-6 w-full cursor-pointer h-10">
                 {isLoading ? <Spinner /> : "Tạo tài khoản"}
               </Button>
             </form>

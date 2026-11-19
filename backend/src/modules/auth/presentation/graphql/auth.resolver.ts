@@ -1,32 +1,167 @@
+import { Logger, UseGuards } from '@nestjs/common';
+import type { Request, Response } from 'express';
+import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
+import { extractClientIp } from 'src/common/utils/client-ip.util';
+import { LoginGoogleUseCase } from '../../applications/use-case/login-google.use-case';
+import { LoginUseCase } from '../../applications/use-case/login.use-case';
+import { AuthAuditAction } from '../constants/auth-audit.constant';
 import { LoginInputDto } from '../dto/login.input';
 import { LoginPayload } from '../dto/login.payload';
-import { Resolver, Mutation, Args, Context } from '@nestjs/graphql';
-import { LoginUseCase } from '../../applications/use-case/login.use-case';
-import type { Response } from 'express';
+import { AuthThrottlerGuard } from '../guards/auth-throttler.guard';
+
+const THIRTY_DAYS_IN_MS = 30 * 24 * 60 * 60 * 1000;
 
 @Resolver()
 export class AuthResolver {
-  constructor(private readonly loginUseCase: LoginUseCase) {}
+  private readonly logger = new Logger(AuthResolver.name);
 
+  constructor(
+    private readonly loginUseCase: LoginUseCase,
+    private readonly loginGoogleUseCase: LoginGoogleUseCase,
+  ) {}
+
+  @UseGuards(AuthThrottlerGuard)
   @Mutation(() => LoginPayload)
   async login(
     @Args('input') input: LoginInputDto,
+    @Context('req') req: Request,
     @Context('res') res: Response,
   ): Promise<LoginPayload> {
-    const result = await this.loginUseCase.execute(input);
+    try {
+      const result = await this.loginUseCase.execute(input);
 
+      this.setAccessTokenCookie(res, result.accessToken);
+      this.logSuccessfulLogin(req, result.user, AuthAuditAction.LOGIN_SUCCESS);
+
+      return {
+        success: true,
+        message: 'Đăng nhập thành công',
+        data: result,
+      };
+    } catch (error) {
+      this.logFailedLogin(
+        req,
+        input?.email,
+        AuthAuditAction.LOGIN_FAILURE,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  @UseGuards(AuthThrottlerGuard)
+  @Mutation(() => LoginPayload)
+  async loginGoogle(
+    @Args('idToken') idToken: string,
+    @Context('req') req: Request,
+    @Context('res') res: Response,
+  ): Promise<LoginPayload> {
+    try {
+      const result = await this.loginGoogleUseCase.execute(idToken);
+
+      this.setAccessTokenCookie(res, result.accessToken);
+      this.logSuccessfulLogin(
+        req,
+        result.user,
+        AuthAuditAction.LOGIN_GOOGLE_SUCCESS,
+      );
+
+      return {
+        success: true,
+        message: 'Đăng nhập thành công',
+        data: result,
+      };
+    } catch (error) {
+      this.logFailedLogin(
+        req,
+        undefined,
+        AuthAuditAction.LOGIN_GOOGLE_FAILURE,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  @Mutation(() => Boolean)
+  logout(@Context('req') req: Request, @Context('res') res: Response): boolean {
+    this.clearAccessTokenCookie(res);
+    this.logSuccessfulLogout(req);
+    return true;
+  }
+
+  private setAccessTokenCookie(res: Response, token: string): void {
     const isProd = process.env.NODE_ENV === 'production';
-    res.cookie('accessToken', result.accessToken, {
+    res.cookie('accessToken', token, {
       httpOnly: true,
       secure: isProd,
       sameSite: isProd ? 'none' : 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000,
+      maxAge: THIRTY_DAYS_IN_MS,
     });
+  }
 
-    return {
-      success: true,
-      message: 'Đăng nhập thành công',
-      data: result,
-    };
+  private clearAccessTokenCookie(res: Response): void {
+    const isProd = process.env.NODE_ENV === 'production';
+    res.clearCookie('accessToken', {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+    });
+  }
+
+  private logSuccessfulLogin(
+    req: Request,
+    user: { id: string; email: string },
+    action: AuthAuditAction,
+  ): void {
+    const ip = extractClientIp(req);
+    const userAgent = req.headers['user-agent'];
+
+    this.logger.log(
+      {
+        action,
+        userId: user.id,
+        email: user.email,
+        ip,
+        userAgent,
+      },
+      `[Auth] User ${user.email} (${user.id}) Đăng nhập thành công`,
+    );
+  }
+
+  private logFailedLogin(
+    req: Request,
+    email: string | undefined,
+    action: AuthAuditAction,
+    error: unknown,
+  ): void {
+    const ip = extractClientIp(req);
+    const userAgent = req.headers['user-agent'];
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
+
+    this.logger.warn(
+      {
+        action,
+        email: email || 'unknown',
+        ip,
+        userAgent,
+        error: errorMessage,
+      },
+      `[Auth] Đăng nhập thất bại cho email: ${email || 'unknown'} - Lý do: ${errorMessage}`,
+    );
+  }
+
+  private logSuccessfulLogout(req: Request): void {
+    const ip = extractClientIp(req);
+    const userAgent = req.headers['user-agent'];
+
+    this.logger.log(
+      {
+        action: AuthAuditAction.LOGOUT_SUCCESS,
+        ip,
+        userAgent,
+      },
+      '[Auth] User logged out successfully',
+    );
   }
 }

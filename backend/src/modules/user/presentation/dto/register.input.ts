@@ -1,14 +1,15 @@
 import { Field, InputType } from '@nestjs/graphql';
 import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import { RegisterInput } from '../../applications/dto/user.dto';
 
 @InputType()
-export class RegisterInputDto {
+export class RegisterInputDto implements RegisterInput {
   @Field()
   @IsNotEmpty({ message: 'Tên không được để trống' })
   name: string;
 
   @Field()
-  @IsNotEmpty({ message: 'Email không` được để trống' })
+  @IsNotEmpty({ message: 'Email không được để trống' })
   @IsEmail({}, { message: 'Email không đúng định dạng' })
   email: string;
 

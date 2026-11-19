@@ -1,17 +1,44 @@
-import { AppModule } from './app.module';
-import { NestFactory } from '@nestjs/core';
 import { ValidationError, ValidationPipe } from '@nestjs/common';
-import { GlobalGraphQLExceptionFilter } from './common/pipes/validator.pipe';
+import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
+import { Logger } from 'nestjs-pino';
+import { GlobalGraphQLExceptionFilter } from './common/pipes/validator.pipe';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true,
+  });
+  app.set('trust proxy', true);
+  app.useLogger(app.get(Logger));
   app.use(cookieParser());
+
+  const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+        .map((origin) => origin.trim().replace(/\/+$/, ''))
+        .filter(Boolean)
+    : ['http://localhost:3000', 'https://localhost', 'http://localhost'];
+
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://yourproductiondomain.com'],
+    origin: (
+      origin: string | undefined,
+      callback: (error: Error | null, allow?: boolean) => void,
+    ) => {
+      if (!origin) {
+        return callback(null, true);
+      }
+      const normalizedOrigin = origin.trim().replace(/\/+$/, '');
+      if (allowedOrigins.includes(normalizedOrigin)) {
+        return callback(null, true);
+      }
+      console.warn(
+        `[CORS Blocked] Origin "${origin}" không nằm trong ALLOWED_ORIGINS:`,
+        allowedOrigins,
+      );
+      return callback(null, false);
+    },
     credentials: true,
-    allowedHeaders: 'Content-Type, Authorization, Accept',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
   });
 
   app.useGlobalFilters(new GlobalGraphQLExceptionFilter());
@@ -25,6 +52,6 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(process.env.PORT ?? 5050);
+  await app.listen(process.env.PORT || 5050);
 }
 void bootstrap();

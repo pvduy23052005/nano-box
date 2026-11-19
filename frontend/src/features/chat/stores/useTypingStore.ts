@@ -1,27 +1,47 @@
 import { create } from "zustand";
 
 export interface TypingUser {
-  userId: string;
-  name?: string;
+  userIdTyping: string;
+  nameTyping?: string;
+  avatarTyping?: string;
 }
 
 interface TypingState {
-  typingUsers: Record<string, TypingUser>;
-  setTyping: (userId: string, isTyping: boolean, name?: string) => void;
-  clearTyping: () => void;
+  typingByRoom: Record<string, Record<string, TypingUser>>;
+  setTyping: (
+    roomId: string,
+    userIdTyping: string,
+    isTyping: boolean,
+    nameTyping?: string,
+    avatarTyping?: string,
+  ) => void;
+  clearRoomTyping: (roomId: string) => void;
+  clearAllTyping: () => void;
 }
 
 export const useTypingStore = create<TypingState>((set) => ({
-  typingUsers: {},
-  setTyping: (userId, isTyping, name) =>
+  typingByRoom: {},
+  setTyping: (roomId, userIdTyping, isTyping, nameTyping, avatarTyping) =>
     set((state) => {
-      const next = { ...state.typingUsers };
+      const roomTyping = { ...(state.typingByRoom[roomId] || {}) };
       if (isTyping) {
-        next[userId] = { userId, name };
+        roomTyping[userIdTyping] = { userIdTyping, nameTyping, avatarTyping };
       } else {
-        delete next[userId];
+        delete roomTyping[userIdTyping];
       }
-      return { typingUsers: next };
+      return {
+        typingByRoom: {
+          ...state.typingByRoom,
+          [roomId]: roomTyping,
+        },
+      };
     }),
-  clearTyping: () => set({ typingUsers: {} }),
+  clearRoomTyping: (roomId) =>
+    set((state) => {
+      if (!state.typingByRoom[roomId]) return state;
+      const next = { ...state.typingByRoom };
+      delete next[roomId];
+      return { typingByRoom: next };
+    }),
+  clearAllTyping: () => set({ typingByRoom: {} }),
 }));

@@ -2,11 +2,101 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type AcceptFriendRequestPayload {
+  data: FriendshipDataPayload
+  message: String!
+  success: Boolean!
+}
+
+input AddEmojiMessageInput {
+  emoji: String!
+  messageId: String!
+
+  """Không dùng nữa. Hệ thống tự động lấy danh tính từ phiên đăng nhập."""
+  userAvatar: String
+
+  """Không dùng nữa. Hệ thống tự động lấy danh tính từ phiên đăng nhập."""
+  userName: String
+}
+
+input AddMemberToRoomInput {
+  roomId: String!
+  userId: String!
+}
+
+input AssignRoomAdminInput {
+  roomId: String!
+  userId: String!
+}
+
+type CancelFriendRequestPayload {
+  data: FriendshipDataPayload
+  message: String!
+  success: Boolean!
+}
+
 type ChatPayload {
   attachments: [String!]
+  avatar: String
   content: String!
+  createdAt: DateTime
   id: String!
+  isSystem: Boolean
+  mentionedUserIds: [String!]
+  reactions: [ReactionPayload!]
+  readBy: [String!]
+  roomId: String!
+  senderAvatar: String
   senderId: String!
+  senderName: String
+}
+
+input CreateGroupRoomInput {
+  memberIds: [String!]!
+  title: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type FriendSenderPayload {
+  avatar: String
+  email: String!
+  id: String!
+  name: String!
+}
+
+type FriendshipDataPayload {
+  addresseeId: String!
+  createdAt: DateTime
+  id: String!
+  requesterId: String!
+  status: FriendshipStatus!
+  updatedAt: DateTime
+}
+
+"""Trạng thái mối quan hệ bạn bè"""
+enum FriendshipStatus {
+  ACCEPTED
+  CANCELLED
+  PENDING
+  REJECTED
+}
+
+type GetReceivedFriendRequestPayload {
+  createdAt: DateTime
+  id: String!
+  sender: FriendSenderPayload!
+}
+
+type LastMessageOutput {
+  content: String
+  createdAt: DateTime
+  id: String
+  mentionedUserIds: [String!]
+  senderId: String
 }
 
 input LoginInputDto {
@@ -25,20 +115,113 @@ type LoginResult {
   user: User!
 }
 
+enum MemberRole {
+  ADMIN
+  MEMBER
+  SUPER_ADMIN
+}
+
+enum MemberStatus {
+  ACCEPTED
+  REFUSED
+  WAITTING
+}
+
 input MessageInput {
   content: String
+  mentionedUserIds: [String!]
+  roomId: String!
+
+  """Không dùng nữa. Hệ thống tự động lấy danh tính từ phiên đăng nhập."""
+  senderAvatar: String
+
+  """Không dùng nữa. Hệ thống tự động lấy danh tính từ phiên đăng nhập."""
+  senderName: String
   tempKeys: [String!]
 }
 
+type MessagesPagePayload {
+  hasMore: Boolean!
+  items: [ChatPayload!]!
+  nextCursor: String
+}
+
 type Mutation {
+  acceptFriendRequest(friendId: String!): AcceptFriendRequestPayload!
+  addEmojiMessage(input: AddEmojiMessageInput!): ChatPayload!
+  addMemberToRoom(input: AddMemberToRoomInput!): RoomOutput!
+  assignRoomAdmin(input: AssignRoomAdminInput!): RoomOutput!
+  cancelFriendRequest(friendId: String!): CancelFriendRequestPayload!
+  createGroupRoom(input: CreateGroupRoomInput!): RoomOutput!
+  createRoomChatNotFriend(otherUserId: String!): RoomOutput!
+  leaveRoom(roomId: String!): Boolean!
   login(input: LoginInputDto!): LoginPayload!
+  loginGoogle(idToken: String!): LoginPayload!
+  logout: Boolean!
+  markAllNotificationsAsRead: Boolean!
+  markNotificationAsRead(id: String!): Boolean!
   register(input: RegisterInputDto!): RegisterPayload!
+  rejectFriendRequest(friendId: String!): RejectFriendRequestPayload!
+  removeMemberFromRoom(input: RemoveMemberFromRoomInput!): RoomOutput!
+  revokeRoomAdmin(input: RevokeRoomAdminInput!): RoomOutput!
+  sendFriendRequest(addresseeId: String!): SendFriendRequestPayload!
   sendMessage(input: MessageInput!): ChatPayload!
+  updateMemberLastReadMessage(messageId: String!, roomId: String!): Boolean!
+  updateProfile(input: UpdateProfileInputDto!): UpdateProfilePayload!
+  updateRoomProfile(input: UpdateRoomProfileInput!): RoomOutput!
+}
+
+type NotificationMetadataOutput {
+  action: String
+  messageId: String
+  roomId: String
+}
+
+type NotificationPayload {
+  content: String!
+  createdAt: DateTime!
+  id: ID!
+  isRead: Boolean!
+  metadata: NotificationMetadataOutput!
+  recipientId: String!
+  senderAvatar: String
+  senderId: String!
+  senderName: String
+  title: String!
+  type: NotificationType!
+}
+
+enum NotificationType {
+  FRIEND_REQUEST
+  MENTION
+  NEW_MESSAGE
+  NEW_ROOM
+  REACTION
+  ROOM_ACTION
+}
+
+type NotificationsPagePayload {
+  hasMore: Boolean!
+  items: [NotificationPayload!]!
+  nextCursor: String
+  unreadCount: Int!
 }
 
 type Query {
+  getFriends(search: String): [UserProfilePayload!]!
   getMe: UserProfilePayload!
-  getMessages: [ChatPayload!]!
+  getMessages(cursor: String, limit: Float, roomId: String!): MessagesPagePayload!
+  getNotifications(cursor: String, limit: Float): NotificationsPagePayload!
+  getReceivedFriendRequests: [GetReceivedFriendRequestPayload!]!
+  getRoomDetail(roomId: String!): RoomOutput!
+  getRoomsByStatus(search: String, status: MemberStatus!): [RoomOutput!]!
+  getUnreadNotificationCount: Int!
+  getUsers(limit: Int, search: String): [UserProfilePayload!]!
+}
+
+type ReactionPayload {
+  emoji: String!
+  userIds: [String!]!
 }
 
 input RegisterInputDto {
@@ -54,6 +237,74 @@ type RegisterPayload {
   success: Boolean!
 }
 
+type RejectFriendRequestPayload {
+  data: FriendshipDataPayload
+  message: String!
+  success: Boolean!
+}
+
+input RemoveMemberFromRoomInput {
+  roomId: String!
+  userId: String!
+}
+
+input RevokeRoomAdminInput {
+  roomId: String!
+  userId: String!
+}
+
+type RoomMemberOutput {
+  lastReadMessageId: String
+  role: MemberRole!
+  status: MemberStatus!
+  user: RoomMemberUserOutput
+  userId: String!
+}
+
+type RoomMemberUserOutput {
+  avatar: String!
+  id: String!
+  name: String!
+}
+
+type RoomOutput {
+  avatar: String
+  groupAvatars: [String]
+  id: String!
+  lastMessageId: LastMessageOutput
+  members: [RoomMemberOutput!]
+  title: String
+  typeRoom: RoomType!
+}
+
+enum RoomType {
+  GROUP
+  SINGLE
+}
+
+type SendFriendRequestPayload {
+  data: FriendshipDataPayload
+  message: String!
+  success: Boolean!
+}
+
+input UpdateProfileInputDto {
+  avatar: String
+  name: String
+}
+
+type UpdateProfilePayload {
+  data: UserProfilePayload
+  message: String!
+  success: Boolean!
+}
+
+input UpdateRoomProfileInput {
+  avatar: String
+  roomId: String!
+  title: String!
+}
+
 type User {
   email: String!
   id: ID!
@@ -61,6 +312,7 @@ type User {
 }
 
 type UserProfilePayload {
+  avatar: String!
   email: String!
   id: String!
   name: String!
