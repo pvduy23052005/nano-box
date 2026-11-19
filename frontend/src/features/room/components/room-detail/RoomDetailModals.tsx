@@ -46,7 +46,7 @@ export default function RoomDetailModals({
         />
       )}
 
-      {canAddMember && (
+      {canAddMember && isEditProfileOpen && (
         <EditRoomProfileDialog
           open={isEditProfileOpen}
           onOpenChange={setIsEditProfileOpen}
@@ -57,7 +57,7 @@ export default function RoomDetailModals({
         />
       )}
 
-      {isGroup && (
+      {isGroup && isLeaveRoomOpen && (
         <ConfirmLeaveRoomDialog
           open={isLeaveRoomOpen}
           onOpenChange={setIsLeaveRoomOpen}

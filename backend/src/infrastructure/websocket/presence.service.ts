@@ -1,99 +1,125 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { RedisService } from 'src/infrastructure/redis/redis.service';
+import { REDIS_KEYS } from 'src/infrastructure/redis/redis.constant';
 
 @Injectable()
 export class PresenceService implements OnModuleDestroy {
-  private readonly userSockets = new Map<string, Set<string>>();
   private readonly disconnectTimers = new Map<string, NodeJS.Timeout>();
   private debounceMs = 5000;
 
-  setDebounceMs(ms: number): void {
-    this.debounceMs = ms;
+  constructor(private readonly redisService: RedisService) {}
+
+  setDebounceMs(debounceDurationMs: number): void {
+    this.debounceMs = debounceDurationMs;
   }
 
-  addConnection(userId: string, socketId: string): boolean {
-    const wasOnline = this.isUserOnline(userId);
-
-    const activeTimer = this.disconnectTimers.get(userId);
-    if (activeTimer) {
-      clearTimeout(activeTimer);
+  async addConnection(userId: string, socketId: string): Promise<boolean> {
+    const activeDisconnectTimer = this.disconnectTimers.get(userId);
+    if (activeDisconnectTimer) {
+      clearTimeout(activeDisconnectTimer);
       this.disconnectTimers.delete(userId);
     }
 
-    let sockets = this.userSockets.get(userId);
-    if (!sockets) {
-      sockets = new Set<string>();
-      this.userSockets.set(userId, sockets);
-    }
-    sockets.add(socketId);
+    const userPresenceKey = REDIS_KEYS.PRESENCE(userId);
+    const existingSocketCount = await this.redisService.sCard(userPresenceKey);
+    const isFirstConnection = existingSocketCount === 0;
 
-    return !wasOnline;
+    await this.redisService.sAdd(userPresenceKey, socketId);
+    await this.redisService.sAdd(REDIS_KEYS.ONLINE_USERS, userId);
+
+    return isFirstConnection;
   }
 
-  removeConnection(
+  async removeConnection(
     userId: string,
     socketId: string,
-    onOffline: () => void,
-  ): void {
-    const sockets = this.userSockets.get(userId);
-    if (!sockets) return;
+    onOfflineCallback: () => void,
+  ): Promise<void> {
+    const userPresenceKey = REDIS_KEYS.PRESENCE(userId);
+    await this.redisService.sRem(userPresenceKey, socketId);
 
-    sockets.delete(socketId);
-
-    if (sockets.size === 0) {
-      const existingTimer = this.disconnectTimers.get(userId);
-      if (existingTimer) {
-        clearTimeout(existingTimer);
+    const remainingSocketCount = await this.redisService.sCard(userPresenceKey);
+    if (remainingSocketCount === 0) {
+      const activeDisconnectTimer = this.disconnectTimers.get(userId);
+      if (activeDisconnectTimer) {
+        clearTimeout(activeDisconnectTimer);
       }
 
       const timer = setTimeout(() => {
-        this.disconnectTimers.delete(userId);
-        this.userSockets.delete(userId);
-        onOffline();
+        void (async () => {
+          this.disconnectTimers.delete(userId);
+          const finalSocketCount =
+            await this.redisService.sCard(userPresenceKey);
+
+          if (finalSocketCount === 0) {
+            await this.redisService.sRem(REDIS_KEYS.ONLINE_USERS, userId);
+            await this.redisService.del(userPresenceKey);
+            onOfflineCallback();
+          }
+        })();
       }, this.debounceMs);
 
       this.disconnectTimers.set(userId, timer);
     }
   }
 
-  removeUserImmediately(userId: string, onOffline: () => void): void {
-    const timer = this.disconnectTimers.get(userId);
-    if (timer) {
-      clearTimeout(timer);
+  async removeUserImmediately(
+    userId: string,
+    onOfflineCallback: () => void,
+  ): Promise<void> {
+    const activeDisconnectTimer = this.disconnectTimers.get(userId);
+    if (activeDisconnectTimer) {
+      clearTimeout(activeDisconnectTimer);
       this.disconnectTimers.delete(userId);
     }
 
-    const wasOnline = this.isUserOnline(userId);
-    this.userSockets.delete(userId);
+    const wasAlreadyOnline = await this.isUserOnline(userId);
+    const userPresenceKey = REDIS_KEYS.PRESENCE(userId);
 
-    if (wasOnline) {
-      onOffline();
+    await this.redisService.del(userPresenceKey);
+    await this.redisService.sRem(REDIS_KEYS.ONLINE_USERS, userId);
+
+    if (wasAlreadyOnline) {
+      onOfflineCallback();
     }
   }
 
-  isUserOnline(userId: string): boolean {
-    const sockets = this.userSockets.get(userId);
-    const hasSockets = !!sockets && sockets.size > 0;
-    return hasSockets || this.disconnectTimers.has(userId);
+  async isUserOnline(userId: string): Promise<boolean> {
+    const userPresenceKey = REDIS_KEYS.PRESENCE(userId);
+    const socketCount = await this.redisService.sCard(userPresenceKey);
+    const hasPendingDisconnect = this.disconnectTimers.has(userId);
+
+    return socketCount > 0 || hasPendingDisconnect;
   }
 
-  getOnlineUserIds(): string[] {
-    const onlineIds = new Set<string>();
-    for (const [userId, sockets] of this.userSockets.entries()) {
-      if (sockets.size > 0) {
-        onlineIds.add(userId);
+  async filterOnlineUsers(userIdsToCheck: string[]): Promise<string[]> {
+    if (userIdsToCheck.length === 0) {
+      return [];
+    }
+
+    const membershipFlags = await this.redisService.smIsMember(
+      REDIS_KEYS.ONLINE_USERS,
+      ...userIdsToCheck,
+    );
+
+    const onlineUserIds: string[] = [];
+    for (let index = 0; index < userIdsToCheck.length; index += 1) {
+      const candidateUserId = userIdsToCheck[index];
+      const isOnlineInRedis = membershipFlags[index] === 1;
+      const isPendingDisconnect = this.disconnectTimers.has(candidateUserId);
+
+      if (isOnlineInRedis || isPendingDisconnect) {
+        onlineUserIds.push(candidateUserId);
       }
     }
-    for (const userId of this.disconnectTimers.keys()) {
-      onlineIds.add(userId);
-    }
-    return Array.from(onlineIds);
+
+    return onlineUserIds;
   }
 
   onModuleDestroy(): void {
-    for (const timer of this.disconnectTimers.values()) {
-      clearTimeout(timer);
+    for (const activeTimer of this.disconnectTimers.values()) {
+      clearTimeout(activeTimer);
     }
     this.disconnectTimers.clear();
-    this.userSockets.clear();
   }
 }

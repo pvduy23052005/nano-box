@@ -17,6 +17,8 @@ import { type AuthenticatedSocket, PRESENCE_SOCKET_EVENTS } from './ws.type';
 import { RoomRepositoryAdapter } from 'src/modules/room/application/ports/room.ports';
 import { FriendshipRepositoryAdapter } from 'src/modules/friendship/applications/ports/friendship.port';
 import { MemberStatus } from 'src/modules/room/domain/chat.enum';
+import { RedisService } from 'src/infrastructure/redis/redis.service';
+import { REDIS_KEYS } from 'src/infrastructure/redis/redis.constant';
 
 @WebSocketGateway({
   cors: {
@@ -45,11 +47,7 @@ export class WebsocketGateway
   @WebSocketServer()
   server: Server;
 
-  private readonly relatedUsersCache = new Map<
-    string,
-    { ids: string[]; expiresAt: number }
-  >();
-  private readonly CACHE_TTL_MS = 5 * 60 * 1000;
+  private static readonly RELATED_USERS_CACHE_TTL_SECONDS = 5 * 60;
 
   constructor(
     private readonly websocketService: WebsocketService,
@@ -57,10 +55,12 @@ export class WebsocketGateway
     private readonly presenceService: PresenceService,
     private readonly roomRepository: RoomRepositoryAdapter,
     private readonly friendshipRepository: FriendshipRepositoryAdapter,
+    private readonly redisService: RedisService,
   ) {}
 
-  public clearUserRelatedCache(userId: string): void {
-    this.relatedUsersCache.delete(userId);
+  async clearUserRelatedCache(userId: string): Promise<void> {
+    const cacheKey = REDIS_KEYS.RELATED_USERS(userId);
+    await this.redisService.del(cacheKey);
   }
 
   afterInit(server: Server) {
@@ -91,7 +91,7 @@ export class WebsocketGateway
     if (userId) {
       void client.join(userId);
 
-      const isJustOnline = this.presenceService.addConnection(
+      const isJustOnline = await this.presenceService.addConnection(
         userId,
         client.id,
       );
@@ -99,9 +99,8 @@ export class WebsocketGateway
       const relatedUserIds = await this.getRelatedUserIds(userId);
       client.data.relatedUserIds = relatedUserIds;
 
-      const onlineRelatedUserIds = relatedUserIds.filter((id) =>
-        this.presenceService.isUserOnline(id),
-      );
+      const onlineRelatedUserIds =
+        await this.presenceService.filterOnlineUsers(relatedUserIds);
 
       client.emit(
         PRESENCE_SOCKET_EVENTS.INITIAL_ONLINE_USERS,
@@ -119,13 +118,13 @@ export class WebsocketGateway
   }
 
   @SubscribeMessage(PRESENCE_SOCKET_EVENTS.USER_LOGOUT)
-  handleLogout(client: AuthenticatedSocket) {
+  async handleLogout(client: AuthenticatedSocket): Promise<void> {
     const userId = client.data.userId;
     if (userId) {
       const relatedUserIds =
-        client.data.relatedUserIds ?? this.getCachedRelatedUserIds(userId);
+        client.data.relatedUserIds ?? (await this.getRelatedUserIds(userId));
 
-      this.presenceService.removeUserImmediately(userId, () => {
+      await this.presenceService.removeUserImmediately(userId, () => {
         if (relatedUserIds && relatedUserIds.length > 0) {
           this.server
             .to(relatedUserIds)
@@ -138,48 +137,33 @@ export class WebsocketGateway
     }
   }
 
-  handleDisconnect(client: AuthenticatedSocket) {
+  async handleDisconnect(client: AuthenticatedSocket): Promise<void> {
     const userId = client.data.userId;
     if (userId) {
       const relatedUserIds =
-        client.data.relatedUserIds ?? this.getCachedRelatedUserIds(userId);
+        client.data.relatedUserIds ?? (await this.getRelatedUserIds(userId));
 
-      this.presenceService.removeConnection(userId, client.id, () => {
-        const targetIds =
-          relatedUserIds ?? this.getCachedRelatedUserIds(userId);
-        if (targetIds && targetIds.length > 0) {
-          this.server.to(targetIds).emit(PRESENCE_SOCKET_EVENTS.USER_OFFLINE, {
-            userId,
-          });
+      await this.presenceService.removeConnection(userId, client.id, () => {
+        if (relatedUserIds && relatedUserIds.length > 0) {
+          this.server
+            .to(relatedUserIds)
+            .emit(PRESENCE_SOCKET_EVENTS.USER_OFFLINE, {
+              userId,
+            });
         }
       });
     }
   }
 
-  private getCachedRelatedUserIds(userId: string): string[] | null {
-    const cached = this.relatedUsersCache.get(userId);
-    if (!cached) return null;
-    if (Date.now() > cached.expiresAt) {
-      this.relatedUsersCache.delete(userId);
-      return null;
-    }
-    return cached.ids;
-  }
-
-  private pruneExpiredCache(): void {
-    if (this.relatedUsersCache.size < 1000) return;
-    const now = Date.now();
-    for (const [key, item] of this.relatedUsersCache.entries()) {
-      if (now > item.expiresAt) {
-        this.relatedUsersCache.delete(key);
-      }
-    }
-  }
-
   private async getRelatedUserIds(userId: string): Promise<string[]> {
-    const cached = this.getCachedRelatedUserIds(userId);
-    if (cached) {
-      return cached;
+    const cacheKey = REDIS_KEYS.RELATED_USERS(userId);
+    const cachedData = await this.redisService.get(cacheKey);
+    if (cachedData) {
+      try {
+        return JSON.parse(cachedData) as string[];
+      } catch {
+        await this.redisService.del(cacheKey);
+      }
     }
 
     try {
@@ -204,11 +188,11 @@ export class WebsocketGateway
       }
 
       const result = Array.from(relatedIds);
-      this.pruneExpiredCache();
-      this.relatedUsersCache.set(userId, {
-        ids: result,
-        expiresAt: Date.now() + this.CACHE_TTL_MS,
-      });
+      await this.redisService.set(
+        cacheKey,
+        JSON.stringify(result),
+        WebsocketGateway.RELATED_USERS_CACHE_TTL_SECONDS,
+      );
 
       return result;
     } catch {
