@@ -5,6 +5,8 @@ on:
     workflows:
       - "Backend CI (Build, Test & Docker Push)"
       - "Frontend CI (Build, Test & Docker Push)"
+      - "Upload CI (Build, Test & Docker Push)"
+      - "Gateway CI (Build, Test & Docker Push)"
     types:
       - completed
     branches:
@@ -49,7 +51,7 @@ jobs:
       - name: Pull latest Docker images
         run: |
           cd ~/nano-box
-          docker compose pull frontend backend
+          docker compose pull frontend backend upload-service api-gateway
 
       - name: Recreate containers with new images
         run: |

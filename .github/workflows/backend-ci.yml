@@ -5,12 +5,14 @@ on:
     branches: ["main"]
     paths:
       - 'backend/**'
+      - 'proto/**'
       - '.github/workflows/backend-ci.yml'
       - '.github/workflows/docker-publish.yml'
   pull_request:
     branches: ["main"]
     paths:
       - 'backend/**'
+      - 'proto/**'
       - '.github/workflows/backend-ci.yml'
       - '.github/workflows/docker-publish.yml'
 

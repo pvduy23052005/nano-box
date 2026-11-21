@@ -1,10 +1,13 @@
+import { existsSync } from 'fs';
+import { join } from 'path';
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UploadAdapter } from '../upload/applications/ports/upload.port';
-import { UploadModule } from '../upload/upload.module';
-import { RoomRepositoryAdapter } from '../room/application/ports/room.ports';
 import { RoomModule } from '../room/room.module';
+import { RoomRepositoryAdapter } from '../room/application/ports/room.ports';
 import { MessageRepositoryAdapter } from './application/ports/message.port';
+import { UploadAdapter } from './application/ports/upload.port';
 import { AddEmojiMessageUseCase } from './application/use-cases/add-emoji-message.use-case';
 import { GetMessagesUseCase } from './application/use-cases/get-message.use-case';
 import { SendMessageUseCase } from './application/use-cases/send-message.use-case';
@@ -14,6 +17,7 @@ import {
   MessageSchema,
 } from './infrastructure/database/message.schema';
 import { MessageRepository } from './infrastructure/database/message.repository';
+import { GrpcUploadAdapter } from './infrastructure/externals/grpc-upload.adapter';
 import { ChatGateway } from './presentation/gateway/chat.gateway';
 import { ChatResolver } from './presentation/graphql/chat.resolver';
 import { ChatListener } from './presentation/listener/chat.listener';
@@ -21,13 +25,46 @@ import { ChatListener } from './presentation/listener/chat.listener';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Message.name, schema: MessageSchema }]),
-    UploadModule,
+    ClientsModule.registerAsync([
+      {
+        name: 'UPLOAD_GRPC_PACKAGE',
+        imports: [ConfigModule],
+        useFactory: (configService: ConfigService) => {
+          const protoPath =
+            [
+              join(__dirname, '../../../proto/upload.proto'),
+              join(__dirname, '../../proto/upload.proto'),
+              join(process.cwd(), 'dist/proto/upload.proto'),
+              join(process.cwd(), 'src/proto/upload.proto'),
+              join(process.cwd(), '../proto/upload.proto'),
+            ].find((p) => existsSync(p)) ||
+            join(__dirname, '../../../proto/upload.proto');
+
+          return {
+            transport: Transport.GRPC,
+            options: {
+              package: 'upload',
+              protoPath,
+              url: configService.get<string>(
+                'UPLOAD_GRPC_URL',
+                'localhost:50052',
+              ),
+            },
+          };
+        },
+        inject: [ConfigService],
+      },
+    ]),
     RoomModule,
   ],
   providers: [
     ChatResolver,
     ChatGateway,
     ChatListener,
+    {
+      provide: UploadAdapter,
+      useClass: GrpcUploadAdapter,
+    },
     {
       provide: MessageRepositoryAdapter,
       useClass: MessageRepository,

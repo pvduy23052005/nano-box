@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       service:
-        description: "Tên service dùng làm hậu tố image và scope cache (vd: backend, frontend)"
+        description: "Tên service - dùng làm hậu tố image và scope cache"
         required: true
         type: string
       context:

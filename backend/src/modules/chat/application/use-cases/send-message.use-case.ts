@@ -3,7 +3,7 @@ import { MessageEntity } from '../../domain/message.entity';
 import { MessageType } from '../../domain/message.type';
 import { MessageRepositoryAdapter } from '../ports/message.port';
 import { RoomRepositoryAdapter } from '../../../room/application/ports/room.ports';
-import { UploadAdapter } from '../../../upload/applications/ports/upload.port';
+import { UploadAdapter } from '../ports/upload.port';
 import { MemberStatus } from '../../../room/domain/chat.enum';
 
 export const MAX_ATTACHMENTS_PER_MESSAGE = 10;

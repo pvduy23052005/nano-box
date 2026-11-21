@@ -1,7 +1,7 @@
 import { DomainValidationException } from 'src/common/customs/domain-validation.exception';
 import { MemberRole, MemberStatus } from '../../../../room/domain/chat.enum';
 import { RoomRepositoryAdapter } from '../../../../room/application/ports/room.ports';
-import { UploadAdapter } from '../../../../upload/applications/ports/upload.port';
+import { UploadAdapter } from '../../ports/upload.port';
 import { MessageRepositoryAdapter } from '../../ports/message.port';
 import { SendMessageUseCase } from '../send-message.use-case';
 

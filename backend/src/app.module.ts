@@ -13,7 +13,6 @@ import { UserModule } from './modules/user/user.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { WebsocketModule } from './infrastructure/websocket/ws.module';
 import { RedisModule } from './infrastructure/redis/redis.module';
-import { UploadModule } from './modules/upload/upload.module';
 import { RoomModule } from './modules/room/room.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { NotificationModule } from './modules/notification/notification.module';
@@ -33,7 +32,6 @@ import { FriendshipModule } from './modules/friendship/friendship.module';
       useClass: MongooseConfig,
     }),
     WebsocketModule,
-    UploadModule,
     UserModule,
     AuthModule,
     ChatModule,

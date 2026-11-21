@@ -10,15 +10,15 @@ export const createHttpLink = (token?: string | null) => {
       process.env.NEXT_PUBLIC_GRAPHQL_API_URL ||
       process.env.NEXT_PUBLIC_GRAPHQL_URI ||
       (process.env.NODE_ENV !== "production" && window.location.port === "3000"
-        ? "http://localhost:5050/graphql"
+        ? "http://localhost:4000/graphql"
         : "/graphql");
   } else {
     uri =
       process.env.INTERNAL_GRAPHQL_API_URL ||
       process.env.NEXT_PUBLIC_GRAPHQL_API_URL ||
       (process.env.NODE_ENV !== "production"
-        ? "http://localhost:5050/graphql"
-        : "http://nano-box-backend:5050/graphql");
+        ? "http://localhost:4000/graphql"
+        : "http://nano-box-api-gateway:4000/graphql");
   }
 
   return new HttpLink({

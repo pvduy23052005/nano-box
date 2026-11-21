@@ -13,7 +13,7 @@ services:
       - ./ssl:/etc/nginx/ssl:ro
     depends_on:
       - frontend
-      - backend
+      - api-gateway
     networks:
       - nano_network
 
@@ -61,15 +61,68 @@ services:
     environment:
       - MONGO_URI=mongodb://host.docker.internal:27017/nano-box
       - REDIS_HOST=redis
+      - UPLOAD_GRPC_URL=upload-service:50052
     depends_on:
       redis:
         condition: service_healthy
+      upload-service:
+        condition: service_started
 
     logging:
       driver: "json-file"
       options:
         max-size: "10m"   
         max-file: "3"       
+    networks:
+      - nano_network
+
+  upload-service:
+    build:
+      context: .
+      dockerfile: services/upload/Dockerfile
+    image: nano-box-upload-service:local
+    container_name: nano-box-upload-service
+    restart: unless-stopped
+    ports:
+      - "5051:5051"
+    env_file:
+      - ./services/upload/.env
+    environment:
+      - PORT=5051
+      - GRPC_PORT=50052
+      - GRPC_HOST=0.0.0.0
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - nano_network
+
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    image: nano-box-api-gateway:local
+    container_name: nano-box-api-gateway
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    env_file:
+      - ./services/api-gateway/.env
+    environment:
+      - PORT=4000
+      - BACKEND_SERVICE_URL=http://backend:5050
+      - UPLOAD_SERVICE_URL=http://upload-service:5051
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+      upload-service:
+        condition: service_started
     networks:
       - nano_network
 
@@ -86,7 +139,7 @@ services:
       - ./frontend/.env
       - ./frontend/.env.local
     depends_on:
-      - backend
+      - api-gateway
     networks:
       - nano_network
 

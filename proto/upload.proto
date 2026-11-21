@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package upload;
+
+// Service gRPC cho các dịch vụ nội bộ (như Chat, User) gọi sang Upload Service
+service UploadGrpcService {
+  rpc CopyTempToUploads (CopyTempRequest) returns (CopyTempResponse);
+  rpc ValidateTempKey (ValidateTempKeyRequest) returns (ValidateTempKeyResponse);
+  rpc DeleteTempFile (DeleteTempFileRequest) returns (DeleteTempFileResponse);
+}
+
+// 1. Sao chép file tạm thành file chính thức (dùng khi gửi tin nhắn chat kèm ảnh/file)
+message CopyTempRequest {
+  string temp_key = 1;
+}
+
+message CopyTempResponse {
+  string url = 1;
+}
+
+// 2. Kiểm tra tính hợp lệ và sự tồn tại của file tạm
+message ValidateTempKeyRequest {
+  string temp_key = 1;
+}
+
+message ValidateTempKeyResponse {
+  bool is_valid = 1;
+}
+
+// 3. Xóa file tạm (dùng khi hủy upload hoặc hết hạn)
+message DeleteTempFileRequest {
+  string temp_key = 1;
+}
+
+message DeleteTempFileResponse {
+  bool success = 1;
+}

@@ -10,7 +10,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bufferLogs: true,
   });
-  app.set('trust proxy', true);
+  app.set('trust proxy', 'loopback, linklocal, uniquelocal');
   app.useLogger(app.get(Logger));
   app.use(cookieParser());
 
