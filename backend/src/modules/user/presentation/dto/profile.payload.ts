@@ -11,4 +11,7 @@ export class UserProfilePayload implements UserProfile {
 
   @Field()
   email: string;
+
+  @Field()
+  avatar: string;
 }

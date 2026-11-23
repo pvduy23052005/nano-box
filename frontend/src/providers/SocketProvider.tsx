@@ -6,24 +6,50 @@ import io, { Socket } from "socket.io-client";
 interface SocketContextType {
   socket: Socket | null;
   isConnected: boolean;
+  disconnect: () => void;
+  connect: () => void;
 }
 
 const SocketContext = createContext<SocketContextType>({
   socket: null,
   isConnected: false,
+  disconnect: () => {},
+  connect: () => {},
 });
 
-const SOCKET_URL =
-  process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5050";
+const getSocketUrl = (): string => {
+  if (process.env.NEXT_PUBLIC_SOCKET_URL) {
+    return process.env.NEXT_PUBLIC_SOCKET_URL;
+  }
+  if (process.env.NODE_ENV !== "production") {
+    if (typeof window !== "undefined") {
+      return window.location.port === "3000" ? "http://localhost:5050" : "";
+    }
+    return "http://localhost:5050";
+  }
+  return "";
+};
 
 const socketInstance =
   typeof window !== "undefined"
-    ? io(SOCKET_URL, {
+    ? io(getSocketUrl() || undefined, {
         withCredentials: true,
         transports: ["websocket"],
         autoConnect: false,
       })
     : null;
+
+export const disconnectSocket = () => {
+  if (socketInstance?.connected) {
+    socketInstance.disconnect();
+  }
+};
+
+export const connectSocket = () => {
+  if (socketInstance && !socketInstance.connected) {
+    socketInstance.connect();
+  }
+};
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [isConnected, setIsConnected] = useState(
@@ -44,11 +70,19 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       socketInstance.off("connect", onConnect);
       socketInstance.off("disconnect", onDisconnect);
+      socketInstance.disconnect();
     };
   }, []);
 
   return (
-    <SocketContext.Provider value={{ socket: socketInstance, isConnected }}>
+    <SocketContext.Provider
+      value={{
+        socket: socketInstance,
+        isConnected,
+        disconnect: disconnectSocket,
+        connect: connectSocket,
+      }}
+    >
       {children}
     </SocketContext.Provider>
   );

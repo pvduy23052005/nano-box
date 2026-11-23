@@ -34,13 +34,15 @@ src/modules/<module-name>/
 
 ## 2. NestJS Architectural Conventions
 
-### A. Domain Entities (`domain `)
-- **Folder Path**: Must use the folder named `domain ` with a trailing space (`src/modules/user/domain /...`).
-- **Java-style Getters**: Do not use TypeScript's property `get` syntax. Always implement explicit camelCase getter methods (e.g., `getId()`, `getName()`, `getEmail()`).
-- **Encapsulated State**: Property fields must be `private`. Provide a `private constructor` and static factory methods:
-  - `public static create(props): EntityName` - to create a new domain entity (status defaults to `ACTIVE`).
-  - `public static restore(props): EntityName` - to restore an entity from the database.
-- **No Framework Dependency**: Domain entities must never import database ORM libraries (Mongoose, etc.) or use database decorators.
+### A. Domain Entities & Value Objects (`domain `)
+- **Scope**: Strictly applies to both Domain Entities (`*.entity.ts`) and Value Objects (`*.object.ts`).
+- **Folder Path**: Must use the folder named `domain ` with a trailing space (`src/modules/user/domain /...`) or standard `domain/`.
+- **Java-style Getters**: Do not use TypeScript's property `get` syntax (e.g., `get userId()`). Always implement explicit camelCase getter methods (e.g., `getId()`, `getUserId()`, `getRole()`, `getStatus()`).
+- **Encapsulated State & Naming**:
+  - All private fields must strictly use `camelCase` (e.g., `_userId`, `_role` - never snake_case like `_user_id`).
+  - Provide a `private constructor` and static factory methods (`create`, `restore`).
+- **Domain Inter-object Access**: Domain methods interacting between objects must access state via Java getters (e.g., `actor.getRole() === MemberRole.ADMIN`).
+- **No Framework Dependency**: Domain entities and value objects must never import database ORM libraries (Mongoose, etc.) or use database decorators.
 
 ### B. Ports & Adapters (Dependency Injection)
 - **Ports**: Represented by `abstract class`es located in `applications/ports/` (e.g., `UserRepositoryAdapter` or `IPasswordHasher`).
@@ -142,4 +144,4 @@ Before completing a task or creating a Pull Request, self-review and ensure:
 - [ ] No magic numbers without declaring constants or providing appropriate explanations.
 - [ ] New code is fully consistent with the project's existing architecture and style.
 - [ ] Directory structure of new modules complies with Hexagonal Architecture.
-- [ ] The folder name `domain ` has a trailing space and domain entities use Java-style getters.
+- [ ] The folder name `domain ` has a trailing space (or standard `domain/`), and domain entities & value objects use Java-style getters and camelCase private fields.

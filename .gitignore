@@ -1,0 +1,17 @@
+*.pem
+*.key
+*.crt
+.DS_Store
+ssl
+
+docs/
+
+backups/
+*.gz
+
+
+.env
+.env.*
+!.env.example
+node_modules/
+dist/

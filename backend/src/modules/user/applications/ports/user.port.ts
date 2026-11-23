@@ -6,4 +6,6 @@ export abstract class UserRepositoryAdapter {
   abstract findByEmail(email: string): Promise<UserEntity | null>;
 
   abstract findById(id: string): Promise<UserEntity | null>;
+
+  abstract findAll(search?: string, limit?: number): Promise<UserEntity[]>;
 }

@@ -43,6 +43,13 @@ pnpm dlx shadcn@latest info --json    # View project context & installed compone
 - **Always** run `npx tsc --noEmit` after type-sensitive changes
 - **Always** check installed components with `pnpm dlx shadcn@latest info --json` before adding new ones
 
+## Project Rules in `.agents/rules/`
+
+| File | What it covers |
+|---|---|
+| [`clean-components.md`](.agents/rules/clean-components.md) | Clean React/Next.js component decomposition, JSX shorthands, hooks, Tailwind styling, avoiding prop drilling |
+| [`coding-conventions.md`](.agents/rules/coding-conventions.md) | General coding conventions, naming, TypeScript/React guidelines, import order, reviewer checklist |
+
 ## Detailed References in `.agents/`
 
 All deep-dive documentation lives under `.agents/skills/shadcn/`:
@@ -50,6 +57,7 @@ All deep-dive documentation lives under `.agents/skills/shadcn/`:
 | File | What it covers |
 |---|---|
 | [`SKILL.md`](.agents/skills/shadcn/SKILL.md) | Main shadcn skill — workflow, principles, CLI reference |
+| [`rules/coding-conventions.md`](.agents/skills/shadcn/rules/coding-conventions.md) | General coding conventions, naming, TypeScript/React guidelines, import order, reviewer checklist |
 | [`rules/forms.md`](.agents/skills/shadcn/rules/forms.md) | FieldGroup, Field, validation states, InputGroup, ToggleGroup |
 | [`rules/styling.md`](.agents/skills/shadcn/rules/styling.md) | Semantic colors, spacing, `cn()`, dark mode, z-index |
 | [`rules/composition.md`](.agents/skills/shadcn/rules/composition.md) | Card, Tabs, Avatar, Alert, Empty, Toast, Skeleton, Badge |
