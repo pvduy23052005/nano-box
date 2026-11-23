@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { ValidationError, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
@@ -37,12 +39,20 @@ async function bootstrap(): Promise<void> {
   const grpcPort = configService.get<number>('GRPC_PORT', 50052);
   const grpcHost = configService.get<string>('GRPC_HOST', '0.0.0.0');
 
+  const protoPath =
+    [
+      join(__dirname, 'proto/upload.proto'),
+      join(process.cwd(), 'dist/proto/upload.proto'),
+      join(process.cwd(), '../../proto/upload.proto'),
+    ].find((candidate) => existsSync(candidate)) ??
+    join(__dirname, 'proto/upload.proto');
+
   app.connectMicroservice<MicroserviceOptions>(
     {
       transport: Transport.GRPC,
       options: {
         package: 'upload',
-        protoPath: '../../proto/upload.proto',
+        protoPath,
         url: `${grpcHost}:${grpcPort}`,
       },
     },

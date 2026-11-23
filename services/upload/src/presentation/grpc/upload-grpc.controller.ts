@@ -1,4 +1,4 @@
-import { Controller, Logger } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { UploadAdapter } from '../../applications/ports/upload.port';
 
@@ -32,14 +32,11 @@ export interface DeleteTempFileResponse {
 
 @Controller()
 export class UploadGrpcController {
-  private readonly logger = new Logger(UploadGrpcController.name);
-
   constructor(private readonly uploadAdapter: UploadAdapter) {}
 
   @GrpcMethod('UploadGrpcService', 'CopyTempToUploads')
   async copyTempToUploads(data: CopyTempRequest): Promise<CopyTempResponse> {
     const key = data.tempKey || data.temp_key || '';
-    this.logger.log(`gRPC CopyTempToUploads received for key: ${key}`);
     const url = await this.uploadAdapter.copyTempToUploads(key);
     return { url };
   }
@@ -58,7 +55,6 @@ export class UploadGrpcController {
     data: DeleteTempFileRequest,
   ): Promise<DeleteTempFileResponse> {
     const key = data.tempKey || data.temp_key || '';
-    this.logger.log(`gRPC DeleteTempFile received for key: ${key}`);
     await this.uploadAdapter.deleteTempFile(key);
     return { success: true };
   }

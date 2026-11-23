@@ -2,13 +2,13 @@ name: Gateway CI (Build, Test & Docker Push)
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "microservices"]
     paths:
       - 'services/api-gateway/**'
       - '.github/workflows/gateway-ci.yml'
       - '.github/workflows/docker-publish.yml'
   pull_request:
-    branches: ["main"]
+    branches: ["main", "microservices"]
     paths:
       - 'services/api-gateway/**'
       - '.github/workflows/gateway-ci.yml'
@@ -64,7 +64,7 @@ jobs:
   publish-docker:
     name: Publish Docker Image
     needs: test-and-verify
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/microservices')
     uses: ./.github/workflows/docker-publish.yml
     with:
       service: api-gateway

@@ -2,19 +2,19 @@ name: Backend CI (Build, Test & Docker Push)
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "microservices"]
     paths:
-      - 'backend/**'
-      - 'proto/**'
-      - '.github/workflows/backend-ci.yml'
-      - '.github/workflows/docker-publish.yml'
+      - "backend/**"
+      - "proto/**"
+      - ".github/workflows/backend-ci.yml"
+      - ".github/workflows/docker-publish.yml"
   pull_request:
-    branches: ["main"]
+    branches: ["main", "microservices"]
     paths:
-      - 'backend/**'
-      - 'proto/**'
-      - '.github/workflows/backend-ci.yml'
-      - '.github/workflows/docker-publish.yml'
+      - "backend/**"
+      - "proto/**"
+      - ".github/workflows/backend-ci.yml"
+      - ".github/workflows/docker-publish.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -45,7 +45,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
+          cache: "pnpm"
           cache-dependency-path: ./backend/pnpm-lock.yaml
 
       - name: Cài đặt Dependencies
@@ -60,5 +60,5 @@ jobs:
     uses: ./.github/workflows/docker-publish.yml
     with:
       service: backend
-      context: ./backend
+      context: .
       dockerfile: ./backend/Dockerfile

@@ -2,13 +2,13 @@ name: Frontend CI (Build, Test & Docker Push)
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "microservices"]
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend-ci.yml'
       - '.github/workflows/docker-publish.yml'
   pull_request:
-    branches: ["main"]
+    branches: ["main", "microservices"]
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend-ci.yml'

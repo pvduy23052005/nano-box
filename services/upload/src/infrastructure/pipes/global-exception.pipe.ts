@@ -14,11 +14,16 @@ import { Observable, throwError } from 'rxjs';
 import { MAX_FILE_SIZE } from '../../domain/upload.constant';
 import { DomainValidationException } from '../../domain/domain-validation.exception';
 
+export enum ParsedErrorType {
+  DOMAIN_VALIDATION_ERROR = 'DOMAIN_VALIDATION_ERROR',
+  HTTP_CLIENT_ERROR = 'HTTP_CLIENT_ERROR',
+}
+
 interface ParsedError {
   statusCode: number;
   message: string;
   errors?: Record<string, string> | string[];
-  type: 'DOMAIN_VALIDATION_ERROR' | 'HTTP_CLIENT_ERROR';
+  type: ParsedErrorType;
   logMessage: string;
   stack?: string;
 }
@@ -31,6 +36,11 @@ interface RequestWithUser {
 
 const INTERNAL_MSG = 'Hệ thống gặp sự cố. Vui lòng thử lại sau.';
 const MAX_MB = (MAX_FILE_SIZE / (1024 * 1024)).toFixed(0);
+const SERVER_ERROR_MIN: number = HttpStatus.INTERNAL_SERVER_ERROR;
+const WARN_STATUSES = new Set<number>([
+  HttpStatus.BAD_REQUEST,
+  HttpStatus.PAYLOAD_TOO_LARGE,
+]);
 const ERROR_MESSAGES: Record<string, string> = {
   unauthorized: 'Phiên làm việc không hợp lệ hoặc đã hết hạn.',
   forbidden: 'Bạn không có quyền thực hiện hành động này.',
@@ -61,28 +71,7 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
     const req = host.switchToHttp().getRequest<RequestWithUser>();
     const res = host.switchToHttp().getResponse<Response>();
 
-    if (parsed.statusCode >= Number(HttpStatus.INTERNAL_SERVER_ERROR)) {
-      this.logger.error(
-        `[HTTP ${parsed.statusCode}] ${parsed.logMessage}`,
-        parsed.stack,
-      );
-    } else if (
-      parsed.statusCode === Number(HttpStatus.BAD_REQUEST) ||
-      parsed.statusCode === Number(HttpStatus.PAYLOAD_TOO_LARGE)
-    ) {
-      const path = (req?.url ?? '').split('?')[0];
-      const operation = `${req?.method ?? 'UNKNOWN'} ${path}`.trim();
-      this.logger.warn(
-        {
-          type: parsed.type,
-          statusCode: parsed.statusCode,
-          operation,
-          ...(req?.user?.id ? { userId: req.user.id } : {}),
-          ...(parsed.errors ? { errors: parsed.errors } : {}),
-        },
-        `[Validation Warning] ${operation} -> ${parsed.message}`,
-      );
-    }
+    this.logHttpError(parsed, req);
 
     if (res.headersSent) {
       return res;
@@ -95,6 +84,34 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
     });
   }
 
+  private logHttpError(parsed: ParsedError, req: RequestWithUser): void {
+    if (parsed.statusCode >= SERVER_ERROR_MIN) {
+      this.logger.error(
+        `[HTTP ${parsed.statusCode}] ${parsed.logMessage}`,
+        parsed.stack,
+      );
+      return;
+    }
+
+    if (!WARN_STATUSES.has(parsed.statusCode)) {
+      return;
+    }
+
+    const path = (req?.url ?? '').split('?')[0];
+    const operation = `${req?.method ?? 'UNKNOWN'} ${path}`.trim();
+
+    this.logger.warn(
+      {
+        type: parsed.type,
+        statusCode: parsed.statusCode,
+        operation,
+        ...(req?.user?.id && { userId: req.user.id }),
+        ...(parsed.errors && { errors: parsed.errors }),
+      },
+      `[Validation Warning] ${operation} -> ${parsed.message}`,
+    );
+  }
+
   private parseException(exception: unknown): ParsedError {
     if (exception instanceof DomainValidationException) {
       const message =
@@ -103,7 +120,7 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
         statusCode: HttpStatus.BAD_REQUEST,
         message,
         errors: exception.errors,
-        type: 'DOMAIN_VALIDATION_ERROR',
+        type: ParsedErrorType.DOMAIN_VALIDATION_ERROR,
         logMessage: message,
       };
     }
@@ -122,7 +139,7 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
         statusCode: HttpStatus.BAD_REQUEST,
         message,
         errors,
-        type: 'DOMAIN_VALIDATION_ERROR',
+        type: ParsedErrorType.DOMAIN_VALIDATION_ERROR,
         logMessage: message,
       };
     }
@@ -136,7 +153,7 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
           : typeof raw === 'string'
             ? raw
             : exception.message;
-      const isServer = statusCode >= Number(HttpStatus.INTERNAL_SERVER_ERROR);
+      const isServer = statusCode >= SERVER_ERROR_MIN;
       const errors =
         !isServer && Array.isArray(rawMsg) ? (rawMsg as string[]) : undefined;
       const rawText =
@@ -151,7 +168,7 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
         statusCode,
         message,
         errors,
-        type: 'HTTP_CLIENT_ERROR',
+        type: ParsedErrorType.HTTP_CLIENT_ERROR,
         logMessage: exception.message,
         stack: exception.stack,
       };
@@ -161,7 +178,7 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
     return {
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       message: INTERNAL_MSG,
-      type: 'HTTP_CLIENT_ERROR',
+      type: ParsedErrorType.HTTP_CLIENT_ERROR,
       logMessage: err?.message ?? String(exception),
       stack: err?.stack,
     };

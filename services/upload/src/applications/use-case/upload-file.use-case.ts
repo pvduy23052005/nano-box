@@ -7,7 +7,7 @@ import { UploadResponseDto } from '../dto/upload-response.dto';
 import { UploadAdapter } from '../ports/upload.port';
 
 export class UploadFileUseCase {
-  constructor(private readonly uploadAdapter: UploadAdapter) { }
+  constructor(private readonly uploadAdapter: UploadAdapter) {}
 
   async execute(
     file: FileUploadInput,

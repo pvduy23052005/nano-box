@@ -48,9 +48,9 @@ services:
         max-file: "3"
 
   backend:
-    build: 
-      context: ./backend
-      dockerfile: Dockerfile
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     image: nano-box-backend:local
     container_name: nano-box-backend
     restart: unless-stopped

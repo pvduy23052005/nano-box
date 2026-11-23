@@ -18,10 +18,10 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "migrate:create": "ts-node ./node_modules/migrate-mongo/bin/migrate-mongo.js create -f src/configs/migration.config.ts",
-    "migrate:up": "ts-node ./node_modules/migrate-mongo/bin/migrate-mongo.js up -f src/configs/migration.config.ts",
-    "migrate:down": "ts-node ./node_modules/migrate-mongo/bin/migrate-mongo.js down -f src/configs/migration.config.ts",
-    "migrate:status": "ts-node ./node_modules/migrate-mongo/bin/migrate-mongo.js status -f src/configs/migration.config.ts"
+    "migrate:create": "ts-node ./node_modules/migrate-mongo/bin/migrate-mongo.js create -f src/infrastructure/configs/migration.config.ts",
+    "migrate:up": "ts-node ./node_modules/migrate-mongo/bin/migrate-mongo.js up -f src/infrastructure/configs/migration.config.ts",
+    "migrate:down": "ts-node ./node_modules/migrate-mongo/bin/migrate-mongo.js down -f src/infrastructure/configs/migration.config.ts",
+    "migrate:status": "ts-node ./node_modules/migrate-mongo/bin/migrate-mongo.js status -f src/infrastructure/configs/migration.config.ts"
   },
   "dependencies": {
     "@apollo/server": "^5.5.1",

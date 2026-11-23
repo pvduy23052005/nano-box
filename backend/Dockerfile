@@ -4,12 +4,13 @@ WORKDIR /app
 
 RUN corepack enable pnpm
 
-COPY package.json pnpm-lock.yaml ./
+COPY backend/package.json backend/pnpm-lock.yaml ./
 
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile
 
-COPY . .
+COPY backend/ .
+COPY proto/ ./src/proto/
 
 RUN pnpm build
 
@@ -21,12 +22,13 @@ ENV NODE_ENV=production
 
 RUN corepack enable pnpm
 
-COPY package.json pnpm-lock.yaml ./
+COPY backend/package.json backend/pnpm-lock.yaml ./
 
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
     pnpm install --prod --frozen-lockfile
 
 COPY --from=builder /app/dist ./dist
+COPY proto/ ./dist/proto/
 
 EXPOSE 5050
 
