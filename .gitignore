@@ -6,6 +6,12 @@ ssl
 
 docs/
 
-monitoring/.env
 backups/
 *.gz
+
+
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
