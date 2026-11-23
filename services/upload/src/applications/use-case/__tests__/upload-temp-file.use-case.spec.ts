@@ -1,7 +1,7 @@
 import { UploadTempFileUseCase } from '../upload-temp-file.use-case';
 import { UploadFileUseCase } from '../upload-file.use-case';
 import { UploadFolder } from '../../../domain/upload.type';
-import { DomainValidationException } from '../../../common/customs/domain-validation.exception';
+import { DomainValidationException } from '../../../domain/domain-validation.exception';
 
 describe('UploadTempFileUseCase', () => {
   let uploadTempFileUseCase: UploadTempFileUseCase;

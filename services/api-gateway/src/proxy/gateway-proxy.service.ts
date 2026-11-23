@@ -77,7 +77,7 @@ export class GatewayProxyService {
     }));
 
     const socketRoute = this.routeProxies.find(
-      (r) => r.prefix === GatewayRoutePrefix.SOCKET_IO,
+      (route) => route.prefix === GatewayRoutePrefix.SOCKET_IO,
     );
     if (!socketRoute) {
       throw new Error('Missing Socket.IO proxy route configuration');

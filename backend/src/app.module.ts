@@ -5,7 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ApolloDriverConfig } from '@nestjs/apollo';
 import { graphqlConfig } from './configs/graphql.config';
 import { MongooseConfig } from './configs/database.config';
-import { loggerConfig } from './configs/logger.config';
+import { LoggerConfigService } from './configs/logger.config';
 import { redisConfig } from './configs/redis.config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { LoggerModule } from 'nestjs-pino';
@@ -20,12 +20,18 @@ import { FriendshipModule } from './modules/friendship/friendship.module';
 
 @Module({
   imports: [
-    LoggerModule.forRoot(loggerConfig),
-    GraphQLModule.forRoot<ApolloDriverConfig>(graphqlConfig),
     ConfigModule.forRoot({
       isGlobal: true,
       load: [redisConfig],
     }),
+    LoggerModule.forRootAsync({
+      imports: [ConfigModule],
+      providers: [LoggerConfigService],
+      inject: [LoggerConfigService],
+      useFactory: (loggerConfigService: LoggerConfigService) =>
+        loggerConfigService.createOptions(),
+    }),
+    GraphQLModule.forRoot<ApolloDriverConfig>(graphqlConfig),
     RedisModule,
     EventEmitterModule.forRoot(),
     MongooseModule.forRootAsync({

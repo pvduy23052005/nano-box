@@ -1,20 +1,29 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { LoggerModule } from 'nestjs-pino';
 import { UploadAdapter } from './applications/ports/upload.port';
 import { UploadFileUseCase } from './applications/use-case/upload-file.use-case';
 import { UploadTempFileUseCase } from './applications/use-case/upload-temp-file.use-case';
+import { AuthGuard } from './presentation/guards/auth.guard';
+import { RateLimitGuard } from './presentation/guards/rate-limit.guard';
+import { LoggerConfigService } from './infrastructure/configs/logger.config';
 import { CloudflareR2Adapter } from './infrastructure/externals/cloudflare';
-import { UploadController } from './presentation/rest/upload.controller';
 import { UploadGrpcController } from './presentation/grpc/upload-grpc.controller';
-import { RateLimitGuard } from './common/guards/rate-limit.guard';
-import { AuthGuard } from './common/guards/auth.guard';
+import { UploadController } from './presentation/rest/upload.controller';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env', '../../.env'],
+    }),
+    LoggerModule.forRootAsync({
+      imports: [ConfigModule],
+      providers: [LoggerConfigService],
+      inject: [LoggerConfigService],
+      useFactory: (loggerConfigService: LoggerConfigService) =>
+        loggerConfigService.createOptions(),
     }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -46,4 +55,4 @@ import { AuthGuard } from './common/guards/auth.guard';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

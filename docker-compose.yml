@@ -96,6 +96,11 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - nano_network
 
@@ -123,6 +128,11 @@ services:
         condition: service_started
       upload-service:
         condition: service_started
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - nano_network
 

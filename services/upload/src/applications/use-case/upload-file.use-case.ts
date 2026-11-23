@@ -1,13 +1,13 @@
-import { DomainValidationException } from '../../common/customs/domain-validation.exception';
-import { UploadAdapter } from '../ports/upload.port';
-import { UploadResponseDto } from '../dto/upload-response.dto';
-import { FileUploadInput } from '../dto/file-upload.input';
-import { UploadedFileEntity } from '../../domain/uploaded-file.entity';
-import { UploadFolder, ALLOWED_UPLOAD_FOLDERS } from '../../domain/upload.type';
+import { DomainValidationException } from '../../domain/domain-validation.exception';
 import { resolveContentDisposition } from '../../domain/upload.constant';
+import { ALLOWED_UPLOAD_FOLDERS, UploadFolder } from '../../domain/upload.type';
+import { UploadedFileEntity } from '../../domain/uploaded-file.entity';
+import { FileUploadInput } from '../dto/file-upload.input';
+import { UploadResponseDto } from '../dto/upload-response.dto';
+import { UploadAdapter } from '../ports/upload.port';
 
 export class UploadFileUseCase {
-  constructor(private readonly uploadAdapter: UploadAdapter) {}
+  constructor(private readonly uploadAdapter: UploadAdapter) { }
 
   async execute(
     file: FileUploadInput,
@@ -32,15 +32,6 @@ export class UploadFileUseCase {
       folder,
       buffer: file.buffer,
     });
-
-    if (
-      folder === (UploadFolder.AVATARS as string) &&
-      entity.getCategory() !== 'image'
-    ) {
-      throw new DomainValidationException({
-        file: 'Thư mục avatars chỉ chấp nhận file hình ảnh',
-      });
-    }
 
     const contentDisposition = resolveContentDisposition(
       entity.getName(),

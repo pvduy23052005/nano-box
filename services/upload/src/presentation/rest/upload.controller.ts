@@ -9,8 +9,8 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import 'multer';
-import { AuthGuard } from '../../common/guards/auth.guard';
-import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
+import { AuthGuard } from '../guards/auth.guard';
+import { RateLimitGuard } from '../guards/rate-limit.guard';
 import { UploadFileUseCase } from '../../applications/use-case/upload-file.use-case';
 import { UploadTempFileUseCase } from '../../applications/use-case/upload-temp-file.use-case';
 import { UploadResponseDto } from '../../applications/dto/upload-response.dto';

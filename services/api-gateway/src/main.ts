@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
+import { Logger as PinoLogger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { GatewayEnvKey } from './common/constants/gateway.enum';
 import { TRUSTED_PROXY_SUBNETS } from './common/utils/client-ip.util';
@@ -32,7 +33,9 @@ async function bootstrap(): Promise<void> {
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bodyParser: false,
+    bufferLogs: true,
   });
+  app.useLogger(app.get(PinoLogger));
 
   const configService = app.get(ConfigService);
   const port =

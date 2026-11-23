@@ -1,4 +1,4 @@
-import { DomainValidationException } from '../../common/customs/domain-validation.exception';
+import { DomainValidationException } from '../domain-validation.exception';
 import { UploadedFileEntity } from '../uploaded-file.entity';
 import { UploadFolder } from '../upload.type';
 

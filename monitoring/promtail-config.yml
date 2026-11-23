@@ -25,7 +25,7 @@ scrape_configs:
     pipeline_stages:
       - docker: {}
       - match:
-          selector: '{service="nano-box-backend"}'
+          selector: '{service=~"nano-box-(backend|api-gateway|upload-service)"}'
           stages:
             - json:
                 expressions:

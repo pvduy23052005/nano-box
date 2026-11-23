@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as crypto from 'crypto';
-import { DomainValidationException } from '../common/customs/domain-validation.exception';
+import { DomainValidationException } from './domain-validation.exception';
 import {
   FileCategory,
   UploadedFileProps,

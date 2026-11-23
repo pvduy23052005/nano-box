@@ -2,31 +2,31 @@ import { Controller, Logger } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { UploadAdapter } from '../../applications/ports/upload.port';
 
-interface CopyTempRequest {
+export interface CopyTempRequest {
   tempKey?: string;
   temp_key?: string;
 }
 
-interface CopyTempResponse {
+export interface CopyTempResponse {
   url: string;
 }
 
-interface ValidateTempKeyRequest {
+export interface ValidateTempKeyRequest {
   tempKey?: string;
   temp_key?: string;
 }
 
-interface ValidateTempKeyResponse {
+export interface ValidateTempKeyResponse {
   isValid: boolean;
   is_valid: boolean;
 }
 
-interface DeleteTempFileRequest {
+export interface DeleteTempFileRequest {
   tempKey?: string;
   temp_key?: string;
 }
 
-interface DeleteTempFileResponse {
+export interface DeleteTempFileResponse {
   success: boolean;
 }
 
