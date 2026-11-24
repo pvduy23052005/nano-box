@@ -18,7 +18,7 @@ scrape_configs:
         regex: '/(.*)'
         target_label: 'container'
       - source_labels: ['__meta_docker_container_name']
-        regex: '/?(nano-box-[^.]*)'
+        regex: '/?(nano-(?:box-)?[^.]*)'
         target_label: 'service'
       - source_labels: ['__meta_docker_container_log_stream']
         target_label: 'stream'
@@ -39,3 +39,20 @@ scrape_configs:
                 reqId:
                 userId:
                 context:
+      - match:
+          selector: '{service=~"nano-(box-)?nginx", stream="stdout"}'
+          stages:
+            - json:
+                expressions:
+                  statusGroup: statusGroup
+                  country: country
+                  host: host
+                  path: path
+                  ip: ip
+            - labels:
+                statusGroup:
+            - structured_metadata:
+                country:
+                host:
+                path:
+                ip:
