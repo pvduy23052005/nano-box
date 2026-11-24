@@ -42,6 +42,14 @@ export interface RateLimitDecision {
   resetSeconds: number;
 }
 
+export interface DependencyHealth {
+  status: 'up' | 'down';
+  latencyMs: number;
+  error?: string;
+}
+
+const HEALTH_PING_TIMEOUT_MS = 2_000;
+
 @Injectable()
 export class RateLimitService implements OnModuleDestroy {
   private readonly logger = new Logger(RateLimitService.name);
@@ -111,6 +119,43 @@ export class RateLimitService implements OnModuleDestroy {
         remaining: RATE_LIMIT_MAX,
         resetSeconds: Math.ceil(RATE_LIMIT_WINDOW_MS / 1000),
       };
+    }
+  }
+
+  async checkHealth(): Promise<DependencyHealth> {
+    const start = Date.now();
+    let timer: NodeJS.Timeout | undefined;
+
+    try {
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error('Redis ping timed out')),
+          HEALTH_PING_TIMEOUT_MS,
+        );
+      });
+
+      const response: string = await Promise.race([
+        this.redisClient.ping(),
+        timeoutPromise,
+      ]);
+
+      if (response !== 'PONG') {
+        return {
+          status: 'down',
+          latencyMs: Date.now() - start,
+          error: `Unexpected ping response: ${response}`,
+        };
+      }
+
+      return { status: 'up', latencyMs: Date.now() - start };
+    } catch (error) {
+      return {
+        status: 'down',
+        latencyMs: Date.now() - start,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    } finally {
+      if (timer) clearTimeout(timer);
     }
   }
 

@@ -16,7 +16,14 @@ const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX_REQUESTS = 20;
 const DEFAULT_REDIS_PORT = 6379;
 const REDIS_CONNECT_TIMEOUT_MS = 3_000;
+const HEALTH_PING_TIMEOUT_MS = 2_000;
 const REDIS_KEY_PREFIX = 'rl:upload:';
+
+export interface DependencyHealth {
+  status: 'up' | 'down';
+  latencyMs: number;
+  error?: string;
+}
 
 const SLIDING_WINDOW_LUA = `
 local key = KEYS[1]
@@ -92,6 +99,43 @@ export class RateLimitGuard implements CanActivate, OnModuleDestroy {
         `[Redis UploadRateLimit] Connection error (${redisHost}:${redisPort}): ${error.message}`,
       );
     });
+  }
+
+  async checkRedisHealth(): Promise<DependencyHealth> {
+    const start = Date.now();
+    let timer: NodeJS.Timeout | undefined;
+
+    try {
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error('Redis ping timed out')),
+          HEALTH_PING_TIMEOUT_MS,
+        );
+      });
+
+      const response: string = await Promise.race([
+        this.redisClient.ping(),
+        timeoutPromise,
+      ]);
+
+      if (response !== 'PONG') {
+        return {
+          status: 'down',
+          latencyMs: Date.now() - start,
+          error: `Unexpected ping response: ${response}`,
+        };
+      }
+
+      return { status: 'up', latencyMs: Date.now() - start };
+    } catch (error) {
+      return {
+        status: 'down',
+        latencyMs: Date.now() - start,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
   }
 
   async onModuleDestroy(): Promise<void> {

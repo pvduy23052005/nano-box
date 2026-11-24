@@ -7,6 +7,7 @@ import { graphqlConfig } from './infrastructure/configs/graphql.config';
 import { MongooseConfig } from './infrastructure/configs/database.config';
 import { LoggerConfigService } from './infrastructure/configs/logger.config';
 import { redisConfig } from './infrastructure/configs/redis.config';
+import { HealthController } from './infrastructure/health/health.controller';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { LoggerModule } from 'nestjs-pino';
 import { UserModule } from './modules/user/user.module';
@@ -45,7 +46,7 @@ import { FriendshipModule } from './modules/friendship/friendship.module';
     NotificationModule,
     FriendshipModule,
   ],
-  controllers: [],
+  controllers: [HealthController],
   providers: [],
 })
 export class AppModule {}

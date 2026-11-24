@@ -221,8 +221,10 @@ describe('API Gateway (e2e)', () => {
     ]);
   });
 
-  it('GET /health returns 200, correlation id, and hides x-powered-by', async () => {
-    const res = await request(app.getHttpServer()).get('/health').expect(200);
+  it('GET /health/live returns 200, correlation id, and hides x-powered-by', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/health/live')
+      .expect(200);
 
     expect(res.body).toEqual(
       expect.objectContaining({

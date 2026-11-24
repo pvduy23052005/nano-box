@@ -10,6 +10,7 @@ import { RateLimitGuard } from './presentation/guards/rate-limit.guard';
 import { LoggerConfigService } from './infrastructure/configs/logger.config';
 import { CloudflareR2Adapter } from './infrastructure/externals/cloudflare';
 import { UploadGrpcController } from './presentation/grpc/upload-grpc.controller';
+import { HealthController } from './presentation/rest/health.controller';
 import { UploadController } from './presentation/rest/upload.controller';
 
 @Module({
@@ -33,7 +34,7 @@ import { UploadController } from './presentation/rest/upload.controller';
       inject: [ConfigService],
     }),
   ],
-  controllers: [UploadController, UploadGrpcController],
+  controllers: [HealthController, UploadController, UploadGrpcController],
   providers: [
     AuthGuard,
     RateLimitGuard,
@@ -55,4 +56,4 @@ import { UploadController } from './presentation/rest/upload.controller';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { Params } from 'nestjs-pino';
 import { startTime } from 'pino-http';
 
-const SLOW_MS = 3000;
+const SLOW_MS = 1000;
 const VALID_ID = /^[a-zA-Z0-9._-]{1,64}$/;
 const IGNORE_URL = /^\/(health|metrics|favicon\.ico$)/;
 const REDACT_FIELDS = [

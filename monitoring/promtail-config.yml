@@ -30,5 +30,12 @@ scrape_configs:
             - json:
                 expressions:
                   level: level
+                  reqId: reqId
+                  userId: userId
+                  context: context
             - labels:
                 level:
+            - structured_metadata:
+                reqId:
+                userId:
+                context:

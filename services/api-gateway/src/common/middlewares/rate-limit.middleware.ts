@@ -7,6 +7,7 @@ import {
   RateLimitService,
 } from '../services/rate-limit.service';
 import { resolveClientIp } from '../utils/client-ip.util';
+import { matchPathPrefix } from '../utils/proxy-http.util';
 
 @Injectable()
 export class RateLimitMiddleware implements NestMiddleware {
@@ -15,8 +16,7 @@ export class RateLimitMiddleware implements NestMiddleware {
   constructor(private readonly rateLimitService: RateLimitService) {}
 
   async use(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const cleanPath = req.path.replace(/\/+$/, '') || '/';
-    if (cleanPath === String(GatewayRoutePrefix.HEALTH)) {
+    if (matchPathPrefix(req.path, GatewayRoutePrefix.HEALTH)) {
       next();
       return;
     }

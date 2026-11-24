@@ -1,23 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Params } from 'nestjs-pino';
-import { startTime } from 'pino-http';
 import { GatewayHeader } from '../common/constants/gateway.enum';
 import { resolveClientIp } from '../common/utils/client-ip.util';
 import { resolveCorrelationId } from '../common/utils/correlation-id.util';
 
-const SLOW_MS = 1000;
-const IGNORE_URL = /^\/(health(\?|$)|favicon\.ico$)/;
+const IGNORE_URL = /^\/(health(\/|\?|$)|favicon\.ico$)/;
 const REDACT_FIELDS = [
   'req.headers.authorization',
   'req.headers.cookie',
   'res.headers["set-cookie"]',
 ];
-
-const getElapsedMs = (res: object): number => {
-  const start = (res as { [startTime]?: number })[startTime];
-  return start ? Date.now() - start : 0;
-};
 
 @Injectable()
 export class LoggerConfigService {
@@ -54,9 +47,7 @@ export class LoggerConfigService {
         customProps: (req) => ({ reqId: req.id, ip: resolveClientIp(req) }),
         customLogLevel: (_req, res, err) => {
           if (res.statusCode >= 500 || err) return 'error';
-          if (res.statusCode >= 400 || getElapsedMs(res) >= SLOW_MS) {
-            return 'warn';
-          }
+          if (res.statusCode >= 400) return 'warn';
           return level === 'debug' ? 'debug' : 'silent';
         },
         redact: REDACT_FIELDS,
@@ -71,8 +62,7 @@ export class LoggerConfigService {
           }),
         },
         customSuccessMessage: (req, res, ms) =>
-          `[${req.method}] ${req.url} -> ${res.statusCode} (${ms}ms)` +
-          `${ms >= SLOW_MS ? ' [SLOW REQUEST]' : ''}`,
+          `[${req.method}] ${req.url} -> ${res.statusCode} (${ms}ms)`,
         customErrorMessage: (req, res, err) =>
           `[${req.method}] ${req.url} -> ${res.statusCode} (${err.message})`,
       },
