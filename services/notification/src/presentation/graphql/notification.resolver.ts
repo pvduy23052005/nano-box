@@ -1,26 +1,24 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Float, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { CurrentUser } from 'src/common/customs/current-user.decorator';
-import { AuthGuard } from 'src/common/guards/auth.guard';
+import { GetNotificationsUseCase } from '../../applications/use-cases/get-notifications.use-case';
+import { GetUnreadNotificationCountUseCase } from '../../applications/use-cases/get-unread-count.use-case';
+import { MarkAllNotificationsAsReadUseCase } from '../../applications/use-cases/mark-all-notifications-as-read.use-case';
+import { MarkNotificationAsReadUseCase } from '../../applications/use-cases/mark-notification-as-read.use-case';
+import { CurrentUser } from '../decorators/current-user.decorator';
 import {
   NotificationPayload,
   NotificationsPagePayload,
 } from '../dto/notification.output';
-import { GetNotificationsUseCase } from '../../applications/use-cases/get-notifications.use-case';
-import { GetUnreadNotificationCountUseCase } from '../../applications/use-cases/get-unread-count.use-case';
-import { MarkNotificationAsReadUseCase } from '../../applications/use-cases/mark-notification-as-read.use-case';
-import { MarkAllNotificationsAsReadUseCase } from '../../applications/use-cases/mark-all-notifications-as-read.use-case';
-import { GetMeUseCase } from 'src/modules/user/applications/use-case/get-me.use-case';
+import { AuthGuard } from '../guards/auth.guard';
 
 @Resolver(() => NotificationPayload)
 @UseGuards(AuthGuard)
 export class NotificationResolver {
   constructor(
     private readonly getNotificationsUseCase: GetNotificationsUseCase,
-    private readonly getUnreadNotificationCountUseCase: GetUnreadNotificationCountUseCase,
-    private readonly markNotificationAsReadUseCase: MarkNotificationAsReadUseCase,
-    private readonly markAllNotificationsAsReadUseCase: MarkAllNotificationsAsReadUseCase,
-    private readonly getMeUseCase: GetMeUseCase,
+    private readonly getUnreadCountUseCase: GetUnreadNotificationCountUseCase,
+    private readonly markAsReadUseCase: MarkNotificationAsReadUseCase,
+    private readonly markAllAsReadUseCase: MarkAllNotificationsAsReadUseCase,
   ) {}
 
   @Query(() => NotificationsPagePayload)
@@ -48,6 +46,7 @@ export class NotificationResolver {
         metadata: {
           roomId: item.metadata.roomId,
           messageId: item.metadata.messageId,
+          action: item.metadata.action,
         },
         isRead: item.isRead,
         createdAt: item.createdAt ?? new Date(),
@@ -62,9 +61,7 @@ export class NotificationResolver {
   async getUnreadNotificationCount(
     @CurrentUser('id') recipientId: string,
   ): Promise<number> {
-    const result =
-      await this.getUnreadNotificationCountUseCase.execute(recipientId);
-    return result;
+    return this.getUnreadCountUseCase.execute(recipientId);
   }
 
   @Mutation(() => Boolean)
@@ -72,16 +69,13 @@ export class NotificationResolver {
     @CurrentUser('id') recipientId: string,
     @Args('id', { type: () => String }) notificationId: string,
   ): Promise<boolean> {
-    return this.markNotificationAsReadUseCase.execute(
-      notificationId,
-      recipientId,
-    );
+    return this.markAsReadUseCase.execute(notificationId, recipientId);
   }
 
   @Mutation(() => Boolean)
   async markAllNotificationsAsRead(
     @CurrentUser('id') recipientId: string,
   ): Promise<boolean> {
-    return this.markAllNotificationsAsReadUseCase.execute(recipientId);
+    return this.markAllAsReadUseCase.execute(recipientId);
   }
 }

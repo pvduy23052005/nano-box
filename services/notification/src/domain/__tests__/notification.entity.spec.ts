@@ -13,8 +13,7 @@ describe('NotificationEntity', () => {
         title: 'Lời mời kết bạn',
         content: 'Sender Name đã gửi cho bạn một lời mời kết bạn',
         metadata: {
-          referenceId: 'req-1',
-          referenceType: 'FRIEND_REQUEST',
+          messageId: 'req-1',
         },
       });
 
@@ -29,8 +28,7 @@ describe('NotificationEntity', () => {
         'Sender Name đã gửi cho bạn một lời mời kết bạn',
       );
       expect(entity.getMetadata()).toEqual({
-        referenceId: 'req-1',
-        referenceType: 'FRIEND_REQUEST',
+        messageId: 'req-1',
       });
       expect(entity.getIsRead()).toBe(false);
       expect(entity.getCreatedAt()).toBeUndefined();
@@ -45,13 +43,11 @@ describe('NotificationEntity', () => {
         type: NotificationType.ROOM_ACTION,
         title: 'Hành động nhóm',
         content: 'Bạn đã được thêm vào nhóm',
-        metadata: {},
+        metadata: { roomId: 'room-1', action: 'MEMBER_ADDED' },
       });
 
       expect(entity.getIsRead()).toBe(false);
-
       entity.markAsRead();
-
       expect(entity.getIsRead()).toBe(true);
     });
   });
@@ -69,8 +65,7 @@ describe('NotificationEntity', () => {
         title: 'Tin nhắn mới',
         content: 'Bạn có tin nhắn mới',
         metadata: {
-          referenceId: 'room-1',
-          referenceType: 'ROOM',
+          roomId: 'room-1',
         },
         isRead: true,
         createdAt,
@@ -85,8 +80,7 @@ describe('NotificationEntity', () => {
       expect(entity.getTitle()).toBe('Tin nhắn mới');
       expect(entity.getContent()).toBe('Bạn có tin nhắn mới');
       expect(entity.getMetadata()).toEqual({
-        referenceId: 'room-1',
-        referenceType: 'ROOM',
+        roomId: 'room-1',
       });
       expect(entity.getIsRead()).toBe(true);
       expect(entity.getCreatedAt()).toBe(createdAt);

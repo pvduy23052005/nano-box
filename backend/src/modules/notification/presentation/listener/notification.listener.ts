@@ -21,14 +21,14 @@ import { NotificationType } from '../../domain/notification.type';
 import type { RoomProps } from 'src/modules/room/domain/room.type';
 import { WebsocketService } from 'src/infrastructure/websocket/ws.service';
 import { UserRepositoryAdapter } from 'src/modules/user/applications/ports/user.port';
-import { CreateNotificationUseCase } from '../../applications/use-cases/create-notification.use-case';
+import { NotificationClientAdapter } from '../../applications/ports/notification-client.port';
 
 @Injectable()
 export class NotificationListener {
   private readonly logger = new Logger(NotificationListener.name);
 
   constructor(
-    private readonly createNotificationUseCase: CreateNotificationUseCase,
+    private readonly notificationClient: NotificationClientAdapter,
     private readonly websocketService: WebsocketService,
     private readonly userRepository: UserRepositoryAdapter,
   ) {}
@@ -55,7 +55,7 @@ export class NotificationListener {
 
       const recipientId = message.senderId;
 
-      const notification = await this.createNotificationUseCase.execute({
+      const notification = await this.notificationClient.createNotification({
         recipientId,
         senderId: reactorId,
         senderName: reactorName,
@@ -105,7 +105,7 @@ export class NotificationListener {
 
       const results = await Promise.allSettled(
         recipients.map(async (recipientId) => {
-          const notification = await this.createNotificationUseCase.execute({
+          const notification = await this.notificationClient.createNotification({
             recipientId,
             senderId,
             senderName: displaySenderName ?? undefined,
@@ -155,7 +155,7 @@ export class NotificationListener {
       const title = 'Lời mời kết bạn mới';
       const content = `${requesterName} đã gửi cho bạn một lời mời kết bạn.`;
 
-      const notification = await this.createNotificationUseCase.execute({
+      const notification = await this.notificationClient.createNotification({
         recipientId: addresseeId,
         senderId: requesterId,
         senderName: requesterName,
@@ -209,7 +209,7 @@ export class NotificationListener {
 
       const results = await Promise.allSettled(
         recipients.map(async (recipientId) => {
-          const notification = await this.createNotificationUseCase.execute({
+          const notification = await this.notificationClient.createNotification({
             recipientId,
             senderId: creatorId,
             senderName: displaySenderName,
@@ -263,7 +263,7 @@ export class NotificationListener {
       const title = room.title || 'Nhóm';
       const content = buildContent(displaySenderName, title);
 
-      const notification = await this.createNotificationUseCase.execute({
+      const notification = await this.notificationClient.createNotification({
         recipientId: targetUserId,
         senderId: actorId,
         senderName: displaySenderName,

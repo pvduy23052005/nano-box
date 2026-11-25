@@ -12,6 +12,10 @@ import {
   markNotificationAsReadInCache,
 } from "../notification.cache";
 
+const NOTIFICATION_GRAPHQL_CONTEXT = {
+  graphqlPath: "/notifications/graphql",
+};
+
 export interface UseNotificationsOptions {
   enabled?: boolean;
 }
@@ -22,6 +26,7 @@ export const useNotifications = (options?: UseNotificationsOptions) => {
 
   const { data: countData } = useQuery(GET_UNREAD_NOTIFICATION_COUNT_QUERY, {
     fetchPolicy: "cache-and-network",
+    context: NOTIFICATION_GRAPHQL_CONTEXT,
   });
 
   const { data, loading, fetchMore, refetch } = useQuery(
@@ -30,11 +35,13 @@ export const useNotifications = (options?: UseNotificationsOptions) => {
       variables: { limit: NOTIFICATIONS_LIMIT },
       fetchPolicy: "cache-and-network",
       skip: !isEnabled,
+      context: NOTIFICATION_GRAPHQL_CONTEXT,
     },
   );
 
   const [markNotificationAsReadMutation] = useMutation(
     MARK_NOTIFICATION_AS_READ_MUTATION,
+    { context: NOTIFICATION_GRAPHQL_CONTEXT },
   );
 
   const notifications: NotificationItem[] = useMemo(() => {

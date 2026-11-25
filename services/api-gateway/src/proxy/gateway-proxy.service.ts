@@ -1,3 +1,8 @@
+import type * as http from 'node:http';
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import type { NextFunction, Request, Response } from 'express';
+import { createProxyMiddleware, RequestHandler } from 'http-proxy-middleware';
 import {
   GatewayEnvKey,
   GatewayRoutePrefix,
@@ -9,11 +14,6 @@ import {
   UPSTREAM_CORS_HEADERS,
   writeProxyBadGateway,
 } from '../common/utils/proxy-http.util';
-import type * as http from 'node:http';
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import type { NextFunction, Request, Response } from 'express';
-import { createProxyMiddleware, RequestHandler } from 'http-proxy-middleware';
 import { GatewayWsUpgradeService } from './gateway-ws-upgrade.service';
 
 const UPLOAD_PROXY_TIMEOUT_MS = 120_000;
@@ -49,6 +49,10 @@ export class GatewayProxyService {
       GatewayEnvKey.UPLOAD_SERVICE_URL,
       'http://localhost:5051',
     );
+    const notificationUrl = configService.get<string>(
+      GatewayEnvKey.NOTIFICATION_SERVICE_URL,
+      'http://localhost:5052',
+    );
 
     const routes: ProxyRouteConfig[] = [
       {
@@ -56,6 +60,12 @@ export class GatewayProxyService {
         target: uploadUrl,
         serviceName: GatewayServiceName.UPLOAD_SERVICE,
         timeoutMs: UPLOAD_PROXY_TIMEOUT_MS,
+      },
+      {
+        prefix: GatewayRoutePrefix.NOTIFICATIONS_GRAPHQL,
+        target: notificationUrl,
+        serviceName: GatewayServiceName.NOTIFICATION_GRAPHQL,
+        timeoutMs: GRAPHQL_PROXY_TIMEOUT_MS,
       },
       {
         prefix: GatewayRoutePrefix.GRAPHQL,

@@ -158,8 +158,6 @@ type Mutation {
   login(input: LoginInputDto!): LoginPayload!
   loginGoogle(idToken: String!): LoginPayload!
   logout: Boolean!
-  markAllNotificationsAsRead: Boolean!
-  markNotificationAsRead(id: String!): Boolean!
   register(input: RegisterInputDto!): RegisterPayload!
   rejectFriendRequest(friendId: String!): RejectFriendRequestPayload!
   removeMemberFromRoom(input: RemoveMemberFromRoomInput!): RoomOutput!
@@ -171,51 +169,13 @@ type Mutation {
   updateRoomProfile(input: UpdateRoomProfileInput!): RoomOutput!
 }
 
-type NotificationMetadataOutput {
-  action: String
-  messageId: String
-  roomId: String
-}
-
-type NotificationPayload {
-  content: String!
-  createdAt: DateTime!
-  id: ID!
-  isRead: Boolean!
-  metadata: NotificationMetadataOutput!
-  recipientId: String!
-  senderAvatar: String
-  senderId: String!
-  senderName: String
-  title: String!
-  type: NotificationType!
-}
-
-enum NotificationType {
-  FRIEND_REQUEST
-  MENTION
-  NEW_MESSAGE
-  NEW_ROOM
-  REACTION
-  ROOM_ACTION
-}
-
-type NotificationsPagePayload {
-  hasMore: Boolean!
-  items: [NotificationPayload!]!
-  nextCursor: String
-  unreadCount: Int!
-}
-
 type Query {
   getFriends(search: String): [UserProfilePayload!]!
   getMe: UserProfilePayload!
   getMessages(cursor: String, limit: Float, roomId: String!): MessagesPagePayload!
-  getNotifications(cursor: String, limit: Float): NotificationsPagePayload!
   getReceivedFriendRequests: [GetReceivedFriendRequestPayload!]!
   getRoomDetail(roomId: String!): RoomOutput!
   getRoomsByStatus(search: String, status: MemberStatus!): [RoomOutput!]!
-  getUnreadNotificationCount: Int!
   getUsers(limit: Int, search: String): [UserProfilePayload!]!
 }
 

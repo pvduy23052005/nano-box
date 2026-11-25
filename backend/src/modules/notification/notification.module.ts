@@ -1,73 +1,54 @@
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import {
-  Notification,
-  NotificationSchema,
-} from './infrastructure/notification.schema';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 import { UserModule } from '../user/user.module';
-import { NotificationRepositoryAdapter } from './applications/ports/notification.port';
-import { NotificationRepository } from './infrastructure/notification.repository';
-import { GetNotificationsUseCase } from './applications/use-cases/get-notifications.use-case';
-import { GetUnreadNotificationCountUseCase } from './applications/use-cases/get-unread-count.use-case';
-import { MarkNotificationAsReadUseCase } from './applications/use-cases/mark-notification-as-read.use-case';
-import { MarkAllNotificationsAsReadUseCase } from './applications/use-cases/mark-all-notifications-as-read.use-case';
-import { CreateNotificationUseCase } from './applications/use-cases/create-notification.use-case';
-import { NotificationResolver } from './presentation/graphql/notification.resolver';
+import { NotificationClientAdapter } from './applications/ports/notification-client.port';
+import { GrpcNotificationAdapter } from './infrastructure/externals/grpc-notification.adapter';
 import { NotificationListener } from './presentation/listener/notification.listener';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: Notification.name, schema: NotificationSchema },
+    ClientsModule.registerAsync([
+      {
+        name: 'NOTIFICATION_GRPC_PACKAGE',
+        imports: [ConfigModule],
+        useFactory: (configService: ConfigService) => {
+          const protoPath =
+            [
+              join(__dirname, '../../../proto/notification.proto'),
+              join(__dirname, '../../proto/notification.proto'),
+              join(process.cwd(), 'dist/proto/notification.proto'),
+              join(process.cwd(), 'src/proto/notification.proto'),
+              join(process.cwd(), '../proto/notification.proto'),
+            ].find((candidate) => existsSync(candidate)) ||
+            join(__dirname, '../../../proto/notification.proto');
+
+          return {
+            transport: Transport.GRPC,
+            options: {
+              package: 'notification',
+              protoPath,
+              url: configService.get<string>(
+                'NOTIFICATION_GRPC_URL',
+                'localhost:50053',
+              ),
+            },
+          };
+        },
+        inject: [ConfigService],
+      },
     ]),
     UserModule,
   ],
   providers: [
-    NotificationResolver,
     NotificationListener,
     {
-      provide: NotificationRepositoryAdapter,
-      useClass: NotificationRepository,
-    },
-    {
-      provide: CreateNotificationUseCase,
-      useFactory: (repo: NotificationRepositoryAdapter) =>
-        new CreateNotificationUseCase(repo),
-      inject: [NotificationRepositoryAdapter],
-    },
-    {
-      provide: GetNotificationsUseCase,
-      useFactory: (repo: NotificationRepositoryAdapter) =>
-        new GetNotificationsUseCase(repo),
-      inject: [NotificationRepositoryAdapter],
-    },
-    {
-      provide: GetUnreadNotificationCountUseCase,
-      useFactory: (repo: NotificationRepositoryAdapter) =>
-        new GetUnreadNotificationCountUseCase(repo),
-      inject: [NotificationRepositoryAdapter],
-    },
-    {
-      provide: MarkNotificationAsReadUseCase,
-      useFactory: (repo: NotificationRepositoryAdapter) =>
-        new MarkNotificationAsReadUseCase(repo),
-      inject: [NotificationRepositoryAdapter],
-    },
-    {
-      provide: MarkAllNotificationsAsReadUseCase,
-      useFactory: (repo: NotificationRepositoryAdapter) =>
-        new MarkAllNotificationsAsReadUseCase(repo),
-      inject: [NotificationRepositoryAdapter],
+      provide: NotificationClientAdapter,
+      useClass: GrpcNotificationAdapter,
     },
   ],
-  exports: [
-    MongooseModule,
-    NotificationRepositoryAdapter,
-    CreateNotificationUseCase,
-    GetNotificationsUseCase,
-    GetUnreadNotificationCountUseCase,
-    MarkNotificationAsReadUseCase,
-    MarkAllNotificationsAsReadUseCase,
-  ],
+  exports: [NotificationClientAdapter],
 })
 export class NotificationModule {}

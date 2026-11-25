@@ -35,8 +35,8 @@
         "type": "custom",
         "multi": true,
         "includeAll": true,
-        "allValue": "nano-box-(api-gateway|upload-service|backend)",
-        "query": "nano-box-api-gateway,nano-box-upload-service,nano-box-backend",
+        "allValue": "nano-box-(api-gateway|upload-service|backend|notification-service)",
+        "query": "nano-box-api-gateway,nano-box-upload-service,nano-box-backend,nano-box-notification-service",
         "current": {
           "text": "All",
           "value": "$__all"
@@ -45,7 +45,8 @@
           { "text": "All", "value": "$__all", "selected": true },
           { "text": "nano-box-api-gateway", "value": "nano-box-api-gateway", "selected": false },
           { "text": "nano-box-upload-service", "value": "nano-box-upload-service", "selected": false },
-          { "text": "nano-box-backend", "value": "nano-box-backend", "selected": false }
+          { "text": "nano-box-backend", "value": "nano-box-backend", "selected": false },
+          { "text": "nano-box-notification-service", "value": "nano-box-notification-service", "selected": false }
         ]
       }
     ]

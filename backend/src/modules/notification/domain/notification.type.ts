@@ -26,3 +26,4 @@ export interface NotificationProps {
   isRead: boolean;
   createdAt?: Date;
 }
+

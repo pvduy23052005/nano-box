@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package notification;
+
+service NotificationGrpcService {
+  rpc CreateNotification (CreateNotificationRequest) returns (NotificationItem);
+}
+
+message NotificationMetadata {
+  string room_id = 1;
+  string message_id = 2;
+  string action = 3;
+}
+
+message CreateNotificationRequest {
+  string recipient_id = 1;
+  string sender_id = 2;
+  string sender_name = 3;
+  string sender_avatar = 4;
+  string type = 5;
+  string title = 6;
+  string content = 7;
+  NotificationMetadata metadata = 8;
+}
+
+message NotificationItem {
+  string id = 1;
+  string recipient_id = 2;
+  string sender_id = 3;
+  string sender_name = 4;
+  string sender_avatar = 5;
+  string type = 6;
+  string title = 7;
+  string content = 8;
+  NotificationMetadata metadata = 9;
+  bool is_read = 10;
+  string created_at = 11;
+}

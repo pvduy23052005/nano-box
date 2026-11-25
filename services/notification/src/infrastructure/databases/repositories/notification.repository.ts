@@ -5,13 +5,16 @@ import {
   NotificationPaginationParams,
   NotificationPaginationResult,
   NotificationRepositoryAdapter,
-} from '../applications/ports/notification.port';
-import { NotificationEntity } from '../domain/notification.entity';
+} from '../../../applications/ports/notification.port';
+import { NotificationEntity } from '../../../domain/notification.entity';
 import {
   NotificationProps,
   NotificationType,
-} from '../domain/notification.type';
-import { Notification, NotificationDocument } from './notification.schema';
+} from '../../../domain/notification.type';
+import {
+  Notification,
+  NotificationDocument,
+} from '../schemas/notification.schema';
 
 interface RawNotificationRecord {
   _id?: Types.ObjectId | string;
@@ -155,8 +158,9 @@ export class NotificationRepository implements NotificationRepositoryAdapter {
     notificationId: string,
     recipientId: string,
   ): Promise<boolean> {
-    if (!notificationId || !Types.ObjectId.isValid(notificationId))
+    if (!notificationId || !Types.ObjectId.isValid(notificationId)) {
       return false;
+    }
 
     const result = await this.notificationModel.updateOne(
       { _id: new Types.ObjectId(notificationId), recipient_id: recipientId },

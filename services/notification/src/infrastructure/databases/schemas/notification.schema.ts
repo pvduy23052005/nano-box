@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { NotificationType } from '../domain/notification.type';
+import { NotificationType } from '../../../domain/notification.type';
 
 @Schema({ _id: false })
 export class NotificationMetadataSchema {
@@ -57,5 +57,4 @@ export type NotificationDocument = HydratedDocument<Notification>;
 export const NotificationSchema = SchemaFactory.createForClass(Notification);
 
 NotificationSchema.index({ recipient_id: 1, _id: -1 });
-
 NotificationSchema.index({ recipient_id: 1, is_read: 1 });

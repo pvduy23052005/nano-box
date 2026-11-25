@@ -1,7 +1,7 @@
 import { HttpLink, InMemoryCacheConfig } from "@apollo/client";
 import { GRAPHQL_TYPENAMES } from "./constants/graphql.constant";
 
-export const createHttpLink = (token?: string | null) => {
+export const createHttpLink = (token?: string | null): HttpLink => {
   const isBrowser = typeof window !== "undefined";
   let uri: string;
 
@@ -22,7 +22,12 @@ export const createHttpLink = (token?: string | null) => {
   }
 
   return new HttpLink({
-    uri,
+    uri: (operation) => {
+      const customPath = operation.getContext().graphqlPath as
+        | string
+        | undefined;
+      return customPath ? uri.replace(/\/graphql\/?$/, customPath) : uri;
+    },
     credentials: "include",
     headers: {
       ...(token ? { authorization: `Bearer ${token}` } : {}),
