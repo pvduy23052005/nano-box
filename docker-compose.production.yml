@@ -196,6 +196,34 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  realtime-gateway:
+    image: ghcr.io/pvduy23052005/nano-box-realtime-gateway:latest
+    container_name: nano-box-realtime-gateway
+    restart: unless-stopped
+    expose:
+      - "5053"
+    env_file:
+      - ./backend/.env
+    environment:
+      - PORT=5053
+      - ALLOWED_ORIGINS=https://nano-boxes.id.vn
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:5053/health/ready').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - nano_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   api-gateway:
     image: ghcr.io/pvduy23052005/nano-box-api-gateway:latest
     container_name: nano-box-api-gateway

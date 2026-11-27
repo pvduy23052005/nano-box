@@ -207,6 +207,37 @@ services:
     networks:
       - nano_network
 
+  realtime-gateway:
+    build:
+      context: .
+      dockerfile: services/realtime-gateway/Dockerfile
+    image: nano-box-realtime-gateway:local
+    container_name: nano-box-realtime-gateway
+    restart: unless-stopped
+    ports:
+      - "5053:5053"
+    env_file:
+      - ./backend/.env
+    environment:
+      - PORT=5053
+      - RABBITMQ_URL=amqp://${RABBITMQ_DEFAULT_USER:-nanobox}:${RABBITMQ_DEFAULT_PASS:-nanobox_secret}@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:5053/health/ready').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - nano_network
+
   api-gateway:
     build:
       context: ./services/api-gateway
