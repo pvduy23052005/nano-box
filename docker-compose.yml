@@ -47,6 +47,37 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    container_name: nano-rabbitmq
+    hostname: rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER:-nanobox}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS:-nanobox_secret}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - nano_network
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   backend:
     build:
       context: .
@@ -63,8 +94,11 @@ services:
       - REDIS_HOST=redis
       - UPLOAD_GRPC_URL=upload-service:50052
       - NOTIFICATION_GRPC_URL=notification-service:50053
+      - RABBITMQ_URL=amqp://${RABBITMQ_DEFAULT_USER:-nanobox}:${RABBITMQ_DEFAULT_PASS:-nanobox_secret}@rabbitmq:5672
     depends_on:
       redis:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:5050/health/ready').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
@@ -153,8 +187,11 @@ services:
       - GRPC_PORT=50053
       - GRPC_HOST=0.0.0.0
       - MONGO_URI=mongodb://notification-db:27017/nano-box-notification
+      - RABBITMQ_URL=amqp://${RABBITMQ_DEFAULT_USER:-nanobox}:${RABBITMQ_DEFAULT_PASS:-nanobox_secret}@rabbitmq:5672
     depends_on:
       notification-db:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:5052/health/ready').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
@@ -234,3 +271,7 @@ volumes:
   notification_mongodb_data:
     name: nano_notification_mongodb_data
     driver: local
+  rabbitmq_data:
+    name: nano_rabbitmq_data
+    driver: local
+

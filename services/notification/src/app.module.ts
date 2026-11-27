@@ -14,6 +14,8 @@ import { MarkAllNotificationsAsReadUseCase } from './applications/use-cases/mark
 import { MarkNotificationAsReadUseCase } from './applications/use-cases/mark-notification-as-read.use-case';
 import { MongooseConfig } from './infrastructure/configs/database.config';
 import { LoggerConfigService } from './infrastructure/configs/logger.config';
+import { rabbitmqConfig } from './infrastructure/configs/rabbitmq.config';
+import { RabbitmqModule } from './infrastructure/rabbitmq/rabbitmq.module';
 import { NotificationRepository } from './infrastructure/databases/repositories/notification.repository';
 import {
   Notification,
@@ -29,6 +31,7 @@ import { HealthController } from './presentation/rest/health.controller';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env', '../../.env'],
+      load: [rabbitmqConfig],
     }),
     LoggerModule.forRootAsync({
       imports: [ConfigModule],
@@ -60,6 +63,7 @@ import { HealthController } from './presentation/rest/health.controller';
     MongooseModule.forFeature([
       { name: Notification.name, schema: NotificationSchema },
     ]),
+    RabbitmqModule,
   ],
   controllers: [HealthController, NotificationGrpcController],
   providers: [
