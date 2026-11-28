@@ -1,25 +1,26 @@
+import { ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { GraphQLModule } from '@nestjs/graphql';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ApolloDriverConfig } from '@nestjs/apollo';
+import { LoggerModule } from 'nestjs-pino';
 import { graphqlConfig } from './infrastructure/configs/graphql.config';
 import { MongooseConfig } from './infrastructure/configs/database.config';
 import { LoggerConfigService } from './infrastructure/configs/logger.config';
-import { redisConfig } from './infrastructure/configs/redis.config';
 import { rabbitmqConfig } from './infrastructure/configs/rabbitmq.config';
+import { redisConfig } from './infrastructure/configs/redis.config';
 import { HealthController } from './infrastructure/health/health.controller';
-import { EventEmitterModule } from '@nestjs/event-emitter';
-import { LoggerModule } from 'nestjs-pino';
-import { UserModule } from './modules/user/user.module';
-import { ChatModule } from './modules/chat/chat.module';
-import { WebsocketModule } from './infrastructure/websocket/ws.module';
-import { RedisModule } from './infrastructure/redis/redis.module';
 import { RabbitmqModule } from './infrastructure/rabbitmq/rabbitmq.module';
-import { RoomModule } from './modules/room/room.module';
+import { RealtimeModule } from './infrastructure/realtime/realtime.module';
+import { RedisModule } from './infrastructure/redis/redis.module';
+import { WebsocketModule } from './infrastructure/websocket/ws.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { NotificationModule } from './modules/notification/notification.module';
+import { ChatModule } from './modules/chat/chat.module';
 import { FriendshipModule } from './modules/friendship/friendship.module';
+import { NotificationModule } from './modules/notification/notification.module';
+import { RoomModule } from './modules/room/room.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { FriendshipModule } from './modules/friendship/friendship.module';
     GraphQLModule.forRoot<ApolloDriverConfig>(graphqlConfig),
     RedisModule,
     RabbitmqModule,
+    RealtimeModule,
     EventEmitterModule.forRoot(),
     MongooseModule.forRootAsync({
       useClass: MongooseConfig,

@@ -53,6 +53,10 @@ export class GatewayProxyService {
       GatewayEnvKey.NOTIFICATION_SERVICE_URL,
       'http://localhost:5052',
     );
+    const realtimeGatewayUrl = configService.get<string>(
+      GatewayEnvKey.REALTIME_GATEWAY_URL,
+      'http://localhost:5053',
+    );
 
     const routes: ProxyRouteConfig[] = [
       {
@@ -75,8 +79,8 @@ export class GatewayProxyService {
       },
       {
         prefix: GatewayRoutePrefix.SOCKET_IO,
-        target: backendUrl,
-        serviceName: GatewayServiceName.BACKEND_WEBSOCKET,
+        target: realtimeGatewayUrl,
+        serviceName: GatewayServiceName.REALTIME_GATEWAY,
         upgradeTimeoutMs: WS_UPGRADE_TIMEOUT_MS,
       },
     ];

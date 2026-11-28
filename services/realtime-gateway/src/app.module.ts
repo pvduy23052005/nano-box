@@ -5,6 +5,7 @@ import { LoggerConfigService } from './infrastructure/configs/logger.config';
 import { rabbitmqConfig } from './infrastructure/configs/rabbitmq.config';
 import { RabbitmqModule } from './infrastructure/rabbitmq/rabbitmq.module';
 import { WebsocketModule } from './infrastructure/websocket/ws.module';
+import { RealtimeEventsConsumer } from './presentation/consumer/realtime-events.consumer';
 import { HealthController } from './presentation/rest/health.controller';
 
 @Module({
@@ -25,6 +26,6 @@ import { HealthController } from './presentation/rest/health.controller';
     WebsocketModule,
   ],
   controllers: [HealthController],
-  providers: [],
+  providers: [RealtimeEventsConsumer],
 })
 export class AppModule {}

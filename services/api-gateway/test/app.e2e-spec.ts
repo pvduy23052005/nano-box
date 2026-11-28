@@ -123,6 +123,7 @@ describe('API Gateway (e2e)', () => {
   let rateLimitService: RateLimitService;
   let mockBackend: { server: http.Server; url: string };
   let mockUpload: { server: http.Server; url: string };
+  let mockRealtimeGateway: { server: http.Server; url: string };
 
   beforeAll(async () => {
     mockBackend = await startMockUpstream((req, res) => {
@@ -144,7 +145,12 @@ describe('API Gateway (e2e)', () => {
       );
     });
 
-    mockBackend.server.on('upgrade', (req, socket) => {
+    mockRealtimeGateway = await startMockUpstream((_req, res) => {
+      res.writeHead(200);
+      res.end();
+    });
+
+    mockRealtimeGateway.server.on('upgrade', (req, socket) => {
       const correlationId = String(req.headers['x-correlation-id'] || '');
       const forwardedFor = String(req.headers['x-forwarded-for'] || '');
       const realIp = String(req.headers['x-real-ip'] || '');
@@ -154,6 +160,7 @@ describe('API Gateway (e2e)', () => {
           'HTTP/1.1 101 Switching Protocols',
           'Upgrade: websocket',
           'Connection: Upgrade',
+          'x-echo-upstream: realtime-gateway',
           `x-echo-correlation-id: ${correlationId}`,
           `x-echo-forwarded-for: ${forwardedFor}`,
           `x-echo-real-ip: ${realIp}`,
@@ -187,6 +194,7 @@ describe('API Gateway (e2e)', () => {
 
     process.env.BACKEND_SERVICE_URL = mockBackend.url;
     process.env.UPLOAD_SERVICE_URL = mockUpload.url;
+    process.env.REALTIME_GATEWAY_URL = mockRealtimeGateway.url;
     process.env.ALLOWED_ORIGINS = 'https://nano-boxes.id.vn';
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -218,6 +226,7 @@ describe('API Gateway (e2e)', () => {
     await Promise.all([
       closeServer(mockBackend.server),
       closeServer(mockUpload.server),
+      closeServer(mockRealtimeGateway.server),
     ]);
   });
 
@@ -408,6 +417,7 @@ describe('API Gateway (e2e)', () => {
       },
     );
     expect(validUpgradeRes).toContain('HTTP/1.1 101 Switching Protocols');
+    expect(validUpgradeRes).toContain('x-echo-upstream: realtime-gateway');
     expect(validUpgradeRes).toContain('x-echo-forwarded-for: 203.0.113.88');
     expect(validUpgradeRes).toContain('x-echo-real-ip: 203.0.113.88');
     expect(validUpgradeRes).toContain('x-echo-forwarded-proto: https');

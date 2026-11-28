@@ -1,29 +1,29 @@
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { ChatPayload } from '../dto/chat.ouput';
-import { MessagesPagePayload } from '../dto/messages-page.payload';
-import { GetMessagesUseCase } from '../../application/use-cases/get-message.use-case';
-import { MessageInput } from '../dto/message.input';
-import { AddEmojiMessageInput } from '../dto/add-emoji-message.input';
-import { CurrentUser } from 'src/common/customs/current-user.decorator';
-import { SendMessageUseCase } from '../../application/use-cases/send-message.use-case';
-import { AddEmojiMessageUseCase } from '../../application/use-cases/add-emoji-message.use-case';
-import { WebsocketService } from 'src/infrastructure/websocket/ws.service';
-import { CHAT_SOCKET_EVENTS } from '../gateway/event.type';
-import { UseGuards, Logger } from '@nestjs/common';
-import { AuthGuard } from 'src/common/guards/auth.guard';
+import {
+  NOTIFICATION_EVENTS,
+} from 'src/modules/notification/presentation/listener/notification.event';
+import { UseGuards } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { NOTIFICATION_EVENTS } from 'src/modules/notification/presentation/listener/notification.event';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { CurrentUser } from 'src/common/customs/current-user.decorator';
+import { AuthGuard } from 'src/common/guards/auth.guard';
+import { RealtimePublisherService } from 'src/infrastructure/realtime/realtime-publisher.service';
+import { AddEmojiMessageUseCase } from '../../application/use-cases/add-emoji-message.use-case';
+import { GetMessagesUseCase } from '../../application/use-cases/get-message.use-case';
+import { SendMessageUseCase } from '../../application/use-cases/send-message.use-case';
+import { AddEmojiMessageInput } from '../dto/add-emoji-message.input';
+import { ChatPayload } from '../dto/chat.ouput';
+import { MessageInput } from '../dto/message.input';
+import { MessagesPagePayload } from '../dto/messages-page.payload';
+import { CHAT_SOCKET_EVENTS } from '../gateway/event.type';
 
 @Resolver()
 @UseGuards(AuthGuard)
 export class ChatResolver {
-  private readonly logger = new Logger(ChatResolver.name);
-
   constructor(
     private readonly getMessagesUseCase: GetMessagesUseCase,
     private readonly sendMessageUseCase: SendMessageUseCase,
     private readonly addEmojiMessageUseCase: AddEmojiMessageUseCase,
-    private readonly webSocketService: WebsocketService,
+    private readonly realtimePublisher: RealtimePublisherService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -66,7 +66,7 @@ export class ChatResolver {
   async sendMessage(
     @Args('input') input: MessageInput,
     @CurrentUser('id') userId: string,
-  ) {
+  ): Promise<ChatPayload> {
     const { message, memberIds } = await this.sendMessageUseCase.execute({
       content: input.content,
       senderId: userId,
@@ -75,9 +75,12 @@ export class ChatResolver {
       mentionedUserIds: input.mentionedUserIds,
     });
 
-    const server = this.webSocketService.server;
-    if (server && memberIds.length) {
-      server.to(memberIds).emit(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, message);
+    if (memberIds.length) {
+      await this.realtimePublisher.emit(
+        memberIds,
+        CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE,
+        message,
+      );
     }
 
     if (message.mentionedUserIds && message.mentionedUserIds.length > 0) {
@@ -92,6 +95,9 @@ export class ChatResolver {
 
     return {
       ...message,
+      id: message.id as string,
+      attachments: message.attachments || [],
+      readBy: message.readBy || [],
       createdAt: message.createdAt ? new Date(message.createdAt) : null,
       isSystem: message.isSystem ?? false,
     };
@@ -109,11 +115,12 @@ export class ChatResolver {
         userId,
       });
 
-    const server = this.webSocketService.server;
-    if (server && memberIds.length) {
-      server
-        .to(memberIds)
-        .emit(CHAT_SOCKET_EVENTS.UPDATE_MESSAGE_REACTION, message);
+    if (memberIds.length) {
+      await this.realtimePublisher.emit(
+        memberIds,
+        CHAT_SOCKET_EVENTS.UPDATE_MESSAGE_REACTION,
+        message,
+      );
     }
 
     this.eventEmitter.emit(NOTIFICATION_EVENTS.MESSAGE_REACTION, {

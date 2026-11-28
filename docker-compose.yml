@@ -254,6 +254,7 @@ services:
       - BACKEND_SERVICE_URL=http://backend:5050
       - UPLOAD_SERVICE_URL=http://upload-service:5051
       - NOTIFICATION_SERVICE_URL=http://notification-service:5052
+      - REALTIME_GATEWAY_URL=http://realtime-gateway:5053
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     healthcheck:

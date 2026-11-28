@@ -11,7 +11,7 @@ export enum GatewayServiceName {
   UPLOAD_SERVICE = 'upload-service',
   NOTIFICATION_GRAPHQL = 'notification-graphql',
   BACKEND_GRAPHQL = 'backend-graphql',
-  BACKEND_WEBSOCKET = 'backend-websocket',
+  REALTIME_GATEWAY = 'realtime-gateway',
 }
 
 export enum GatewayEnvKey {
@@ -20,6 +20,7 @@ export enum GatewayEnvKey {
   BACKEND_SERVICE_URL = 'BACKEND_SERVICE_URL',
   UPLOAD_SERVICE_URL = 'UPLOAD_SERVICE_URL',
   NOTIFICATION_SERVICE_URL = 'NOTIFICATION_SERVICE_URL',
+  REALTIME_GATEWAY_URL = 'REALTIME_GATEWAY_URL',
   REDIS_HOST = 'REDIS_HOST',
   REDIS_PORT = 'REDIS_PORT',
   REDIS_PASSWORD = 'REDIS_PASSWORD',

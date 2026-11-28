@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { WebsocketService } from 'src/infrastructure/websocket/ws.service';
+import { RealtimePublisherService } from 'src/infrastructure/realtime/realtime-publisher.service';
+import type { RoomProps } from 'src/modules/room/domain/room.type';
 import {
   ROOM_EVENTS,
   type RoomMemberAddedPayload,
@@ -9,10 +10,9 @@ import {
   type RoomAdminRevokedPayload,
   type RoomMemberLeftPayload,
 } from 'src/modules/room/presentation/event/room.event';
-import type { RoomProps } from 'src/modules/room/domain/room.type';
-import { CHAT_SOCKET_EVENTS } from '../gateway/event.type';
 import { SendSystemMessageUseCase } from '../../application/use-cases/send-system-message.use-case';
 import { ChatGateway } from '../gateway/chat.gateway';
+import { CHAT_SOCKET_EVENTS } from '../gateway/event.type';
 
 @Injectable()
 export class ChatListener {
@@ -20,7 +20,7 @@ export class ChatListener {
 
   constructor(
     private readonly sendSystemMessageUseCase: SendSystemMessageUseCase,
-    private readonly websocketService: WebsocketService,
+    private readonly realtimePublisher: RealtimePublisherService,
     private readonly chatGateway: ChatGateway,
   ) {}
 
@@ -66,9 +66,11 @@ export class ChatListener {
         ),
       );
 
-      this.websocketService.server
-        ?.to(recipientIds)
-        ?.emit(CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE, message);
+      await this.realtimePublisher.emit(
+        recipientIds,
+        CHAT_SOCKET_EVENTS.RECEIVE_MESSAGE,
+        message,
+      );
     } catch (error) {
       this.logger.error(
         `Error handling ${params.eventName} in ChatListener`,
@@ -106,7 +108,7 @@ export class ChatListener {
 
     if (roomId && removedUserId) {
       this.chatGateway.clearMembershipCache(roomId, removedUserId);
-      this.websocketService.server?.in(removedUserId)?.socketsLeave(roomId);
+      await this.realtimePublisher.socketsLeave(removedUserId, roomId);
     }
 
     await this.sendRoomSystemMessage({
@@ -160,7 +162,7 @@ export class ChatListener {
 
     if (roomId && actorId) {
       this.chatGateway.clearMembershipCache(roomId, actorId);
-      this.websocketService.server?.in(actorId)?.socketsLeave(roomId);
+      await this.realtimePublisher.socketsLeave(actorId, roomId);
     }
 
     if (payload.isRoomEmpty || !payload.room) return;

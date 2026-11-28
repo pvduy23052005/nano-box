@@ -77,6 +77,9 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     await channel.assertExchange(EXCHANGES.NOTIFICATION_REALTIME, 'fanout', {
       durable: true,
     });
+    await channel.assertExchange(EXCHANGES.REALTIME_EVENTS, 'fanout', {
+      durable: true,
+    });
   }
 
   async publish<T>(
